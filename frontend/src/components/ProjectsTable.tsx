@@ -588,8 +588,8 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
-                    <tr className={`${rowColorClass} border-b border-gray-100 block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : ''}`}>
-                      <td colSpan={7} className="p-4 md:p-8 pt-0 block md:table-cell">
+                    <tr className={`${rowColorClass} border-b border-gray-100 block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''}`}>
+                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell ${isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : ''}`}>
                         <div className="bg-white/60 border border-gray-100 rounded-[28px] p-5 md:p-8 shadow-inner-sm animate-fade-in">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                             {/* Project Type & Complexity */}
