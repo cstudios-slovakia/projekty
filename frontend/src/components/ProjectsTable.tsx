@@ -24,6 +24,8 @@ interface Project {
   total_value: number;
   already_paid: number;
   dev_budget: number;
+  total_spent?: number;
+  expenses_breakdown?: string;
   is_archived: boolean;
   notes: string | null;
   // joined fields
@@ -529,9 +531,28 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             <input type="number" name="already_paid" className="bg-gray-50 border border-gray-200 text-gray-400 text-right rounded-xl px-3 py-1.5 w-full text-xs" value={editForm.already_paid || 0} onChange={handleChange} />
                           </div>
                         ) : (
-                          <div className="flex flex-col">
-                            <span className="text-gray-900 font-black text-xl md:text-xl block leading-none tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
-                            {Number(p.already_paid) > 0 && <span className="text-green-500 text-[11px] font-bold mt-1.5 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} PAID</span>}
+                          <div className="flex items-center justify-end gap-3 md:gap-4">
+                            {(() => {
+                              const devBudget = Number(p.dev_budget) || 0;
+                              const totalSpent = Number(p.total_spent) || 0;
+                              const percentBurned = devBudget > 0 ? Math.round((totalSpent / devBudget) * 100) : 0;
+                              let expensesBreakdown: { color: string; cost: number }[] = [];
+                              try { if (p.expenses_breakdown) expensesBreakdown = JSON.parse(p.expenses_breakdown); } catch (e) {}
+                              return (
+                                <div className="flex flex-col items-end flex-shrink-0" title="Budget Burn Rate">
+                                  <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden flex transform translate-y-0.5">
+                                    {devBudget > 0 ? expensesBreakdown.map((exp, i) => (
+                                      <div key={i} style={{ width: `${(exp.cost / devBudget) * 100}%`, backgroundColor: exp.color }} className="h-full border-r border-[#ffffff20] last:border-0" />
+                                    )) : <div className="w-full h-full bg-gray-100" />}
+                                  </div>
+                                  <span className={`text-[9px] font-black mt-1 ${percentBurned > 100 ? 'text-red-500' : 'text-gray-400'}`}>{percentBurned}% BURNED</span>
+                                </div>
+                              );
+                            })()}
+                            <div className="flex flex-col text-right">
+                              <span className="text-gray-900 font-black text-xl md:text-xl block leading-none tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
+                              {Number(p.already_paid) > 0 && <span className="text-green-500 text-[11px] font-bold mt-1.5 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} PAID</span>}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -704,6 +725,32 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                     <DollarSign size={16} /> Expenses
                                   </button>
                                 </div>
+                                {(() => {
+                                  const totalValue = Number(p.total_value) || 0;
+                                  const devBudget = Number(p.dev_budget) || 0;
+                                  const totalSpent = Number(p.total_spent) || 0;
+                                  
+                                  const targetProfit = totalValue - devBudget;
+                                  const targetProfitPct = totalValue > 0 ? ((targetProfit / totalValue) * 100).toFixed(1) : '0.0';
+                                  
+                                  const currentProfit = totalValue - totalSpent;
+                                  const currentProfitPct = totalValue > 0 ? ((currentProfit / totalValue) * 100).toFixed(1) : '0.0';
+
+                                  return (
+                                    <div className="grid grid-cols-2 gap-3 mt-4 animate-fade-in delay-75">
+                                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-center">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 shadow-sm">Target Profit</p>
+                                        <p className="text-sm font-black text-gray-900">€{targetProfit.toLocaleString()}</p>
+                                        <p className="text-[10px] font-bold text-gray-400">{targetProfitPct}% margin</p>
+                                      </div>
+                                      <div className={`p-3 rounded-xl border flex flex-col justify-center transition-colors ${currentProfit < targetProfit ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                                        <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${currentProfit < targetProfit ? 'text-red-400' : 'text-green-500'}`}>Current Profit</p>
+                                        <p className={`text-sm font-black ${currentProfit < targetProfit ? 'text-red-600' : 'text-green-600'}`}>€{currentProfit.toLocaleString()}</p>
+                                        <p className={`text-[10px] font-bold ${currentProfit < targetProfit ? 'text-red-500' : 'text-green-600'}`}>{currentProfitPct}% margin</p>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>

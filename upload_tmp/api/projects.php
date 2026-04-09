@@ -45,7 +45,21 @@ try {
                    d.name as dev_name, d.color as dev_color,
                    ds.name as designer_name, ds.color as designer_color,
                    pm.name as pm_name, pm.color as pm_color,
-                   pt.name as project_type_name, pt.color as project_type_color
+                   pt.name as project_type_name, pt.color as project_type_color,
+                   (
+                       SELECT COALESCE(SUM(
+                           CASE WHEN pe.entity_id IS NOT NULL THEN pe.hours * se.hourly_rate ELSE pe.custom_cost END
+                       ), 0)
+                       FROM project_expenses pe
+                       LEFT JOIN settings_entities se ON pe.entity_id = se.id
+                       WHERE pe.project_id = p.id
+                   ) as total_spent,
+                   (
+                       SELECT json_agg(json_build_object('color', COALESCE(se.color, '#94a3b8'), 'cost', CASE WHEN pe.entity_id IS NOT NULL THEN pe.hours * se.hourly_rate ELSE pe.custom_cost END))
+                       FROM project_expenses pe
+                       LEFT JOIN settings_entities se ON pe.entity_id = se.id
+                       WHERE pe.project_id = p.id AND (pe.hours > 0 OR pe.custom_cost > 0)
+                   ) as expenses_breakdown
             FROM projects p
             LEFT JOIN settings_entities c ON p.client_id = c.id
             LEFT JOIN settings_entities d ON p.dev_id = d.id
