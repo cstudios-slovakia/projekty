@@ -366,21 +366,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
               return (
                 <React.Fragment key={p.id}>
-                  <tr className={`group transition-all flex flex-col md:table-row ${rowColorClass} ${isExpanded ? 'border-t-2 border-x-2 border-[#e78b01] md:border-t-0 md:border-x-0 md:border-b rounded-t-[32px] md:rounded-none' : 'border-b border-gray-300'} overflow-hidden`}>
-                    <td className={`p-3 md:p-5 text-left md:text-center block md:table-cell order-last md:order-none border-t border-gray-100 md:border-none bg-gray-50/10 md:bg-transparent ${isExpanded ? 'hidden md:table-cell' : ''}`}>
+                  <tr className={`group transition-all block md:table-row ${rowColorClass} border-b border-gray-300 ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50 border-l-4 border-l-[#e78b01]' : (rowColorClass.includes('border-l-') ? '' : '')}`}>
+                    <td className="p-3 md:p-5 text-left md:text-center block md:table-cell">
                       <div className="flex items-center justify-between md:justify-center">
-                        {/* Mobile Details Button */}
-                        <button onClick={() => toggleExpand(p.id)} className="md:hidden flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-500 transition-all flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-widest border border-gray-200">
-                          View Details
-                          <ChevronDown size={16} />
-                        </button>
-                        {/* Desktop Details Icon */}
-                        <button onClick={() => toggleExpand(p.id)} className="hidden md:flex p-2.5 rounded-xl hover:bg-gray-100 text-gray-400 transition-all items-center gap-2">
+                        <button onClick={() => toggleExpand(p.id)} className="p-2.5 rounded-xl bg-gray-50 md:bg-transparent hover:bg-gray-100 text-gray-500 md:text-gray-400 transition-all flex items-center gap-2">
+                          <span className="md:hidden text-[10px] font-black uppercase tracking-wider">Details</span>
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
-                        
-                        <div className="md:hidden flex items-center ml-3">
-                          <button onClick={() => toggleArchive(p)} className="p-3 bg-white border border-gray-200 text-gray-400 rounded-2xl shadow-sm"><Archive size={18} /></button>
+                        <div className="md:hidden flex items-center gap-2">
+                          <button onClick={() => toggleArchive(p)} className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl"><Archive size={16} /></button>
                         </div>
                       </div>
                     </td>
@@ -444,7 +438,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 text-left md:text-center block md:table-cell border-t border-gray-200 md:border-none">
+                    <td className="p-4 md:p-5 text-left md:text-center block md:table-cell border-t border-gray-300 md:border-none">
                         <div className="flex items-center justify-between md:flex-col md:items-center">
                           <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Target Deadline</span>
                           {isEditing ? (
@@ -458,7 +452,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         </div>
                     </td>
 
-                    <td className="p-4 md:p-5 space-y-2 block md:table-cell border-t border-gray-200 md:border-none">
+                    <td className="p-4 md:p-5 space-y-2 block md:table-cell border-t border-gray-300 md:border-none">
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Workflow Status</div>
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-center px-1">
@@ -491,7 +485,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         )}
                       </div>
                     </td>
-                    <td className="p-4 md:p-5 block md:table-cell border-t border-gray-200 md:border-none">
+                    <td className="p-4 md:p-5 block md:table-cell border-t border-gray-300 md:border-none">
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Team Assigned</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -530,7 +524,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 text-left md:text-right block md:table-cell border-t border-gray-200 md:border-none">
+                    <td className="p-4 md:p-5 text-left md:text-right block md:table-cell border-t border-gray-300 md:border-none">
                       <div className="flex items-center justify-between md:flex-col md:items-end">
                         <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Financials</span>
                         {isEditing ? (
@@ -566,7 +560,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       </div>
                     </td>
 
-                    <td className="p-4 md:p-5 text-center block md:table-cell border-t border-gray-200 md:border-none">
+                    <td className="p-4 md:p-5 text-center block md:table-cell border-t border-gray-300 md:border-none">
                       <div className="hidden md:flex justify-center gap-2">
                         {isEditing ? (
                           <button onClick={() => handleSave(p.id)} className="p-3 bg-[#00b800] hover:bg-green-600 text-white rounded-xl shadow-lg transition-all transform active:scale-95">
@@ -596,8 +590,8 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
-                    <tr className={`${rowColorClass} block md:table-row border-x-2 border-b-2 border-[#e78b01] md:border-x-0 md:border-b md:border-gray-300 rounded-b-[32px] md:rounded-none overflow-hidden mb-8 md:mb-0`}>
-                      <td colSpan={7} className="p-4 md:p-8 pt-0 block md:table-cell">
+                    <tr className={`${rowColorClass} border-b border-gray-300 block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''}`}>
+                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell ${isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : ''}`}>
                         <div className="bg-white/60 border border-gray-100 rounded-[28px] p-5 md:p-8 shadow-inner-sm animate-fade-in">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                             {/* Project Type & Complexity */}
@@ -772,16 +766,6 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                   );
                                 })()}
                               </div>
-                            </div>
-                            
-                            {/* Mobile Close Button */}
-                            <div className="md:hidden mt-8 pt-6 border-t border-gray-100">
-                               <button 
-                                 onClick={() => toggleExpand(p.id)} 
-                                 className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-inner"
-                               >
-                                 <ChevronUp size={16} /> Close Details
-                               </button>
                             </div>
                           </div>
                         </div>
