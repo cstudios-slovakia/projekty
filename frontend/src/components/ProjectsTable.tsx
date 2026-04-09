@@ -366,13 +366,19 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
               return (
                 <React.Fragment key={p.id}>
-                  <tr className={`group transition-all flex flex-col md:table-row ${rowColorClass} ${isExpanded ? 'border-t-2 border-x-2 border-[#e78b01] rounded-t-[32px]' : 'border-b border-gray-300'} overflow-hidden`}>
-                    <td className={`p-4 md:p-5 text-left md:text-center block md:table-cell order-last border-t border-gray-100 md:border-none bg-gray-50/10 md:bg-transparent ${isExpanded ? 'hidden md:table-cell' : ''}`}>
+                  <tr className={`group transition-all flex flex-col md:table-row ${rowColorClass} ${isExpanded ? 'border-t-2 border-x-2 border-[#e78b01] md:border-t-0 md:border-x-0 md:border-b rounded-t-[32px] md:rounded-none' : 'border-b border-gray-300'} overflow-hidden`}>
+                    <td className={`p-3 md:p-5 text-left md:text-center block md:table-cell order-last md:order-none border-t border-gray-100 md:border-none bg-gray-50/10 md:bg-transparent ${isExpanded ? 'hidden md:table-cell' : ''}`}>
                       <div className="flex items-center justify-between md:justify-center">
-                        <button onClick={() => toggleExpand(p.id)} className="flex-1 md:flex-none py-3 md:p-2.5 rounded-2xl bg-gray-100 md:bg-transparent hover:bg-gray-200 text-gray-500 md:text-gray-400 transition-all flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-widest border border-gray-200 md:border-none">
+                        {/* Mobile Details Button */}
+                        <button onClick={() => toggleExpand(p.id)} className="md:hidden flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-500 transition-all flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-widest border border-gray-200">
                           View Details
                           <ChevronDown size={16} />
                         </button>
+                        {/* Desktop Details Icon */}
+                        <button onClick={() => toggleExpand(p.id)} className="hidden md:flex p-2.5 rounded-xl hover:bg-gray-100 text-gray-400 transition-all items-center gap-2">
+                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
+                        
                         <div className="md:hidden flex items-center ml-3">
                           <button onClick={() => toggleArchive(p)} className="p-3 bg-white border border-gray-200 text-gray-400 rounded-2xl shadow-sm"><Archive size={18} /></button>
                         </div>
@@ -590,7 +596,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
-                    <tr className={`${rowColorClass} block md:table-row border-x-2 border-b-2 border-[#e78b01] rounded-b-[32px] overflow-hidden mb-8`}>
+                    <tr className={`${rowColorClass} block md:table-row border-x-2 border-b-2 border-[#e78b01] md:border-x-0 md:border-b md:border-gray-300 rounded-b-[32px] md:rounded-none overflow-hidden mb-8 md:mb-0`}>
                       <td colSpan={7} className="p-4 md:p-8 pt-0 block md:table-cell">
                         <div className="bg-white/60 border border-gray-100 rounded-[28px] p-5 md:p-8 shadow-inner-sm animate-fade-in">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
