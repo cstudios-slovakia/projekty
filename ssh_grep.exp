@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set password "86f68795a2"
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p26100 "ls -ld cstudios.sk/sub/* | grep -i erik || ls -ld projek* || ls -ld cstudios.sk/sub/projekt*"
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

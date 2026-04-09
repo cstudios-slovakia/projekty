@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, DollarSign, Clock } from 'lucide-react';
 
 interface Expense {
@@ -103,8 +104,8 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
     return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
   };
 
-  return (
-    <>
+  return createPortal(
+    <div className="portal-root">
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] animate-fade-in" onClick={onClose} />
 
@@ -237,6 +238,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
           </div>
         </div>
       </div>
-    </>
+    </div>,
+    document.body
   );
 };
