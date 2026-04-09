@@ -32,11 +32,20 @@ interface Props {
   onBudgetChange: (budget: number) => void;
 }
 
+// Get current week as "YYYY-Wxx"
+const getCurrentWeek = () => {
+  const now = new Date();
+  const oneJan = new Date(now.getFullYear(), 0, 1);
+  const days = Math.floor((now.getTime() - oneJan.getTime()) / 86400000);
+  const weekNum = Math.ceil((days + oneJan.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+};
+
 export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBudget, onClose, onBudgetChange }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newRow, setNewRow] = useState({ entity_id: '', hours: '', week: '', custom_name: '', custom_cost: '' });
+  const [newRow, setNewRow] = useState({ entity_id: '', hours: '', week: getCurrentWeek(), custom_name: '', custom_cost: '' });
   const [budget, setBudget] = useState(devBudget || 0);
 
   useEffect(() => {
@@ -111,15 +120,6 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
   const totalCost = expenses.reduce((acc, e) => acc + (e.entity_id ? Number(e.hours) * Number(e.hourly_rate) : Number(e.custom_cost)), 0);
   const totalHours = expenses.reduce((acc, e) => acc + (e.entity_id ? Number(e.hours) : 0), 0);
   const remaining = Number(budget) - totalCost;
-
-  // Get current week as "YYYY-Wxx"
-  const getCurrentWeek = () => {
-    const now = new Date();
-    const oneJan = new Date(now.getFullYear(), 0, 1);
-    const days = Math.floor((now.getTime() - oneJan.getTime()) / 86400000);
-    const weekNum = Math.ceil((days + oneJan.getDay() + 1) / 7);
-    return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-  };
 
   return createPortal(
     <div className="portal-root">
