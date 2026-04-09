@@ -77,9 +77,11 @@ try {
         CREATE TABLE IF NOT EXISTS project_expenses (
             id SERIAL PRIMARY KEY,
             project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
-            entity_id INTEGER REFERENCES settings_entities(id) ON DELETE CASCADE,
+            entity_id INTEGER REFERENCES settings_entities(id) ON DELETE CASCADE NULL,
             hours NUMERIC(10,2) NOT NULL DEFAULT 0,
             week VARCHAR(50) NOT NULL,
+            custom_name VARCHAR(255) NULL,
+            custom_cost NUMERIC(15,2) NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 

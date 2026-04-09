@@ -5,13 +5,15 @@ import { X, Plus, Trash2, DollarSign, Clock } from 'lucide-react';
 interface Expense {
   id: number;
   project_id: number;
-  entity_id: number;
+  entity_id: number | null;
   hours: number;
   week: string;
-  entity_name: string;
-  entity_color: string;
-  entity_type: string;
-  hourly_rate: number;
+  entity_name?: string;
+  entity_color?: string;
+  entity_type?: string;
+  hourly_rate?: number;
+  custom_name?: string;
+  custom_cost?: number;
 }
 
 interface Entity {
@@ -34,7 +36,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newRow, setNewRow] = useState({ entity_id: '', hours: '', week: '' });
+  const [newRow, setNewRow] = useState({ entity_id: '', hours: '', week: '', custom_name: '', custom_cost: '' });
   const [budget, setBudget] = useState(devBudget || 0);
 
   useEffect(() => {
@@ -63,14 +65,29 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
   };
 
   const handleAdd = () => {
-    if (!newRow.entity_id || !newRow.hours || !newRow.week) return;
+    if (!newRow.week) return;
+    if (newRow.entity_id === 'custom') {
+      if (!newRow.custom_name || !newRow.custom_cost) return;
+    } else {
+      if (!newRow.entity_id || !newRow.hours) return;
+    }
+
+    const payload = {
+      project_id: projectId,
+      entity_id: newRow.entity_id === 'custom' ? null : Number(newRow.entity_id),
+      hours: newRow.entity_id === 'custom' ? 0 : Number(newRow.hours),
+      week: newRow.week,
+      custom_name: newRow.entity_id === 'custom' ? newRow.custom_name : null,
+      custom_cost: newRow.entity_id === 'custom' ? Number(newRow.custom_cost) : null
+    };
+
     fetch('/api/expenses.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ project_id: projectId, entity_id: Number(newRow.entity_id), hours: Number(newRow.hours), week: newRow.week })
+      body: JSON.stringify(payload)
     }).then(r => r.json()).then(res => {
       if (res.status === 'success') {
-        setNewRow({ entity_id: '', hours: '', week: '' });
+        setNewRow({ entity_id: '', hours: '', week: getCurrentWeek(), custom_name: '', custom_cost: '' });
         fetchExpenses();
       }
     });
@@ -91,8 +108,8 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
     });
   };
 
-  const totalCost = expenses.reduce((acc, e) => acc + (Number(e.hours) * Number(e.hourly_rate)), 0);
-  const totalHours = expenses.reduce((acc, e) => acc + Number(e.hours), 0);
+  const totalCost = expenses.reduce((acc, e) => acc + (e.entity_id ? Number(e.hours) * Number(e.hourly_rate) : Number(e.custom_cost)), 0);
+  const totalHours = expenses.reduce((acc, e) => acc + (e.entity_id ? Number(e.hours) : 0), 0);
   const remaining = Number(budget) - totalCost;
 
   // Get current week as "YYYY-Wxx"
@@ -170,20 +187,24 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
           ) : (
             expenses.map(exp => (
               <div key={exp.id} className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-transparent hover:border-gray-200 transition-all group">
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: exp.entity_color }} />
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: exp.entity_color || '#94a3b8' }} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-gray-900 text-sm truncate">{exp.entity_name}</span>
-                    <span className="text-[10px] font-black bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full uppercase">{exp.entity_type}</span>
+                    <span className="font-bold text-gray-900 text-sm truncate">{exp.entity_id ? exp.entity_name : exp.custom_name}</span>
+                    <span className="text-[10px] font-black bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full uppercase">{exp.entity_id ? exp.entity_type : 'Custom'}</span>
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5 flex gap-3 items-center">
                     <span className="font-medium">{exp.week}</span>
-                    <span>•</span>
-                    <span><strong>{exp.hours}h</strong> × €{Number(exp.hourly_rate).toLocaleString()}/h</span>
+                    {exp.entity_id && (
+                      <>
+                        <span>•</span>
+                        <span><strong>{exp.hours}h</strong> × €{Number(exp.hourly_rate).toLocaleString()}/h</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="font-black text-gray-900">€{(Number(exp.hours) * Number(exp.hourly_rate)).toLocaleString()}</p>
+                  <p className="font-black text-gray-900">€{exp.entity_id ? (Number(exp.hours) * Number(exp.hourly_rate)).toLocaleString() : Number(exp.custom_cost).toLocaleString()}</p>
                 </div>
                 <button onClick={() => handleDelete(exp.id)} className="p-1.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
                   <Trash2 size={14} />
@@ -204,22 +225,54 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                 className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[#e78b01] transition-all"
               >
                 <option value="">Who worked?</option>
-                {entities.map(e => (
-                  <option key={e.id} value={e.id}>
-                    {e.name} ({e.type === 'developer' ? 'Dev' : 'Design'}) — €{Number(e.hourly_rate)}/h
-                  </option>
-                ))}
+                <optgroup label="Developers">
+                  {entities.filter(e => e.type === 'developer').map(e => (
+                    <option key={e.id} value={e.id}>{e.name} (Dev) — €{Number(e.hourly_rate)}/h</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Designers">
+                  {entities.filter(e => e.type === 'designer').map(e => (
+                    <option key={e.id} value={e.id}>{e.name} (Design) — €{Number(e.hourly_rate)}/h</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="custom">Custom expense...</option>
+                </optgroup>
               </select>
-              <input
-                type="number"
-                placeholder="Hours"
-                value={newRow.hours}
-                onChange={e => setNewRow({ ...newRow, hours: e.target.value })}
-                className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[#e78b01] transition-all"
-                min="0"
-                step="0.5"
-              />
+              
+              {newRow.entity_id === 'custom' ? (
+                <input
+                  type="number"
+                  placeholder="Total Cost (€)"
+                  value={newRow.custom_cost}
+                  onChange={e => setNewRow({ ...newRow, custom_cost: e.target.value })}
+                  className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[#e78b01] transition-all"
+                  min="0"
+                  step="0.5"
+                />
+              ) : (
+                <input
+                  type="number"
+                  placeholder="Hours"
+                  value={newRow.hours}
+                  onChange={e => setNewRow({ ...newRow, hours: e.target.value })}
+                  className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[#e78b01] transition-all"
+                  min="0"
+                  step="0.5"
+                />
+              )}
             </div>
+
+            {newRow.entity_id === 'custom' && (
+              <input
+                type="text"
+                placeholder="Expense description..."
+                value={newRow.custom_name}
+                onChange={e => setNewRow({ ...newRow, custom_name: e.target.value })}
+                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[#e78b01] transition-all"
+              />
+            )}
+
             <div className="flex gap-3">
               <input
                 type="week"
@@ -229,7 +282,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
               />
               <button
                 onClick={handleAdd}
-                disabled={!newRow.entity_id || !newRow.hours}
+                disabled={(!newRow.entity_id || (newRow.entity_id !== 'custom' && !newRow.hours) || (newRow.entity_id === 'custom' && (!newRow.custom_name || !newRow.custom_cost)))}
                 className="bg-[#e78b01] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-40 disabled:scale-100"
               >
                 <Plus size={18} /> Add

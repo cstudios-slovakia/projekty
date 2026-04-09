@@ -24,21 +24,23 @@ try {
         $stmt = $pdo->prepare("
             SELECT pe.*, se.name as entity_name, se.color as entity_color, se.type as entity_type, se.hourly_rate
             FROM project_expenses pe
-            JOIN settings_entities se ON pe.entity_id = se.id
+            LEFT JOIN settings_entities se ON pe.entity_id = se.id
             WHERE pe.project_id = ?
-            ORDER BY pe.week DESC, se.name ASC
+            ORDER BY pe.week DESC, pe.created_at DESC
         ");
         $stmt->execute([$projectId]);
         echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
 
     } elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("INSERT INTO project_expenses (project_id, entity_id, hours, week) VALUES (?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO project_expenses (project_id, entity_id, hours, week, custom_name, custom_cost) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $input['project_id'],
-            $input['entity_id'],
+            $input['entity_id'] ? $input['entity_id'] : null,
             $input['hours'] ?? 0,
-            $input['week'] ?? ''
+            $input['week'] ?? '',
+            $input['custom_name'] ?? null,
+            $input['custom_cost'] ?? null
         ]);
         echo json_encode(["status" => "success", "id" => $pdo->lastInsertId('project_expenses_id_seq')]);
 
@@ -50,11 +52,13 @@ try {
             exit;
         }
         $input = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("UPDATE project_expenses SET entity_id = ?, hours = ?, week = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE project_expenses SET entity_id = ?, hours = ?, week = ?, custom_name = ?, custom_cost = ? WHERE id = ?");
         $stmt->execute([
-            $input['entity_id'],
-            $input['hours'],
+            $input['entity_id'] ? $input['entity_id'] : null,
+            $input['hours'] ?? 0,
             $input['week'],
+            $input['custom_name'] ?? null,
+            $input['custom_cost'] ?? null,
             $id
         ]);
         echo json_encode(["status" => "success"]);

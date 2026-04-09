@@ -17,10 +17,10 @@ if ($method === 'OPTIONS') {
 try {
     if ($method === 'GET') {
         if ($type) {
-            $stmt = $pdo->prepare("SELECT * FROM settings_entities WHERE type = ?");
+            $stmt = $pdo->prepare("SELECT * FROM settings_entities WHERE type = ? ORDER BY id ASC");
             $stmt->execute([$type]);
         } else {
-            $stmt = $pdo->query("SELECT * FROM settings_entities");
+            $stmt = $pdo->query("SELECT * FROM settings_entities ORDER BY id ASC");
         }
         echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
         
