@@ -438,7 +438,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300 md:border-none border-t border-gray-300 md:border-t-0">
+                    <td className="p-4 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                         <div className="flex items-center justify-between md:flex-col md:items-center">
                           <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Target Deadline</span>
                           {isEditing ? (
@@ -452,7 +452,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         </div>
                     </td>
 
-                    <td className="p-4 md:p-5 space-y-2 block md:table-cell border-b border-gray-300 md:border-none border-t border-gray-300 md:border-t-0">
+                    <td className="p-4 md:p-5 space-y-2 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Workflow Status</div>
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-center px-1">
@@ -485,7 +485,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         )}
                       </div>
                     </td>
-                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300 md:border-none border-t border-gray-300 md:border-t-0">
+                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Team Assigned</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -524,7 +524,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 text-left md:text-right block md:table-cell border-b border-gray-300 md:border-none border-t border-gray-300 md:border-t-0">
+                    <td className="p-4 md:p-5 text-left md:text-right block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                       <div className="flex items-center justify-between md:flex-col md:items-end">
                         <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Financials</span>
                         {isEditing ? (
@@ -560,7 +560,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       </div>
                     </td>
 
-                    <td className="p-4 md:p-5 text-center block md:table-cell border-b border-gray-300 md:border-none border-t border-gray-300 md:border-t-0">
+                    <td className="p-4 md:p-5 text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                       <div className="hidden md:flex justify-center gap-2">
                         {isEditing ? (
                           <button onClick={() => handleSave(p.id)} className="p-3 bg-[#00b800] hover:bg-green-600 text-white rounded-xl shadow-lg transition-all transform active:scale-95">
@@ -591,7 +591,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
                     <tr className={`${rowColorClass} border-b border-gray-300 block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''}`}>
-                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell ${isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : ''}`}>
+                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell ${isExpanded ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-') ? '' : 'border-l-[#e78b01]'}`}>
                         <div className="bg-white/60 border border-gray-100 rounded-[28px] p-5 md:p-8 shadow-inner-sm animate-fade-in">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                             {/* Project Type & Complexity */}
