@@ -1,0 +1,310 @@
+import React, { useState, useEffect } from 'react';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, Filler } from 'chart.js';
+import { Bar, Line } from 'react-chartjs-2';
+import { Briefcase, Save, Calendar } from 'lucide-react';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  Filler
+);
+
+interface DashboardData {
+  funnel: any[];
+  income: any[];
+  workload_dev: any[];
+  workload_design: any[];
+  workload_pm: any[];
+}
+
+const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
+  // Sort data into logical pipeline order
+  const order = ['New Lead', 'Price Offer Sent', 'Price Offer Accepted'];
+  const funnelData = order.map(status => {
+    const item = data.find(d => d.status === status);
+    return { 
+      label: status, 
+      value: item ? Number(item.count) : 0,
+      amount: item ? Number(item.total_value) : 0 
+    };
+  });
+
+  // Calculate widths: top is 100%, others are proportional to the first
+  const maxAmount = Math.max(...funnelData.map(d => d.amount), 1);
+  
+  return (
+    <div className="flex flex-col items-center w-full py-4">
+      <div className="w-full flex">
+        {/* Labels Column */}
+        <div className="w-36 flex flex-col justify-between py-2 text-[13px] font-black text-gray-800 uppercase tracking-tighter">
+          {funnelData.map(d => (
+            <div key={d.label} className="h-10 flex flex-col justify-center">
+              <div className="leading-tight">{d.label}</div>
+              <div className="text-[#e28c00] text-[12px] font-black">€{Math.round(d.amount).toLocaleString()}</div>
+            </div>
+          ))}
+        </div>
+        
+        {/* SVG Funnel Column */}
+        <div className="flex-1 px-4">
+          <svg viewBox="0 0 400 200" className="w-full h-full drop-shadow-2xl overflow-visible">
+            {funnelData.map((d, i) => {
+              const colors = ['#f59e0b', '#3b82f6', '#10b981', '#ec4899'];
+              const height = 180 / funnelData.length;
+              const y = i * height;
+              
+              // Trapezoid calculation with min-width for zero values, scaling by AMOUNT
+              const topVal = i === 0 ? d.amount : funnelData[i-1].amount;
+              const topWidth = Math.max((topVal / maxAmount) * 380, 40);
+              const bottomWidth = Math.max((d.amount / maxAmount) * 380, 40);
+              
+              const x1 = (400 - topWidth) / 2;
+              const x2 = x1 + topWidth;
+              const x3 = (400 - bottomWidth) / 2;
+              const x4 = x3 + bottomWidth;
+
+              return (
+                <g key={d.label}>
+                  <polygon 
+                    points={`${x1},${y} ${x2},${y} ${x4},${y + height - 2} ${x3},${y + height - 2}`} 
+                    fill={colors[i % colors.length]}
+                    fillOpacity={d.value === 0 ? 0.2 : 1}
+                    className="transition-all duration-700 hover:brightness-110 cursor-pointer"
+                  />
+                  <text 
+                    x="200" y={y + height/2 + 2} 
+                    textAnchor="middle" 
+                    fill="white" 
+                    className="text-[22px] font-black pointer-events-none drop-shadow-md"
+                    style={{ opacity: d.value === 0 ? 0.3 : 1 }}
+                  >
+                    {d.value}
+                  </text>
+                  {d.value > 0 && (
+                    <text 
+                      x="200" y={y + height/2 + 18} 
+                      textAnchor="middle" 
+                      fill="rgba(255,255,255,0.9)" 
+                      className="text-[12px] font-black pointer-events-none"
+                    >
+                      €{Number(d.amount).toLocaleString()}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const DashboardKPIs: React.FC = () => {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [workloadTab, setWorkloadTab] = useState<'dev' | 'design' | 'pm'>('dev');
+  const [useComplexity, setUseComplexity] = useState(false);
+
+  const fetchData = () => {
+    fetch('/api/dashboard.php')
+      .then(r => r.json())
+      .then(res => {
+        if(res.status === 'success') setData(res.data);
+      });
+  };
+
+  useEffect(() => {
+    fetchData();
+    
+    // Listen for updates from other components
+    const handleUpdate = () => fetchData();
+    window.addEventListener('projectsUpdated', handleUpdate);
+    return () => window.removeEventListener('projectsUpdated', handleUpdate);
+  }, []);
+
+  if (!data) return <div className="h-48 flex items-center justify-center text-gray-400 font-mono text-xs animate-pulse">Initializing Data Stream...</div>;
+
+  // 1. Workload Bar Chart (Tabbed & Stacked & Weighted)
+  const currentWorkload = workloadTab === 'dev' ? data.workload_dev : (workloadTab === 'design' ? data.workload_design : data.workload_pm);
+  
+  const getActiveVal = (d: any) => useComplexity ? Number(d.active_complexity) : Number(d.active_count);
+  const getTotalVal = (d: any) => useComplexity ? Number(d.total_complexity) : Number(d.total_count);
+
+  const workloadChartData = {
+    labels: currentWorkload.map((d: any) => d.name),
+    datasets: [
+      {
+        label: 'Active',
+        data: currentWorkload.map((d: any) => getActiveVal(d)),
+        backgroundColor: currentWorkload.map((d: any) => d.color || (workloadTab === 'dev' ? '#3b82f6' : (workloadTab === 'design' ? '#a855f7' : '#ec4899'))),
+        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 8, bottomRight: 8 },
+      },
+      {
+        label: 'Assigned',
+        data: currentWorkload.map((d: any) => getTotalVal(d) - getActiveVal(d)),
+        backgroundColor: currentWorkload.map((d: any) => (d.color || (workloadTab === 'dev' ? '#3b82f6' : (workloadTab === 'design' ? '#a855f7' : '#ec4899'))) + '33'),
+        borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 },
+      }
+    ]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#fff',
+        titleColor: '#000',
+        bodyColor: '#666',
+        borderColor: '#eee',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 12,
+        displayColors: false,
+      }
+    },
+    scales: {
+      y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } },
+      x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  };
+
+  const workloadOptions = {
+    ...chartOptions,
+    scales: {
+      x: { stacked: true, ...chartOptions.scales.x },
+      y: { stacked: true, ...chartOptions.scales.y }
+    }
+  };
+
+  // 2. Estimated Income Line Chart
+  const incomeChartData = {
+    labels: data.income.map(i => i.month),
+    datasets: [{
+      label: 'Expected Income (€)',
+      data: data.income.map(i => i.expected_income),
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: '#fff',
+      pointBorderWidth: 2,
+    }]
+  };
+
+  return (
+    <div className="space-y-6 mb-12 animate-fade-in px-1 md:px-0">
+      {/* KPI Cards Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Leads</p>
+            <h4 className="text-xl md:text-3xl font-black text-gray-900">{data.funnel.reduce((acc, curr) => acc + Number(curr.count), 0)}</h4>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
+             <Briefcase size={20} />
+          </div>
+        </div>
+        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Pipeline Vol.</p>
+            <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.funnel.reduce((acc, curr) => acc + Number(curr.total_value), 0) / 1000).toFixed(1)}k</h4>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+             <Save size={20} />
+          </div>
+        </div>
+        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Expected Income</p>
+            <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.income.reduce((acc, curr) => acc + Number(curr.expected_income), 0) / 1000).toFixed(1)}k</h4>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500">
+             <Calendar size={20} />
+          </div>
+        </div>
+        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Success Rate</p>
+            <h4 className="text-xl md:text-3xl font-black text-gray-900">18%</h4>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500">
+             <Briefcase size={20} />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        {/* Project Funnel */}
+        <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[350px] md:min-h-[400px]">
+          <h3 className="text-xl font-bold text-gray-900 mb-1">Sales Funnel</h3>
+          <p className="text-[10px] text-gray-400 mb-6 md:mb-8 uppercase tracking-[0.2em] font-black">Lead Transformation Cycle</p>
+          <div className="flex-1 flex flex-col justify-center overflow-x-hidden">
+            <FunnelChart data={data.funnel} />
+          </div>
+        </div>
+
+        {/* Workload Analysis */}
+        <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[400px]">
+          <div className="flex justify-between items-start mb-10">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Workload</h3>
+              <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">Capacity Analysis</p>
+            </div>
+            <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+              <button 
+                onClick={() => setWorkloadTab('dev')}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${workloadTab === 'dev' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                DEV
+              </button>
+              <button 
+                onClick={() => setWorkloadTab('design')}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${workloadTab === 'design' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                DESIGN
+              </button>
+              <button 
+                onClick={() => setWorkloadTab('pm')}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${workloadTab === 'pm' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                PM
+              </button>
+            </div>
+          </div>
+          <div className="flex-1">
+            <Bar data={workloadChartData} options={workloadOptions} />
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Complexity Weighting</span>
+            <button 
+              onClick={() => setUseComplexity(!useComplexity)}
+              className={`w-12 h-6 rounded-full transition-all relative ${useComplexity ? 'bg-[#e78b01]' : 'bg-gray-200'}`}
+            >
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${useComplexity ? 'right-1' : 'left-1'}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Income Stream */}
+        <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[400px]">
+          <h3 className="text-xl font-bold text-gray-900 mb-1">Expected Income</h3>
+          <p className="text-[10px] text-gray-400 mb-8 uppercase tracking-[0.2em] font-black">Monthly Forecast</p>
+          <div className="flex-1">
+            <Line data={incomeChartData} options={chartOptions} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

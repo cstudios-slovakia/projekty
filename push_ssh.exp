@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+set timeout -1
+set password "ebe310854a"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "28172"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+# Move local files to a clean upload dir first layout
+system "rm -rf upload_tmp && mkdir -p upload_tmp && cp -r frontend/dist/* upload_tmp/ && cp -r api upload_tmp/"
+
+# Ensure the subdirectories exist and permissions are okay maybe not needed if we rsync
+spawn rsync -avz -e "ssh -p $port -o StrictHostKeyChecking=no" upload_tmp/ $user@$host:$dest_dir/
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
