@@ -366,15 +366,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
               return (
                 <React.Fragment key={p.id}>
-                  <tr className={`group transition-all flex flex-col md:table-row ${rowColorClass} ${isExpanded ? 'rounded-t-[32px]' : 'mb-6 rounded-[32px] border-b border-gray-200'} border-x border-t border-gray-100 md:border-none shadow-sm md:shadow-none overflow-hidden ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50 border-l-4 border-l-[#e78b01]' : (rowColorClass.includes('border-l-') ? '' : '')}`}>
+                  <tr className={`group transition-all flex flex-col md:table-row ${rowColorClass} ${isExpanded ? 'rounded-t-[32px]' : 'mb-6 rounded-[32px] border-b border-gray-200'} border-x border-t border-gray-100 md:border-none shadow-sm md:shadow-none overflow-hidden ${isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01] bg-slate-50' : (rowColorClass.includes('border-l-') ? '' : '')}`}>
                     <td className="p-3 md:p-5 text-left md:text-center block md:table-cell order-last border-t border-gray-100 md:border-none bg-gray-50/50 md:bg-transparent">
-                      <div className="flex items-center justify-between md:justify-center">
-                        <button onClick={() => toggleExpand(p.id)} className="p-2.5 rounded-xl bg-gray-50 md:bg-transparent hover:bg-gray-100 text-gray-500 md:text-gray-400 transition-all flex items-center gap-2">
-                          <span className="md:hidden text-[10px] font-black uppercase tracking-wider">Details</span>
+                      <div className="flex items-center justify-between md:justify-center px-1">
+                        <button onClick={() => toggleExpand(p.id)} className="flex-1 md:flex-none py-3 md:p-2.5 rounded-2xl bg-[#e78b01]/10 md:bg-transparent hover:bg-[#e78b01]/20 text-[#e78b01] transition-all flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-widest border border-[#e78b01]/20 md:border-none">
+                          {isExpanded ? 'Close Details' : 'View Details'}
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
-                        <div className="md:hidden flex items-center gap-2">
-                          <button onClick={() => toggleArchive(p)} className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl"><Archive size={16} /></button>
+                        <div className="md:hidden flex items-center ml-3">
+                          <button onClick={() => toggleArchive(p)} className="p-3 bg-white border border-gray-200 text-gray-400 rounded-2xl shadow-sm active:scale-95 transition-all"><Archive size={18} /></button>
                         </div>
                       </div>
                     </td>
@@ -590,8 +590,8 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
-                    <tr className={`${rowColorClass} mb-6 border-x border-b border-gray-100 rounded-b-[32px] shadow-sm md:shadow-none block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50 border-l-4 border-l-[#e78b01]' : ''}`}>
-                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell ${isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : ''}`}>
+                    <tr className={`${rowColorClass} mb-6 border-x border-b border-gray-100 rounded-b-[32px] shadow-sm md:shadow-none block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01] bg-slate-50' : ''}`}>
+                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell ${isExpanded && !rowColorClass.includes('border-l-') ? 'md:border-l-4 md:border-l-[#e78b01]' : ''}`}>
                         <div className="bg-white/60 border border-gray-100 rounded-[28px] p-5 md:p-8 shadow-inner-sm animate-fade-in">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                             {/* Project Type & Complexity */}
