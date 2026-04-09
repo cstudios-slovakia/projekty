@@ -194,9 +194,11 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
        return 'bg-red-50/80 border-l-4 border-l-red-500 hover:bg-red-100/50';
     }
 
-    // ORANGE HIGHLIGHT: Approaching deadline (deadline - est_dev_time)
+    // ORANGE HIGHLIGHT: Approaching deadline (impacted by complexity formula: (25/9)x^2 + (25/9)x + 400/9)
+    const cVal = p.complexity || 1;
+    const complexityBuffer = Math.round((25/9) * Math.pow(cVal, 2) + (25/9) * cVal + (400/9));
     const warningDate = new Date(deadlineDate);
-    warningDate.setDate(warningDate.getDate() - (p.est_dev_time || 0));
+    warningDate.setDate(warningDate.getDate() - complexityBuffer);
     warningDate.setHours(0, 0, 0, 0); // Start of warning day
     
     if (currentDate >= warningDate && !isFinished) {
@@ -364,7 +366,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
               return (
                 <React.Fragment key={p.id}>
-                  <tr className={`group transition-all block md:table-row ${rowColorClass} ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50 border-l-4 border-l-[#e78b01]' : (rowColorClass.includes('border-l-') ? '' : 'border-b border-gray-50')}`}>
+                  <tr className={`group transition-all block md:table-row ${rowColorClass} ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50 border-l-4 border-l-[#e78b01]' : (rowColorClass.includes('border-l-') ? '' : 'border-b border-gray-200')}`}>
                     <td className="p-3 md:p-5 text-left md:text-center block md:table-cell">
                       <div className="flex items-center justify-between md:justify-center">
                         <button onClick={() => toggleExpand(p.id)} className="p-2.5 rounded-xl bg-gray-50 md:bg-transparent hover:bg-gray-100 text-gray-500 md:text-gray-400 transition-all flex items-center gap-2">
@@ -603,14 +605,26 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                   {isEditing ? (
                                     <div className="flex items-center gap-4">
                                       <input type="range" name="complexity" min="1" max="7" className="flex-1 accent-[#e78b01]" value={editForm.complexity || 1} onChange={handleChange} />
-                                      <span className="font-bold text-[#e78b01] bg-orange-50 px-3 py-1 rounded-lg">Level {editForm.complexity}</span>
+                                      <div className="flex flex-col items-center">
+                                        <span className="font-bold text-[#e78b01] bg-orange-50 px-3 py-1 rounded-lg">Level {editForm.complexity}</span>
+                                        {(() => {
+                                          const x = Number(editForm.complexity) || 1;
+                                          return <span className="text-[10px] font-black text-orange-300 mt-1 uppercase">{Math.round((25/9)*Math.pow(x,2)+(25/9)*x+400/9)} PTS</span>;
+                                        })()}
+                                      </div>
                                     </div>
                                   ) : (
                                     <div className="flex items-center gap-2">
                                       {[1, 2, 3, 4, 5, 6, 7].map(level => (
                                         <div key={level} className={`h-2 flex-1 rounded-full ${level <= p.complexity ? 'bg-[#e78b01]' : 'bg-gray-100 opacity-50'}`}></div>
                                       ))}
-                                      <span className="text-xs font-bold text-gray-400 ml-2">Lvl {p.complexity}</span>
+                                      <div className="flex flex-col ml-3">
+                                        <span className="text-xs font-bold text-gray-500">Lvl {p.complexity}</span>
+                                        {(() => {
+                                           const x = Number(p.complexity) || 1;
+                                           return <span className="text-[10px] font-black text-gray-300 uppercase leading-none">{Math.round((25/9)*Math.pow(x,2)+(25/9)*x+400/9)}pts impact</span>;
+                                        })()}
+                                      </div>
                                     </div>
                                   )}
                                 </div>
