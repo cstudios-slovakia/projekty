@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, Pencil, DollarSign, RefreshCw } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, Pencil, DollarSign, RefreshCw, Clock } from 'lucide-react';
 import { ExpenseSlideout } from './ExpenseSlideout';
 
 interface Project {
@@ -28,6 +28,8 @@ interface Project {
   expenses_breakdown?: string;
   is_archived: boolean;
   notes: string | null;
+  created_at?: string;
+  updated_at?: string;
   // joined fields
   client_name?: string;
   client_color?: string;
@@ -450,6 +452,12 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             })()}
                             {p.project_type_name && (
                               <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.project_type_color }} title={p.project_type_name}></span>
+                            )}
+                            {p.updated_at && (
+                                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest flex items-center gap-1.5 ml-1">
+                                    <Clock size={11} className="opacity-40" />
+                                    {new Date(p.updated_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                </span>
                             )}
                           </div>
                         </div>

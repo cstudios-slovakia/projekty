@@ -143,7 +143,7 @@ try {
         }
 
         $values[] = $projectId;
-        $sql = "UPDATE projects SET " . implode(", ", $fields) . " WHERE id = ?";
+        $sql = "UPDATE projects SET " . implode(", ", $fields) . ", updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($values);
