@@ -14,6 +14,7 @@ interface Expense {
   hourly_rate?: number;
   custom_name?: string;
   custom_cost?: number;
+  updated_at?: string;
 }
 
 interface Entity {
@@ -129,16 +130,16 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
       {/* Slideout Panel */}
       <div className="fixed right-0 top-0 h-full w-full md:w-[540px] bg-white shadow-2xl z-[70] flex flex-col animate-slide-in-right">
         {/* Header */}
-        <div className="bg-gradient-to-br from-[var(--color-primary)] to-yellow-500 p-8 md:p-10 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[var(--color-primary)] to-yellow-500 p-8 md:p-10 text-white relative overflow-hidden flex-shrink-0">
           <div className="absolute top-0 right-0 p-8 opacity-10">
               <DollarSign size={160} />
           </div>
           <div className="relative z-10 flex justify-between items-start">
-            <div>
+            <div className="flex-1 min-w-0 pr-8">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-80">Project Expenses</p>
-              <h2 className="text-3xl font-black text-white leading-tight">{projectName}</h2>
+              <h2 className="text-3xl font-black text-white leading-tight break-words">{projectName}</h2>
             </div>
-            <button onClick={onClose} className="p-2.5 hover:bg-white/20 rounded-xl transition-all text-white/50 hover:text-white">
+            <button onClick={onClose} className="p-2.5 hover:bg-white/20 rounded-xl transition-all text-white/50 hover:text-white flex-shrink-0">
               <X size={22} />
             </button>
           </div>
@@ -201,6 +202,15 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                         <>
                           <span>•</span>
                           <span><strong>{exp.hours}h</strong> × €{Number(exp.hourly_rate).toLocaleString()}/h</span>
+                        </>
+                      )}
+                      {exp.updated_at && (
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 opacity-70">
+                              <Clock size={10} />
+                              {new Date(exp.updated_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                          </span>
                         </>
                       )}
                     </div>

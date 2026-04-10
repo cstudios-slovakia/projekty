@@ -1,9 +1,9 @@
 #!/usr/bin/expect -f
 set timeout -1
-set password "9b13ce7e55"
+set password "191dbd15fc"
 set user "uid1102122"
 set host "shell.r5.websupport.sk"
-set port "25170"
+set port "28027"
 set dest_dir "cstudios.sk/sub/projektyerik"
 
 # Move local files to a clean upload dir first layout

@@ -52,7 +52,7 @@ try {
             exit;
         }
         $input = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("UPDATE project_expenses SET entity_id = ?, hours = ?, week = ?, custom_name = ?, custom_cost = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE project_expenses SET entity_id = ?, hours = ?, week = ?, custom_name = ?, custom_cost = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
         $stmt->execute([
             $input['entity_id'] ? $input['entity_id'] : null,
             $input['hours'] ?? 0,
