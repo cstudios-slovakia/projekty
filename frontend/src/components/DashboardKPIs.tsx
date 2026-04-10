@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, Filler } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-import { Briefcase, Save, Calendar } from 'lucide-react';
+import { Briefcase, Save, Calendar, RefreshCw } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -203,6 +203,19 @@ export const DashboardKPIs: React.FC = () => {
 
   return (
     <div className="space-y-6 mb-12 animate-fade-in px-1 md:px-0">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Project Landscape</h2>
+          <p className="text-gray-500 text-sm">Key performance indicators and pipeline velocity.</p>
+        </div>
+        <button 
+          onClick={fetchData}
+          className="flex items-center gap-2 p-1.5 px-4 bg-white hover:bg-gray-50 text-gray-400 hover:text-[#e78b01] rounded-xl border border-gray-100 shadow-sm transition-all text-xs font-bold active:scale-95"
+        >
+          <RefreshCw size={14} className={!data ? 'animate-spin' : ''} />
+          Refresh
+        </button>
+      </div>
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">

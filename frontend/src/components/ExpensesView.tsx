@@ -57,19 +57,19 @@ export const ExpensesView: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       {/* Header & Stats Summary */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+        <div className="flex items-baseline gap-4">
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Financial Overview</h2>
-          <p className="text-gray-500 text-sm">Real-time profit and expense tracking across all active projects.</p>
+          <button 
+            onClick={fetchData}
+            className="flex items-center gap-2 p-1 px-3 bg-white hover:bg-gray-50 text-gray-400 hover:text-[#e78b01] rounded-lg border border-gray-100 shadow-sm transition-all text-[10px] font-black uppercase tracking-widest active:scale-95"
+          >
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
         </div>
+        <p className="text-gray-500 text-sm">Real-time profit and expense tracking across all active projects.</p>
         
-            <div className="flex items-center gap-2">
-                <button 
-                  onClick={fetchData}
-                  className="p-2.5 bg-white rounded-xl border border-gray-100 shadow-sm text-gray-400 hover:text-[#e78b01] transition-all hover:bg-gray-50 active:scale-90"
-                  title="Refresh Data"
-                >
-                  <RefreshCw size={18} />
-                </button>
+            <div className="flex items-center gap-3">
                 <div className="bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
                     <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
                         <TrendingUp size={16} className="text-green-600" />
