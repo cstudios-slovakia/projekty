@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, TrendingUp, TrendingDown, Search, RefreshCw } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Search, RefreshCw, Clock } from 'lucide-react';
 import { ExpenseSlideout } from './ExpenseSlideout';
 
 interface Project {
@@ -10,6 +10,7 @@ interface Project {
   dev_budget: number;
   pm_name?: string;
   pm_color?: string;
+  updated_at?: string;
 }
 
 export const ExpensesView: React.FC = () => {
@@ -127,16 +128,24 @@ export const ExpensesView: React.FC = () => {
 
               return (
                 <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors">
-                  <td className="p-6 font-bold text-gray-900 relative">
-                    <div className="flex items-center gap-3">
-                      <span className="text-base tracking-tight">{p.name}</span>
-                      <button 
-                        onClick={() => setExpenseProjectId(p.id)}
-                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
-                        title="Quick Add Expense"
-                      >
-                        <Plus size={16} />
-                      </button>
+                  <td className="p-6 relative">
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-3">
+                        <span className="text-base font-bold text-gray-900 tracking-tight">{p.name}</span>
+                        <button 
+                            onClick={() => setExpenseProjectId(p.id)}
+                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
+                            title="Quick Add Expense"
+                        >
+                            <Plus size={16} />
+                        </button>
+                        </div>
+                        {p.updated_at && (
+                            <div className="flex items-center gap-1.5 mt-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                <Clock size={11} className="opacity-40" />
+                                {new Date(p.updated_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                            </div>
+                        )}
                     </div>
                   </td>
                   <td className="p-6">
