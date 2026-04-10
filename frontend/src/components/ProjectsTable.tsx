@@ -68,6 +68,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [filterName, setFilterName] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPM, setFilterPM] = useState('');
+  const [filterDev, setFilterDev] = useState('');
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
   
   // New Project Form
@@ -223,7 +224,8 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const filteredProjects = projects.filter(p => {
     return p.name.toLowerCase().includes(filterName.toLowerCase()) &&
            (filterStatus === '' || p.status === filterStatus) &&
-           (filterPM === '' || String(p.pm_id) === filterPM);
+           (filterPM === '' || String(p.pm_id) === filterPM) &&
+           (filterDev === '' || String(p.dev_id) === filterDev);
   });
 
   const toggleExpand = (id: number) => {
@@ -257,6 +259,14 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         >
           <option value="">All PMs</option>
           {pms.map(pm => <option key={pm.id} value={pm.id}>{pm.name}</option>)}
+        </select>
+        <select 
+          className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
+          value={filterDev}
+          onChange={e => setFilterDev(e.target.value)}
+        >
+          <option value="">All Devs</option>
+          {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
         {!isCreating && !archivedView && (
           <button onClick={() => setIsCreating(true)} className="bg-[#00b800] hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02] active:scale-95 ml-auto">
