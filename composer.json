@@ -1,6 +1,5 @@
 {
     "name": "cstudios-slovakia/projekty",
-    "version": "1.0.0",
     "description": "A premium project lead tracker with Multi-DB support.",
     "type": "project",
     "license": "MIT",
