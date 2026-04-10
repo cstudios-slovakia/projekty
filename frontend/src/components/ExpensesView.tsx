@@ -97,16 +97,16 @@ export const ExpensesView: React.FC = () => {
       </div>
 
       {/* Main Table */}
-      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden overflow-x-auto">
+      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-visible">
         <table className="w-full text-left text-sm border-collapse">
-          <thead className="sticky top-[72px] z-10 bg-[#f8fafc] shadow-sm">
+          <thead>
             <tr className="italic uppercase text-[10px] font-black text-gray-400 tracking-[0.2em]">
-              <th className="p-6">Project Name</th>
-              <th className="p-6">Project Lead</th>
-              <th className="p-6 text-right">Expenses</th>
-              <th className="p-6 text-right">Price (Gross)</th>
-              <th className="p-6 text-right">Profit</th>
-              <th className="p-6 text-right">Margin %</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">Project Name</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">Project Lead</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Expenses</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Price (Gross)</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Profit</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Margin %</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
