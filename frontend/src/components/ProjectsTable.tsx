@@ -367,7 +367,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
               return (
                 <React.Fragment key={p.id}>
                   <tr className={`group transition-all block md:table-row ${rowColorClass} ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''}`}>
-                    <td className="p-3 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300">
+                    <td className={`p-3 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : ''}`}>
                       <div className="flex items-center justify-between md:justify-center">
                         <button onClick={() => toggleExpand(p.id)} className="p-2.5 rounded-xl bg-gray-50 md:bg-transparent hover:bg-gray-100 text-gray-500 md:text-gray-400 transition-all flex items-center gap-2">
                           <span className="md:hidden text-[10px] font-black uppercase tracking-wider">Details</span>
@@ -378,7 +378,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 md:p-5 block md:table-cell">
+                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300">
                       {isEditing ? (
                         <input name="name" className="bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 w-full font-bold text-lg focus:bg-white transition-all shadow-sm" value={editForm.name || ''} onChange={handleChange} autoFocus />
                       ) : (
@@ -591,7 +591,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
                     <tr className={`${rowColorClass} border-b border-gray-300 block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''}`}>
-                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell ${isExpanded ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-') ? '' : 'border-l-[#e78b01]'}`}>
+                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-4') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : (isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : '')}`}>
                         <div className="bg-white/60 border border-gray-100 rounded-[28px] p-5 md:p-8 shadow-inner-sm animate-fade-in">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                             {/* Project Type & Complexity */}
