@@ -8,7 +8,7 @@ import { Settings } from './components/Settings';
 import { LeadReorder } from './components/LeadReorder';
 import { SetupWizard } from './components/SetupWizard';
 
-function Layout({ systemTitle }: { systemTitle: string }) {
+function Layout({ systemTitle, version }: { systemTitle: string, version: string }) {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -215,7 +215,7 @@ function App() {
           </div>
         </div>
       ) : (
-        <Layout systemTitle={systemSettings.title} />
+        <Layout systemTitle={systemSettings.title} version={version} />
       )}
     </HashRouter>
   );

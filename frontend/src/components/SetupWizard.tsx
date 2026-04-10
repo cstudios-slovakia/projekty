@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { Database, ShieldCheck, Loader2, CheckCircle2, AlertCircle, ChevronRight, Server, Key, User } from 'lucide-react';
 
-interface SetupStepProps {
-  onNext: (data: any) => void;
-  status?: 'idle' | 'loading' | 'error' | 'success';
-  errorMessage?: string;
-}
 
 export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const [step, setStep] = useState(1);
