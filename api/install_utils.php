@@ -84,7 +84,7 @@ function get_schema_sql($db_type, $prefix = '') {
         CREATE TABLE {$prefix}project_expenses (
             id $pk,
             project_id INTEGER REFERENCES {$prefix}projects(id) ON DELETE CASCADE,
-            entity_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE NULL,
+            entity_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE,
             hours NUMERIC(10,2) NOT NULL DEFAULT 0,
             week VARCHAR(50) NOT NULL,
             custom_name VARCHAR(255) NULL,
