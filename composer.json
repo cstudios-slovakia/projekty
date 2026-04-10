@@ -1,5 +1,5 @@
 {
-    "name": "cstudios-slovakia/lead-tracker",
+    "name": "cstudios-slovakia/projekty",
     "version": "1.0.0",
     "description": "A premium project lead tracker with Multi-DB support.",
     "type": "project",
@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "ext-pdo": "*",
         "ext-json": "*"
     },
