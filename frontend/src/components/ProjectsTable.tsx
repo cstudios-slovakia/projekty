@@ -194,12 +194,10 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
        return 'bg-red-50/80 border-l-4 border-l-red-500 hover:bg-red-100/50';
     }
 
-    // ORANGE HIGHLIGHT: Approaching deadline (impacted by complexity formula: (25/9)x^2 + (25/9)x + 400/9)
-    const cVal = p.complexity || 1;
-    const complexityBuffer = Math.round((25/9) * Math.pow(cVal, 2) + (25/9) * cVal + (400/9));
+    // ORANGE HIGHLIGHT: Warning 1 week before deadline
     const warningDate = new Date(deadlineDate);
-    warningDate.setDate(warningDate.getDate() - complexityBuffer);
-    warningDate.setHours(0, 0, 0, 0); // Start of warning day
+    warningDate.setDate(warningDate.getDate() - 7);
+    warningDate.setHours(0, 0, 0, 0);
     
     if (currentDate >= warningDate && !isFinished) {
       return 'bg-orange-50/60 border-l-4 border-l-orange-400 hover:bg-orange-100/50';

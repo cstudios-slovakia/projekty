@@ -14,16 +14,11 @@ A custom project management and financial tracking system designed for Cstudios.
 
 ## 3. Core Logic & Formulas
 
-### Complexity-Based Deadline Warnings
-The system uses a quadratic complexity formula to calculate the "Impact PTS" and the margin for deadline warnings:
-**Formula**: `Impact (Days) = (25/9) * x^2 + (25/9) * x + (400/9)`
-*where `x` is the complexity rating (1 to 7).*
-
-- **Level 1**: ~50 days buffer
-- **Level 4**: ~100 days buffer
-- **Level 7**: ~200 days buffer
-
-This value is used to trigger the "Approaching Deadline" (Orange) highlight in the project list.
+### Deadline Warnings
+The system uses a simple time-based warning system for deadlines:
+1. **Red Highlight**: Project is overdue (`Current Date > Deadline`) and not finished.
+2. **Orange Highlight**: Project is within **1 week (7 days)** of the deadline.
+3. **Exclusion**: Warnings are ignored if the project status is "Finished", "Price Offer Rejected", or "Price Offer Closed".
 
 ### Financial Analytics
 1. **Budget Burn**: Calculated by comparing `total_spent` (sum of all expenses) against `dev_budget`.
