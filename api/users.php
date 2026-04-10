@@ -42,7 +42,9 @@ try {
                 $hash,
                 $input['role'] ?? 'user'
             ]);
-            echo json_encode(["status" => "success", "id" => $pdo->lastInsertId('users_id_seq')]);
+            $is_mysql = (defined('DB_TYPE') && (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
+            $newId = $is_mysql ? $pdo->lastInsertId() : $pdo->lastInsertId('users_id_seq');
+            echo json_encode(["status" => "success", "id" => $newId]);
         }
     } elseif ($method === 'DELETE') {
         if (!$userId) {

@@ -1,0 +1,23 @@
+{
+    "name": "cstudios/lead-tracker",
+    "version": "1.0.0",
+    "description": "A premium project lead tracker with Multi-DB support.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Erik",
+            "email": "erik@cstudios.design"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    "scripts": {
+        "post-create-project-cmd": [
+            "php -r \"copy('api/config.php.example', 'api/config.php');\" || true"
+        ]
+    }
+}

@@ -21,9 +21,9 @@ try {
         $whereClause = "";
 
         if (isset($_GET['archived']) && $_GET['archived'] === 'true') {
-            $filters[] = "p.is_archived = TRUE";
+            $filters[] = IS_MYSQL ? "p.is_archived = 1" : "p.is_archived = TRUE";
         } else {
-            $filters[] = "p.is_archived = FALSE";
+            $filters[] = IS_MYSQL ? "p.is_archived = 0" : "p.is_archived = FALSE";
         }
 
         if ($projectId) {
@@ -55,7 +55,11 @@ try {
                        WHERE pe.project_id = p.id
                    ) as total_spent,
                    (
+                       " . (IS_MYSQL ? "
+                       SELECT JSON_ARRAYAGG(JSON_OBJECT('color', COALESCE(se.color, '#94a3b8'), 'cost', IF(pe.entity_id IS NOT NULL, pe.hours * se.hourly_rate, pe.custom_cost)))
+                       " : "
                        SELECT json_agg(json_build_object('color', COALESCE(se.color, '#94a3b8'), 'cost', CASE WHEN pe.entity_id IS NOT NULL THEN pe.hours * se.hourly_rate ELSE pe.custom_cost END))
+                       ") . "
                        FROM project_expenses pe
                        LEFT JOIN settings_entities se ON pe.entity_id = se.id
                        WHERE pe.project_id = p.id AND (pe.hours > 0 OR pe.custom_cost > 0)
@@ -85,7 +89,7 @@ try {
             $input['total_value'] ?? 0,
             $input['complexity'] ?? 3
         ]);
-        $newId = $pdo->lastInsertId('projects_id_seq');
+        $newId = IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('projects_id_seq');
         
         $logStmt = $pdo->prepare("INSERT INTO audit_logs (project_id, action, details) VALUES (?, ?, ?)");
         $logStmt->execute([$newId, 'Created', 'Project created via POST']);

@@ -25,7 +25,10 @@ export const ExpensesView: React.FC = () => {
       const res = await fetch('/api/projects.php?archived=false&sort_by=sort_order&sort_order=ASC');
       const data = await res.json();
       if (data.status === 'success') {
-        setProjects(data.data || []);
+        const allProjects = data.data || [];
+        // Only show projects that are "Price Offer Accepted"
+        const acceptedProjects = allProjects.filter((p: Project & { status: string }) => p.status === 'Price Offer Accepted');
+        setProjects(acceptedProjects);
       }
     } catch (e) {
       console.error("Failed to fetch projects", e);

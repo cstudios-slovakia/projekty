@@ -42,7 +42,8 @@ try {
             $input['custom_name'] ?? null,
             $input['custom_cost'] ?? null
         ]);
-        echo json_encode(["status" => "success", "id" => $pdo->lastInsertId('project_expenses_id_seq')]);
+        $newId = IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('project_expenses_id_seq');
+        echo json_encode(["status" => "success", "id" => $newId]);
 
     } elseif ($method === 'PUT') {
         $id = $_GET['id'] ?? null;
@@ -52,7 +53,7 @@ try {
             exit;
         }
         $input = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("UPDATE project_expenses SET entity_id = ?, hours = ?, week = ?, custom_name = ?, custom_cost = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE project_expenses SET entity_id = ?, hours = ?, week = ?, custom_name = ?, custom_cost = ? WHERE id = ?");
         $stmt->execute([
             $input['entity_id'] ? $input['entity_id'] : null,
             $input['hours'] ?? 0,

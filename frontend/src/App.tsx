@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LogOut, Home, Archive, Settings as SettingsIcon, Menu, X, ListOrdered, DollarSign } from 'lucide-react';
+import { LogOut, Home, Archive, Settings as SettingsIcon, Menu, X, ListOrdered, DollarSign, Loader2 } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
 import { DashboardKPIs } from './components/DashboardKPIs';
 import { ExpensesView } from './components/ExpensesView';
 import { Settings } from './components/Settings';
 import { LeadReorder } from './components/LeadReorder';
+import { SetupWizard } from './components/SetupWizard';
 
 function Layout({ systemTitle }: { systemTitle: string }) {
   const location = useLocation();
@@ -39,9 +40,14 @@ function Layout({ systemTitle }: { systemTitle: string }) {
                 <span className="font-black text-[#0f172a] text-sm">CS</span>
               </div>
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight whitespace-nowrap">
-              {systemTitle}
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight whitespace-nowrap leading-none">
+                {systemTitle}
+              </h1>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1 ml-0.5">
+                v{version}
+              </span>
+            </div>
           </div>
 
           {/* Desktop Nav */}
@@ -102,12 +108,29 @@ function Layout({ systemTitle }: { systemTitle: string }) {
 }
 
 function App() {
+  const [isInstalled, setIsInstalled] = useState<boolean | null>(null);
+  const [version, setVersion] = useState('');
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [systemSettings, setSystemSettings] = useState({ title: 'Lead Tracker', primary: '#e78b01', secondary: '#00b800' });
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // 1. Check if installed
+    fetch('/api/status.php')
+      .then(r => r.json())
+      .then(res => {
+        setIsInstalled(res.installed);
+        setVersion(res.version || '1.0.0');
+        if (res.installed) {
+          // 2. If installed, fetch settings
+          fetchSettings();
+        }
+      })
+      .catch(() => setIsInstalled(false));
+  }, []);
+
+  const fetchSettings = () => {
     fetch('/api/system_settings.php')
       .then(r => r.json())
       .then(res => {
@@ -125,7 +148,7 @@ function App() {
           document.title = s.system_title || 'Lead Tracker';
         }
       });
-  }, []);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +169,18 @@ function App() {
       setError('Connection error');
     }
   };
+
+  if (isInstalled === false) {
+    return <SetupWizard onComplete={() => { window.location.reload(); }} />;
+  }
+
+  if (isInstalled === null) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4">
+        <Loader2 className="animate-spin text-[#e78b01]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <HashRouter>

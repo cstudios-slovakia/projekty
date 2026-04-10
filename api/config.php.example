@@ -1,0 +1,11 @@
+<?php
+// api/config.php.example
+// Copy this to api/config.php or use the Setup Wizard
+define('DB_TYPE', 'pgsql'); // mysql or pgsql
+define('DB_HOST', 'localhost');
+define('DB_PORT', '5432');
+define('DB_NAME', 'lead_tracker');
+define('DB_USER', 'user');
+define('DB_PASS', 'pass');
+define('DB_PREFIX', '');
+?>

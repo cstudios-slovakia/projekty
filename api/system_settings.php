@@ -14,30 +14,34 @@ if ($method === 'OPTIONS') {
 }
 
 try {
+    $tableName = (defined('DB_PREFIX') ? DB_PREFIX : '') . 'system_settings';
+    $is_mysql = (defined('DB_TYPE') && (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
+    $quote = $is_mysql ? '`' : '';
+    
     // Initialize table if it doesn't exist
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS system_settings (
-            key VARCHAR(255) PRIMARY KEY,
-            value TEXT
-        )
+        CREATE TABLE IF NOT EXISTS $tableName (
+            {$quote}key{$quote} VARCHAR(255) PRIMARY KEY,
+            {$quote}value{$quote} TEXT
+        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . "
     ");
 
     // Seed defaults if empty
-    $checkStmt = $pdo->query("SELECT COUNT(*) FROM system_settings");
+    $checkStmt = $pdo->query("SELECT COUNT(*) FROM $tableName");
     if ($checkStmt->fetchColumn() == 0) {
         $defaults = [
             ['system_title', 'Lead Tracker'],
             ['accent_color_primary', '#e78b01'],
             ['accent_color_secondary', '#00b800']
         ];
-        $insert = $pdo->prepare("INSERT INTO system_settings (key, value) VALUES (?, ?)");
+        $insert = $pdo->prepare("INSERT INTO $tableName ({$quote}key{$quote}, {$quote}value{$quote}) VALUES (?, ?)");
         foreach ($defaults as $row) {
             $insert->execute($row);
         }
     }
 
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT key, value FROM system_settings");
+        $stmt = $pdo->query("SELECT {$quote}key{$quote}, {$quote}value{$quote} FROM $tableName");
         $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
         echo json_encode(["status" => "success", "data" => $settings]);
     } 
@@ -47,7 +51,12 @@ try {
             throw new Exception("Invalid input format");
         }
 
-        $stmt = $pdo->prepare("INSERT INTO system_settings (key, value) VALUES (:key, :value) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value");
+        if ($is_mysql) {
+            $stmt = $pdo->prepare("INSERT INTO $tableName (`key`, `value`) VALUES (:key, :value) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)");
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO $tableName (key, value) VALUES (:key, :value) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value");
+        }
+
         foreach ($input as $key => $value) {
             $stmt->execute(['key' => $key, 'value' => $value]);
         }
