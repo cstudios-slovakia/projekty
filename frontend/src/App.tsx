@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { LogOut, Home, Archive, Settings as SettingsIcon, Menu, X, ListOrdered, DollarSign } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
 import { DashboardKPIs } from './components/DashboardKPIs';
@@ -127,7 +127,7 @@ function App() {
   };
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       {!token ? (
         <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 font-sans relative overflow-hidden">
           {/* Soft Glow Effects */}
@@ -161,7 +161,7 @@ function App() {
       ) : (
         <Layout />
       )}
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
