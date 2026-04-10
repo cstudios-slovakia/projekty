@@ -20,11 +20,42 @@ export const Settings: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
   const [newUser, setNewUser] = useState({ username: '', password: '' });
+  
+  // System Settings
+  const [sysSettings, setSysSettings] = useState({ system_title: '', accent_color_primary: '', accent_color_secondary: '' });
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchEntities();
     fetchUsers();
+    fetchSysSettings();
+
+    // Check admin role
+    const token = localStorage.getItem('token');
+    if (token) {
+        try {
+            const payload = JSON.parse(atob(token));
+            if (payload.role === 'admin') setIsAdmin(true);
+        } catch (e) {}
+    }
   }, []);
+
+  const fetchSysSettings = () => {
+    fetch('/api/system_settings.php').then(r => r.json()).then(res => {
+      if(res.status === 'success') setSysSettings(res.data);
+    });
+  };
+
+  const saveSysSettings = () => {
+    fetch('/api/system_settings.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sysSettings)
+    }).then(r => r.json()).then(() => {
+        alert('System settings updated! Refreshing...');
+        window.location.reload();
+    });
+  };
 
   const fetchEntities = () => {
     fetch('/api/settings.php').then(r => r.json()).then(res => {
@@ -107,13 +138,13 @@ export const Settings: React.FC = () => {
             <input 
               type="text" 
               placeholder={`New ${title.slice(0,-1)}...`} 
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#e78b01]"
+              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]"
               value={newEntity.type === type ? newEntity.name : ''}
               onChange={e => setNewEntity({ type, name: e.target.value, color: newEntity.color })}
             />
             <button 
               onClick={() => handleAddEntity(type)}
-              className="p-2.5 bg-[#e78b01] text-white rounded-xl shadow-lg shadow-[#e78b01]/10 hover:scale-105 active:scale-95 transition-all"
+              className="p-2.5 bg-[var(--color-primary)] text-white rounded-xl shadow-lg shadow-[var(--color-primary)]/10 hover:scale-105 active:scale-95 transition-all"
             >
               <Plus size={20} />
             </button>
@@ -124,7 +155,7 @@ export const Settings: React.FC = () => {
               <button
                 key={c}
                 onClick={() => setNewEntity({ ...newEntity, type, color: c })}
-                className={`w-6 h-6 rounded-full border-2 transition-all ${newEntity.color === c && newEntity.type === type ? 'ring-2 ring-offset-2 ring-[#e78b01] scale-110' : 'border-transparent hover:scale-110'}`}
+                className={`w-6 h-6 rounded-full border-2 transition-all ${newEntity.color === c && newEntity.type === type ? 'ring-2 ring-offset-2 ring-[var(--color-primary)] scale-110' : 'border-transparent hover:scale-110'}`}
                 style={{ backgroundColor: c }}
               />
             ))}
@@ -143,7 +174,7 @@ export const Settings: React.FC = () => {
                   <span className="text-[10px] text-gray-400 font-bold">€</span>
                   <input
                     type="number"
-                    className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-700 outline-none focus:border-[#e78b01] text-right"
+                    className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-700 outline-none focus:border-[var(--color-primary)] text-right"
                     defaultValue={e.hourly_rate || 0}
                     onBlur={(ev) => handleUpdateRate(e, Number(ev.target.value))}
                     placeholder="/h"
@@ -164,7 +195,77 @@ export const Settings: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in px-1 md:px-0">
+    <div className="space-y-8 animate-fade-in px-1 md:px-0 pb-12">
+      {/* Admin System Settings */}
+      {isAdmin && (
+        <div className="bg-white rounded-[32px] border-4 border-[var(--color-primary)]/10 p-6 md:p-10 shadow-xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+                <Plus size={120} className="rotate-45" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
+              <span className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center text-white">
+                <Plus size={18} />
+              </span>
+              Global System Appearance
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">System Title</label>
+                    <input 
+                        type="text" 
+                        value={sysSettings.system_title}
+                        onChange={e => setSysSettings({...sysSettings, system_title: e.target.value})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
+                        placeholder="e.g. Lead Tracker"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Primary Accent Color</label>
+                    <div className="flex gap-3">
+                        <input 
+                            type="color" 
+                            value={sysSettings.accent_color_primary}
+                            onChange={e => setSysSettings({...sysSettings, accent_color_primary: e.target.value})}
+                            className="w-16 h-14 bg-white border border-gray-200 rounded-2xl p-1 cursor-pointer"
+                        />
+                        <input 
+                            type="text" 
+                            value={sysSettings.accent_color_primary}
+                            onChange={e => setSysSettings({...sysSettings, accent_color_primary: e.target.value})}
+                            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-xs font-bold"
+                        />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Secondary Accent Color</label>
+                    <div className="flex gap-3">
+                        <input 
+                            type="color" 
+                            value={sysSettings.accent_color_secondary}
+                            onChange={e => setSysSettings({...sysSettings, accent_color_secondary: e.target.value})}
+                            className="w-16 h-14 bg-white border border-gray-200 rounded-2xl p-1 cursor-pointer"
+                        />
+                        <input 
+                            type="text" 
+                            value={sysSettings.accent_color_secondary}
+                            onChange={e => setSysSettings({...sysSettings, accent_color_secondary: e.target.value})}
+                            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-xs font-bold"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div className="mt-8 pt-8 border-t border-gray-100 flex justify-end">
+                <button 
+                    onClick={saveSysSettings}
+                    className="bg-gray-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95"
+                >
+                    Save Changes
+                </button>
+            </div>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row flex-wrap gap-6">
         {renderEntityColumn('Developers', 'developer')}
         {renderEntityColumn('Designers', 'designer')}
@@ -174,7 +275,7 @@ export const Settings: React.FC = () => {
 
       <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm">
         <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-          <UserPlus className="text-[#e78b01]" /> User Management
+          <UserPlus className="text-[var(--color-primary)]" /> User Management
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
@@ -183,7 +284,7 @@ export const Settings: React.FC = () => {
             <input 
               type="text" 
               placeholder="Username" 
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[#e78b01] transition-all" 
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
               value={newUser.username}
               onChange={e => setNewUser({...newUser, username: e.target.value})}
               required
@@ -191,12 +292,12 @@ export const Settings: React.FC = () => {
             <input 
               type="password" 
               placeholder="Password" 
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[#e78b01] transition-all" 
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
               value={newUser.password}
               onChange={e => setNewUser({...newUser, password: e.target.value})}
               required
             />
-            <button type="submit" className="w-full md:w-auto bg-[#e78b01] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[#e78b01]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <button type="submit" className="w-full md:w-auto bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
               Create User Account
             </button>
           </form>
@@ -207,7 +308,7 @@ export const Settings: React.FC = () => {
               {users.map(u => (
                 <div key={u.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[#e78b01] group-hover:text-white transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all">
                       {u.username[0].toUpperCase()}
                     </div>
                     <div>

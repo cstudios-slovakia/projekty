@@ -273,13 +273,13 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         </select>
         <button 
           onClick={fetchData}
-          className="p-3 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 hover:text-[#e78b01] transition-all hover:bg-white active:scale-90"
+          className="p-3 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 hover:text-[var(--color-primary)] transition-all hover:bg-white active:scale-90"
           title="Refresh Data"
         >
           <RefreshCw size={20} />
         </button>
         {!isCreating && !archivedView && (
-          <button onClick={() => setIsCreating(true)} className="bg-[#00b800] hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02] active:scale-95 ml-auto">
+          <button onClick={() => setIsCreating(true)} className="bg-[var(--color-secondary)] hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02] active:scale-95 ml-auto">
             <Plus size={20} /> New Project
           </button>
         )}

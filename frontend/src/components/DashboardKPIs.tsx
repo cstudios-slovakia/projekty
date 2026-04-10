@@ -210,7 +210,7 @@ export const DashboardKPIs: React.FC = () => {
         </div>
         <button 
           onClick={fetchData}
-          className="flex items-center gap-2 p-1.5 px-4 bg-white hover:bg-gray-50 text-gray-400 hover:text-[#e78b01] rounded-xl border border-gray-100 shadow-sm transition-all text-xs font-bold active:scale-95"
+          className="flex items-center gap-2 p-1.5 px-4 bg-white hover:bg-gray-50 text-gray-400 hover:text-[var(--color-primary)] rounded-xl border border-gray-100 shadow-sm transition-all text-xs font-bold active:scale-95"
         >
           <RefreshCw size={14} className={!data ? 'animate-spin' : ''} />
           Refresh

@@ -9,8 +9,10 @@
   --bg-secondary: #ffffff;
   --text-primary: #0f172a;
   --text-secondary: #64748b;
-  --accent-orange: #e78b01;
-  --accent-green: #00b800;
+  --color-primary: #e78b01;
+  --color-secondary: #00b800;
+  --accent-orange: var(--color-primary);
+  --accent-green: var(--color-secondary);
   --border-color: #e2e8f0;
 }
 

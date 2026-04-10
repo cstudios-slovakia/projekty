@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { LogOut, Home, Archive, Settings as SettingsIcon, Menu, X, ListOrdered, DollarSign } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
@@ -7,7 +7,7 @@ import { ExpensesView } from './components/ExpensesView';
 import { Settings } from './components/Settings';
 import { LeadReorder } from './components/LeadReorder';
 
-function Layout() {
+function Layout({ systemTitle }: { systemTitle: string }) {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -30,17 +30,17 @@ function Layout() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans selection:bg-[#e78b01]/30">
+    <div className="min-h-screen bg-[#f8fafc] font-sans selection:bg-[var(--color-primary)]/30">
       <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#e78b01] to-[#00b800] p-0.5 shadow-lg shadow-[#e78b01]/10">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] p-0.5 shadow-lg shadow-[var(--color-primary)]/10">
               <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
                 <span className="font-black text-[#0f172a] text-sm">CS</span>
               </div>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight whitespace-nowrap">
-              Lead Tracker
+              {systemTitle}
             </h1>
           </div>
 
@@ -103,8 +103,29 @@ function Layout() {
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [systemSettings, setSystemSettings] = useState({ title: 'Lead Tracker', primary: '#e78b01', secondary: '#00b800' });
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/system_settings.php')
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          const s = res.data;
+          setSystemSettings({
+            title: s.system_title || 'Lead Tracker',
+            primary: s.accent_color_primary || '#e78b01',
+            secondary: s.accent_color_secondary || '#00b800'
+          });
+          
+          // Apply globally
+          document.documentElement.style.setProperty('--color-primary', s.accent_color_primary || '#e78b01');
+          document.documentElement.style.setProperty('--color-secondary', s.accent_color_secondary || '#00b800');
+          document.title = s.system_title || 'Lead Tracker';
+        }
+      });
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,15 +152,15 @@ function App() {
       {!token ? (
         <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 font-sans relative overflow-hidden">
           {/* Soft Glow Effects */}
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#e78b01]/5 rounded-full blur-[120px] pointer-events-none"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#00b800]/5 rounded-full blur-[100px] pointer-events-none"></div>
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[var(--color-primary)]/5 rounded-full blur-[120px] pointer-events-none"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[var(--color-secondary)]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
           <div className="w-full max-w-md bg-white rounded-[32px] p-8 border border-gray-200 shadow-2xl relative z-10 transition-all scale-in">
             <div className="text-center mb-10">
-              <div className="w-16 h-16 bg-gradient-to-tr from-[#e78b01] to-yellow-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-[#e78b01]/20 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-tr from-[var(--color-primary)] to-yellow-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20 mb-6">
                 <LogOut size={32} className="text-white rotate-180" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Lead Tracker</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">{systemSettings.title}</h2>
               <p className="text-gray-500">Sign in to your account</p>
             </div>
             {error && <div className="bg-red-50/20 text-red-600 border border-red-100 p-4 rounded-xl mb-6 text-sm text-center">{error}</div>}
@@ -152,14 +173,14 @@ function App() {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Password</label>
                 <input type="password" placeholder="••••••••" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e78b01]/20 focus:border-[#e78b01] transition-all" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} required />
               </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-[#e78b01] to-yellow-500 hover:from-yellow-500 hover:to-[#e78b01] text-white rounded-xl px-4 py-3.5 font-bold shadow-lg shadow-[#e78b01]/20 transition-all active:scale-[0.98] mt-2">
+              <button type="submit" className="w-full bg-gradient-to-r from-[var(--color-primary)] to-yellow-500 hover:from-yellow-500 hover:to-[var(--color-primary)] text-white rounded-xl px-4 py-3.5 font-bold shadow-lg shadow-[var(--color-primary)]/20 transition-all active:scale-[0.98] mt-2">
                 Sign In
               </button>
             </form>
           </div>
         </div>
       ) : (
-        <Layout />
+        <Layout systemTitle={systemSettings.title} />
       )}
     </HashRouter>
   );

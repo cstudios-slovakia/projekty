@@ -49,7 +49,7 @@ export const ExpensesView: React.FC = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e78b01]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
     </div>
   );
 
@@ -61,7 +61,7 @@ export const ExpensesView: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Financial Overview</h2>
           <button 
             onClick={fetchData}
-            className="flex items-center gap-2 p-1 px-3 bg-white hover:bg-gray-50 text-gray-400 hover:text-[#e78b01] rounded-lg border border-gray-100 shadow-sm transition-all text-[10px] font-black uppercase tracking-widest active:scale-95"
+            className="flex items-center gap-2 p-1 px-3 bg-white hover:bg-gray-50 text-gray-400 hover:text-[var(--color-primary)] rounded-lg border border-gray-100 shadow-sm transition-all text-[10px] font-black uppercase tracking-widest active:scale-95"
           >
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -91,13 +91,13 @@ export const ExpensesView: React.FC = () => {
           <input 
             type="text" 
             placeholder="Search project name..." 
-            className="w-full bg-white text-gray-900 rounded-2xl px-12 py-3 border border-gray-100 focus:ring-2 focus:ring-[#e78b01]/20 focus:border-[#e78b01] outline-none transition-all"
+            className="w-full bg-white text-gray-900 rounded-2xl px-12 py-3 border border-gray-100 focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] outline-none transition-all"
             value={filterName}
             onChange={e => setFilterName(e.target.value)}
           />
         </div>
         <select 
-          className="bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:border-[#e78b01]/30 transition-all cursor-pointer font-medium"
+          className="bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:border-[var(--color-primary)]/30 transition-all cursor-pointer font-medium"
           value={filterPM}
           onChange={e => setFilterPM(e.target.value)}
         >
@@ -132,7 +132,7 @@ export const ExpensesView: React.FC = () => {
                       <span className="text-base tracking-tight">{p.name}</span>
                       <button 
                         onClick={() => setExpenseProjectId(p.id)}
-                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[#e78b01] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
+                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
                         title="Quick Add Expense"
                       >
                         <Plus size={16} />
