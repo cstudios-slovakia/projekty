@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -p 28269 uid2136377@shell.r2.websupport.sk
+expect {
+    "Are you sure you want to continue connecting" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "1bd4ff6de9\r"
+    }
+}
+expect "$ "
+send "ls -la\r"
+expect "$ "
+send "find . -maxdepth 2 -name \"softwaresolutions.sk\"\r"
+expect "$ "
+send "mkdir -p softwaresolutions.sk/sub/projekt\r"
+expect "$ "
+send "cd softwaresolutions.sk/sub/projekt\r"
+expect "$ "
+send "rm -rf *\r"
+expect "$ "
+send "composer create-project cstudios-slovakia/projekty .\r"
+expect {
+    "Do you want to remove the existing VCS (.git, .svn..) history?" {
+        send "Y\r"
+        exp_continue
+    }
+    "password for" {
+        send "1bd4ff6de9\r"
+        exp_continue
+    }
+    "$ " {
+        send "ls -la\r"
+    }
+}
+expect "$ "
+send "exit\r"
+expect eof

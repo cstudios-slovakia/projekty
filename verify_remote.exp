@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 10
+spawn ssh -p 28269 uid2136377@shell.r2.websupport.sk
+expect {
+    "Are you sure" { send "yes\r"; exp_continue }
+    "password:" { send "1bd4ff6de9\r" }
+}
+expect "$ "
+send "cd softwaresolutions.sk/sub/projekt && ls -la\r"
+expect "$ "
+send "exit\r"
+expect eof

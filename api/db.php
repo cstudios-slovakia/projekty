@@ -2,7 +2,8 @@
 // api/db.php
 
 $config_file = __DIR__ . '/config.php';
-$is_installed = file_exists($config_file);
+$env_file    = dirname(__DIR__) . '/.env';
+$is_installed = file_exists($env_file) && file_exists($config_file);
 
 if ($is_installed) {
     include $config_file;

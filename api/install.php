@@ -9,9 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-if (file_exists(__DIR__ . '/config.php')) {
+if (file_exists(__DIR__ . '/config.php') && file_exists(dirname(__DIR__) . '/.env')) {
     http_response_code(403);
-    echo json_encode(["status" => "error", "message" => "Software already installed. Delete config.php to reinstall."]);
+    echo json_encode(["status" => "error", "message" => "Software already installed. Delete .env and config.php to reinstall."]);
     exit;
 }
 
@@ -79,6 +79,9 @@ require_once 'install_utils.php';
 $result = run_schema($pdo, $driver, $prefix, $admin_pass);
 
 if ($result['status'] === 'success') {
+    // 4. Create .env marker
+    $env_content = "APP_INSTALLED=true\nINSTALLED_AT=" . date('Y-m-d H:i:s') . "\n";
+    file_put_contents(dirname(__DIR__) . '/.env', $env_content);
     echo json_encode($result);
 } else {
     // If schema fails, maybe delete config? Or leave it for manual fix?
