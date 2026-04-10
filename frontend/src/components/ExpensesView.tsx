@@ -21,7 +21,7 @@ export const ExpensesView: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/projects.php?archived=false&sort_by=name&sort_order=ASC');
+      const res = await fetch('/api/projects.php?archived=false&sort_by=sort_order&sort_order=ASC');
       const data = await res.json();
       if (data.status === 'success') {
         setProjects(data.data || []);
