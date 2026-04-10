@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LogOut, Home, Archive, Settings as SettingsIcon, Menu, X, ListOrdered } from 'lucide-react';
+import { LogOut, Home, Archive, Settings as SettingsIcon, Menu, X, ListOrdered, DollarSign } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
 import { DashboardKPIs } from './components/DashboardKPIs';
+import { ExpensesView } from './components/ExpensesView';
 import { Settings } from './components/Settings';
 import { LeadReorder } from './components/LeadReorder';
 
@@ -21,6 +22,7 @@ function Layout() {
   const NavLinks = () => (
     <>
       <Link to="/" onClick={() => setIsMenuOpen(false)} className={navClass('/')}><Home size={18} /> Active Projects</Link>
+      <Link to="/expenses" onClick={() => setIsMenuOpen(false)} className={navClass('/expenses')}><DollarSign size={18} /> Expenses</Link>
       <Link to="/reorder" onClick={() => setIsMenuOpen(false)} className={navClass('/reorder')}><ListOrdered size={18} /> Order View</Link>
       <Link to="/archive" onClick={() => setIsMenuOpen(false)} className={navClass('/archive')}><Archive size={18} /> Archive</Link>
       <Link to="/settings" onClick={() => setIsMenuOpen(false)} className={navClass('/settings')}><SettingsIcon size={18} /> Settings</Link>
@@ -89,6 +91,7 @@ function Layout() {
       <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 md:py-8">
         <Routes>
           <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
+          <Route path="/expenses" element={<ExpensesView />} />
           <Route path="/reorder" element={<LeadReorder />} />
           <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">Archived Projects</h2><ProjectsTable archivedView={true} /></>} />
           <Route path="/settings" element={<Settings />} />
