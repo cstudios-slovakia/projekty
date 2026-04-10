@@ -32,11 +32,14 @@ export const Settings: React.FC = () => {
 
     // Check admin role
     const token = localStorage.getItem('token');
-    if (token) {
+    if (token && token !== 'undefined') {
         try {
             const payload = JSON.parse(atob(token));
+            console.log("Session Role Check:", payload.role);
             if (payload.role === 'admin') setIsAdmin(true);
-        } catch (e) {}
+        } catch (e) {
+            console.error("Token parse error", e);
+        }
     }
   }, []);
 
@@ -196,7 +199,69 @@ export const Settings: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in px-1 md:px-0 pb-12">
-      {/* Admin System Settings */}
+      <div className="flex flex-col lg:flex-row flex-wrap gap-6">
+        {renderEntityColumn('Developers', 'developer')}
+        {renderEntityColumn('Designers', 'designer')}
+        {renderEntityColumn('Project Managers', 'pm')}
+        {renderEntityColumn('Project Types', 'project_type')}
+      </div>
+
+      <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm">
+        <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+          <UserPlus className="text-[var(--color-primary)]" /> User Management
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
+          <form onSubmit={handleCreateUser} className="space-y-4">
+            <h4 className="font-bold text-gray-700 mb-4">Add New User</h4>
+            <input 
+              type="text" 
+              placeholder="Username" 
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+              value={newUser.username}
+              onChange={e => setNewUser({...newUser, username: e.target.value})}
+              required
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+              value={newUser.password}
+              onChange={e => setNewUser({...newUser, password: e.target.value})}
+              required
+            />
+            <button type="submit" className="w-full md:w-auto bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              Create User Account
+            </button>
+          </form>
+
+          <div>
+            <h4 className="font-bold text-gray-700 mb-6 font-mono tracking-wider uppercase text-xs">Active System Users</h4>
+            <div className="space-y-3">
+              {users.map(u => (
+                <div key={u.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all">
+                      {u.username[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-900">{u.username}</div>
+                      <div className="text-xs text-gray-400 uppercase tracking-widest">{u.role}</div>
+                    </div>
+                  </div>
+                  {u.username !== 'admin' && (
+                    <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors">
+                      <UserX size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin System Settings moved to bottom */}
       {isAdmin && (
         <div className="bg-white rounded-[32px] border-4 border-[var(--color-primary)]/10 p-6 md:p-10 shadow-xl overflow-hidden relative">
             <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -265,68 +330,6 @@ export const Settings: React.FC = () => {
             </div>
         </div>
       )}
-
-      <div className="flex flex-col lg:flex-row flex-wrap gap-6">
-        {renderEntityColumn('Developers', 'developer')}
-        {renderEntityColumn('Designers', 'designer')}
-        {renderEntityColumn('Project Managers', 'pm')}
-        {renderEntityColumn('Project Types', 'project_type')}
-      </div>
-
-      <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm">
-        <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-          <UserPlus className="text-[var(--color-primary)]" /> User Management
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
-          <form onSubmit={handleCreateUser} className="space-y-4">
-            <h4 className="font-bold text-gray-700 mb-4">Add New User</h4>
-            <input 
-              type="text" 
-              placeholder="Username" 
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
-              value={newUser.username}
-              onChange={e => setNewUser({...newUser, username: e.target.value})}
-              required
-            />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
-              value={newUser.password}
-              onChange={e => setNewUser({...newUser, password: e.target.value})}
-              required
-            />
-            <button type="submit" className="w-full md:w-auto bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              Create User Account
-            </button>
-          </form>
-
-          <div>
-            <h4 className="font-bold text-gray-700 mb-6 font-mono tracking-wider uppercase text-xs">Active System Users</h4>
-            <div className="space-y-3">
-              {users.map(u => (
-                <div key={u.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all">
-                      {u.username[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="font-bold text-gray-900">{u.username}</div>
-                      <div className="text-xs text-gray-400 uppercase tracking-widest">{u.role}</div>
-                    </div>
-                  </div>
-                  {u.username !== 'admin' && (
-                    <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors">
-                      <UserX size={18} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

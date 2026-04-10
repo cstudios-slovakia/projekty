@@ -137,8 +137,8 @@ function App() {
       });
       const data = await res.json();
       if (data.status === 'success') {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
+        localStorage.setItem('token', data.user.token);
+        setToken(data.user.token);
       } else {
         setError(data.message || 'Login failed');
       }
