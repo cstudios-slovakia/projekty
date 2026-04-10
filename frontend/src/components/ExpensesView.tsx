@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, TrendingUp, TrendingDown, Search } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Search, RefreshCw } from 'lucide-react';
 import { ExpenseSlideout } from './ExpenseSlideout';
 
 interface Project {
@@ -35,6 +35,9 @@ export const ExpensesView: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    const handleUpdate = () => fetchData();
+    window.addEventListener('projectsUpdated', handleUpdate);
+    return () => window.removeEventListener('projectsUpdated', handleUpdate);
   }, []);
 
   const pms = Array.from(new Set(projects.map(p => p.pm_name).filter(Boolean)));
@@ -59,19 +62,26 @@ export const ExpensesView: React.FC = () => {
           <p className="text-gray-500 text-sm">Real-time profit and expense tracking across all active projects.</p>
         </div>
         
-        <div className="flex items-center gap-3">
-            <div className="bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                    <TrendingUp size={16} className="text-green-600" />
-                </div>
-                <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Total Profit</p>
-                    <p className="text-sm font-black text-gray-900">
-                        €{filteredProjects.reduce((sum, p) => sum + (p.total_value - p.total_spent), 0).toLocaleString()}
-                    </p>
+            <div className="flex items-center gap-2">
+                <button 
+                  onClick={fetchData}
+                  className="p-2.5 bg-white rounded-xl border border-gray-100 shadow-sm text-gray-400 hover:text-[#e78b01] transition-all hover:bg-gray-50 active:scale-90"
+                  title="Refresh Data"
+                >
+                  <RefreshCw size={18} />
+                </button>
+                <div className="bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                        <TrendingUp size={16} className="text-green-600" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Total Profit</p>
+                        <p className="text-sm font-black text-gray-900">
+                            €{filteredProjects.reduce((sum, p) => sum + (p.total_value - p.total_spent), 0).toLocaleString()}
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
       </div>
 
       {/* Filters */}

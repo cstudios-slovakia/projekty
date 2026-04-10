@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, Pencil, DollarSign } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, Pencil, DollarSign, RefreshCw } from 'lucide-react';
 import { ExpenseSlideout } from './ExpenseSlideout';
 
 interface Project {
@@ -80,6 +80,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   useEffect(() => {
     fetchData();
     fetchEntities();
+    const handleUpdate = () => fetchData();
+    window.addEventListener('projectsUpdated', handleUpdate);
+    return () => window.removeEventListener('projectsUpdated', handleUpdate);
   }, [archivedView, sortColumn, sortOrder]);
 
   const notifyUpdate = () => {
@@ -268,6 +271,13 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
           <option value="">All Devs</option>
           {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
+        <button 
+          onClick={fetchData}
+          className="p-3 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 hover:text-[#e78b01] transition-all hover:bg-white active:scale-90"
+          title="Refresh Data"
+        >
+          <RefreshCw size={20} />
+        </button>
         {!isCreating && !archivedView && (
           <button onClick={() => setIsCreating(true)} className="bg-[#00b800] hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02] active:scale-95 ml-auto">
             <Plus size={20} /> New Project
