@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, Pencil, DollarSign, RefreshCw, Clock } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock } from 'lucide-react';
 import { ExpenseSlideout } from './ExpenseSlideout';
 
 interface Project {
@@ -409,7 +409,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             title="Quick Edit Name & Details"
                           >
                             <span className="font-bold text-gray-900 text-lg tracking-tight group-hover/name:text-[#e78b01] transition-colors">{p.name}</span>
-                            <Pencil size={14} className="text-gray-300 opacity-0 group-hover/name:opacity-100 transition-all transform group-hover/name:translate-x-1" />
+                            <Info size={14} className="text-gray-300 opacity-0 group-hover/name:opacity-100 transition-all transform group-hover/name:translate-x-1" />
                             {p.pm_color && (
                               <div 
                                 className="w-2 h-2 rounded-full flex-shrink-0 shadow-sm" 
@@ -470,7 +470,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           {isEditing ? (
                             <input type="date" name="deadline" className="bg-gray-50 border border-gray-200 text-gray-700 rounded-xl px-2 py-1.5 w-40 md:w-full text-xs font-bold" value={editForm.deadline || ''} onChange={handleChange} />
                           ) : (
-                            <div className="flex items-center gap-2 md:flex-col md:items-center text-gray-600">
+                            <div className="flex items-center gap-2 md:flex-col md:items-center text-gray-600 cursor-pointer" onClick={() => startEdit(p)}>
                               <Calendar size={14} className="opacity-40 text-[#e78b01]" />
                               <span className="text-sm font-black tracking-tight">{p.deadline ? new Date(p.deadline).toLocaleDateString('sk-SK') : '-'}</span>
                             </div>
@@ -480,7 +480,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
                     <td className="p-4 md:p-5 space-y-2 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Workflow Status</div>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1 cursor-pointer" onClick={() => startEdit(p)}>
                         <div className="flex justify-between items-center px-1">
                           <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Design</span>
                           {!isEditing && <span className={`text-[10px] font-bold ${p.design_status === 'Finished' ? 'text-green-500' : 'text-gray-400'}`}>{p.design_status}</span>}
@@ -529,7 +529,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           </select>
                         </div>
                       ) : (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
                           {p.pm_name && (
                             <span className="bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5" title="Project Manager">
                               <User size={12} /> {p.pm_name}
@@ -559,7 +559,10 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             <input type="number" name="already_paid" className="bg-gray-50 border border-gray-200 text-gray-400 text-right rounded-xl px-3 py-1.5 w-full text-xs" value={editForm.already_paid || 0} onChange={handleChange} />
                           </div>
                         ) : (
-                          <div className="flex items-center justify-end gap-3 md:gap-4">
+                          <div 
+                            className="flex items-center justify-end gap-3 md:gap-4 cursor-pointer"
+                            onClick={() => startEdit(p)}
+                          >
                             {(() => {
                               const devBudget = Number(p.dev_budget) || 0;
                               const totalSpent = Number(p.total_spent) || 0;
