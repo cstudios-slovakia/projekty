@@ -55,6 +55,8 @@ if ($is_installed) {
         define('DB_TYPE', $env_data['DB_DRIVER'] ?? 'mysql');
     }
 
+    define('IS_MYSQL', (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
+
     $host   = DB_HOST;
     $db     = DB_NAME;
     $user   = DB_USER;
