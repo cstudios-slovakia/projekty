@@ -1,0 +1,59 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn ssh -p 29158 uid1102122@shell.r5.websupport.sk
+expect "password:"
+send "7283c4f84d\r"
+expect "$ "
+send "cd cstudios.sk/sub/projektyerik/\r"
+expect "$ "
+
+# 1. Restore the old db.php from backup for extraction
+send "unzip -p ../projektyerik_backup_pre_1.3.0.zip projektyerik/api/db.php > api/db.php\r"
+expect "$ "
+
+# 2. Re-upload update_bridge.php (to be safe)
+send "cat << 'EOF' > api/update_bridge.php\n"
+send [exec cat api/update_bridge.php]
+send "\nEOF\r"
+expect "$ "
+
+# 3. RUN THE BRIDGE (This creates the .env)
+send "php api/update_bridge.php\r"
+expect "$ "
+
+# 4. NOW it is safe to upload the new architecture files
+# Upload new api/db.php
+send "cat << 'EOF' > api/db.php\n"
+send [exec cat api/db.php]
+send "\nEOF\r"
+expect "$ "
+
+# Upload new api/migrate.php
+send "cat << 'EOF' > api/migrate.php\n"
+send [exec cat api/migrate.php]
+send "\nEOF\r"
+expect "$ "
+
+# Upload composer.json
+send "cat << 'EOF' > composer.json\n"
+send [exec cat composer.json]
+send "\nEOF\r"
+expect "$ "
+
+# Upload index.php
+send "cat << 'EOF' > index.php\n"
+send [exec cat index.php]
+send "\nEOF\r"
+expect "$ "
+
+# 5. Execute Migration
+send "php api/migrate.php\r"
+expect "$ "
+
+# 6. Final Cleanup
+send "rm -f index.html favicon.png vite.svg\r"
+send "rm -rf assets\r"
+expect "$ "
+
+send "exit\r"
+expect eof

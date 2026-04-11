@@ -1,0 +1,54 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn ssh -p 29158 uid1102122@shell.r5.websupport.sk
+expect "password:"
+send "7283c4f84d\r"
+expect "$ "
+send "cd cstudios.sk/sub/projektyerik/\r"
+expect "$ "
+
+# Upload composer.json
+send "cat << 'EOF' > composer.json\n"
+send [exec cat composer.json]
+send "\nEOF\r"
+expect "$ "
+
+# Upload index.php
+send "cat << 'EOF' > index.php\n"
+send [exec cat index.php]
+send "\nEOF\r"
+expect "$ "
+
+# Upload api/db.php
+send "cat << 'EOF' > api/db.php\n"
+send [exec cat api/db.php]
+send "\nEOF\r"
+expect "$ "
+
+# Upload api/migrate.php
+send "cat << 'EOF' > api/migrate.php\n"
+send [exec cat api/migrate.php]
+send "\nEOF\r"
+expect "$ "
+
+# Upload api/update_bridge.php
+send "cat << 'EOF' > api/update_bridge.php\n"
+send [exec cat api/update_bridge.php]
+send "\nEOF\r"
+expect "$ "
+
+# Execute Bridge
+send "php api/update_bridge.php\r"
+expect "$ "
+
+# Execute Composer Install
+send "composer install --no-interaction\r"
+expect "$ "
+
+# Final Cleanup (Remove old index.html and assets - they are now in vendor or proxy)
+send "rm index.html favicon.png vite.svg\r"
+send "rm -rf assets\r"
+expect "$ "
+
+send "exit\r"
+expect eof

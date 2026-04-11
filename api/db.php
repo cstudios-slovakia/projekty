@@ -6,7 +6,17 @@
  */
 
 $config_file = __DIR__ . '/config.php';
-$env_file    = dirname(__DIR__) . '/.env';
+
+// Hunt for .env upward (supports local and vendor-based installs)
+$env_file = null;
+$search_dir = __DIR__;
+for ($i = 0; $i < 5; $i++) {
+    if (file_exists($search_dir . '/.env')) {
+        $env_file = $search_dir . '/.env';
+        break;
+    }
+    $search_dir = dirname($search_dir);
+}
 
 // 1. Loader for .env (no dependencies)
 function load_env($path) {

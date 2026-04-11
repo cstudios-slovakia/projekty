@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 300
+spawn ssh -p 29158 uid1102122@shell.r5.websupport.sk
+expect "password:"
+send "7283c4f84d\r"
+expect "$ "
+send "cd cstudios.sk/sub/projektyerik/\r"
+expect "$ "
+
+# 1. Create .env manually with harvested credentials
+send "cat << 'EOF' > .env\n"
+send "APP_INSTALLED=true\n"
+send "DB_DRIVER=pgsql\n"
+send "DB_HOST=db.r5.websupport.sk\n"
+send "DB_PORT=5432\n"
+send "DB_NAME=16AYwX6g\n"
+send "DB_USER=EHL9hL8w\n"
+send "DB_PASS=g&S/vp:E5;393L?h%W($\n"
+send "INSTALLED_AT=[clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]\n"
+send "EOF\r"
+expect "$ "
+
+# 2. Upload the Skeleton composer.json
+send "cat << 'EOF' > composer.json\n"
+send [exec cat composer.instance.json]
+send "\nEOF\r"
+expect "$ "
+
+# 3. Upload the Proxy index.php
+send "cat << 'EOF' > index.php\n"
+send [exec cat index.php]
+send "\nEOF\r"
+expect "$ "
+
+# 4. Clean up existing files to avoid conflicts with proxy
+send "rm -f index.html favicon.png vite.svg\n"
+send "rm -rf assets api\n"
+expect "$ "
+
+# 5. Run Composer Update (This pulls the core into vendor/ and runs migration)
+send "composer update --no-interaction\r"
+expect "$ "
+
+send "exit\r"
+expect eof

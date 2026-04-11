@@ -1,0 +1,17 @@
+{
+    "name": "cstudios-slovakia/projekty-instance",
+    "description": "Production instance of the Lead Tracker",
+    "require": {
+        "cstudios-slovakia/projekty": "v1.3.0"
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "php vendor/cstudios-slovakia/projekty/api/migrate.php"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
