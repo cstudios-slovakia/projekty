@@ -69,6 +69,22 @@ try {
         $pdo->exec("ALTER TABLE projects ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
     }
 
+    // --- Data Normalization (Fix for legacy NULLs) ---
+    echo "Normalizing project data defaults...\n";
+    $pdo->exec("UPDATE projects SET is_archived = FALSE WHERE is_archived IS NULL");
+    if (column_exists($pdo, 'projects', 'sort_order')) {
+        $pdo->exec("UPDATE projects SET sort_order = 0 WHERE sort_order IS NULL");
+    }
+    if (column_exists($pdo, 'projects', 'complexity')) {
+        $pdo->exec("UPDATE projects SET complexity = 1 WHERE complexity IS NULL");
+    }
+    if (column_exists($pdo, 'projects', 'created_at')) {
+        $pdo->exec("UPDATE projects SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL");
+    }
+    if (column_exists($pdo, 'projects', 'updated_at')) {
+        $pdo->exec("UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL");
+    }
+
     // 4. Add updated_at to expenses if missing
     if (!column_exists($pdo, 'project_expenses', 'updated_at')) {
         echo "Adding updated_at to project_expenses...\n";
