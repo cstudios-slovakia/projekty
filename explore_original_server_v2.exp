@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -p 29158 uid1102122@shell.r5.websupport.sk
+expect "password:"
+send "7283c4f84d\r"
+expect "$ "
+send "find . -maxdepth 4 -name \"api\" -type d\r"
+expect "$ "
+send "ls -la cstudios.sk/sub/projektyerik\r"
+expect "$ "
+send "exit\r"
+expect eof

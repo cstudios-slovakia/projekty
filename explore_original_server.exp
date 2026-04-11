@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -p 29158 uid1102122@shell.r5.websupport.sk
+expect {
+    "Are you sure you want to continue" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "7283c4f84d\r"
+    }
+}
+expect "$ "
+send "ls -la\r"
+expect "$ "
+send "find . -maxdepth 3 -name \"config.php\"\r"
+expect "$ "
+send "cat api/config.php\r"
+expect "$ "
+send "exit\r"
+expect eof

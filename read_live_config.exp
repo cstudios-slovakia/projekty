@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -p 29158 uid1102122@shell.r5.websupport.sk
+expect "password:"
+send "7283c4f84d\r"
+expect "$ "
+send "cd cstudios.sk/sub/projektyerik/api && ls -la && cat config.php\r"
+expect "$ "
+send "exit\r"
+expect eof
