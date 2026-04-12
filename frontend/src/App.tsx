@@ -128,7 +128,7 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
 
 function App() {
   const [isInstalled, setIsInstalled] = useState<boolean | null>(null);
-  const [version, setVersion] = useState('1.4.0');
+  const [version, setVersion] = useState('1.4.1');
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [systemSettings, setSystemSettings] = useState({ title: 'Lead Tracker', primary: '#e78b01', secondary: '#00b800' });
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
