@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LogOut, Home, Archive, Settings as SettingsIcon, Menu, X, ListOrdered, DollarSign, Loader2 } from 'lucide-react';
+import { LogOut, Settings as SettingsIcon, Euro, Briefcase, Loader2 } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
 import { DashboardKPIs } from './components/DashboardKPIs';
 import { ExpensesView } from './components/ExpensesView';
@@ -10,106 +10,110 @@ import { SetupWizard } from './components/SetupWizard';
 
 function Layout({ systemTitle, version }: { systemTitle: string, version: string }) {
   const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/';
   };
 
-  const navClass = (path: string) => 
-    `flex items-center gap-3 px-6 py-3 md:py-2 rounded-xl transition-all text-sm md:text-sm font-medium ${location.pathname === path ? 'bg-white text-gray-900 shadow-sm shadow-gray-200/50 font-bold' : 'text-gray-500 hover:text-gray-900 hover:bg-white/50 w-full md:w-auto'}`;
+  const isProjectRoute = location.pathname === '/' || location.pathname === '/archive' || location.pathname === '/reorder';
 
-  const NavLinks = () => (
-    <>
-      <Link to="/" onClick={() => setIsMenuOpen(false)} className={navClass('/')}><Home size={18} /> Active Projects</Link>
-      <Link to="/expenses" onClick={() => setIsMenuOpen(false)} className={navClass('/expenses')}><DollarSign size={18} /> Expenses</Link>
-      <Link to="/reorder" onClick={() => setIsMenuOpen(false)} className={navClass('/reorder')}><ListOrdered size={18} /> Order View</Link>
-      <Link to="/archive" onClick={() => setIsMenuOpen(false)} className={navClass('/archive')}><Archive size={18} /> Archive</Link>
-      <Link to="/settings" onClick={() => setIsMenuOpen(false)} className={navClass('/settings')}><SettingsIcon size={18} /> Settings</Link>
-    </>
-  );
+  const sidebarLinkClass = (paths: string[]) => 
+    `p-3 rounded-2xl transition-all flex items-center justify-center relative group ${
+      paths.includes(location.pathname) 
+        ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' 
+        : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
+    }`;
+
+  const subNavClass = (path: string) => 
+    `px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+      location.pathname === path 
+        ? 'bg-gray-100 text-gray-900' 
+        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+    }`;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans selection:bg-[var(--color-primary)]/30">
-      <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] p-0.5 shadow-lg shadow-[var(--color-primary)]/10">
-              <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
-                <span className="font-black text-[#0f172a] text-sm">CS</span>
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight whitespace-nowrap leading-none">
-                {systemTitle}
-              </h1>
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1 ml-0.5">
-                v{version}
-              </span>
-            </div>
-          </div>
-
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1 bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
-            <NavLinks />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handleLogout} 
-              className="hidden md:flex text-gray-400 hover:text-red-500 transition-colors p-2 rounded-xl hover:bg-gray-100" 
-              title="Logout"
-            >
-              <LogOut size={20} />
-            </button>
-            
-            {/* Mobile Menu Toggle */}
-            <button 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-600 bg-gray-50 rounded-xl border border-gray-100 shadow-sm"
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+    <div className="flex h-screen bg-[#f8fafc] font-sans selection:bg-[var(--color-primary)]/30 overflow-hidden">
+      {/* Sidebar - Fixed Narrow */}
+      <aside className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-6 z-50">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] p-0.5 shadow-lg shadow-[var(--color-primary)]/10 mb-10">
+          <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
+            <span className="font-black text-[#0f172a] text-xs">CS</span>
           </div>
         </div>
 
-        {/* Mobile Nav Overlay */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-b border-gray-200 animate-fade-in p-4 flex flex-col gap-2">
-            <div className="font-black text-[10px] text-gray-300 uppercase tracking-widest pl-2 mb-2">Navigation</div>
-            <div className="flex flex-col gap-1 px-1">
-              <NavLinks />
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between px-2">
-              <span className="text-xs text-gray-400 font-medium italic">Erik's Studio</span>
-              <button 
-                onClick={handleLogout} 
-                className="flex items-center gap-2 text-sm font-bold text-red-500 bg-red-50 px-4 py-2 rounded-xl"
-              >
-                <LogOut size={16} /> Logout
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+        <div className="flex-1 flex flex-col gap-4">
+          <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title="Projects">
+            <Briefcase size={24} />
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Projects</span>
+          </Link>
+          <Link to="/expenses" className={sidebarLinkClass(['/expenses'])} title="Expenses">
+            <Euro size={24} />
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Expenses</span>
+          </Link>
+          <Link to="/settings" className={sidebarLinkClass(['/settings'])} title="Settings">
+            <SettingsIcon size={24} />
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Settings</span>
+          </Link>
+        </div>
 
-      <main className="max-w-[1600px] mx-auto px-4 md:px-6 py-6 md:py-8">
-        <Routes>
-          <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
-          <Route path="/expenses" element={<ExpensesView />} />
-          <Route path="/reorder" element={<LeadReorder />} />
-          <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">Archived Projects</h2><ProjectsTable archivedView={true} /></>} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </main>
+        <button 
+          onClick={handleLogout} 
+          className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all group relative"
+          title="Logout"
+        >
+          <LogOut size={24} />
+          <span className="absolute left-16 bg-red-600 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Logout</span>
+        </button>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Header */}
+        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-8 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-8">
+            <div className="flex flex-col">
+              <h1 className="text-xl font-black text-gray-900 tracking-tight leading-none uppercase">
+                {isProjectRoute ? 'Projects' : location.pathname.replace('/', '').charAt(0).toUpperCase() + location.pathname.slice(2)}
+              </h1>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                v{version}
+              </span>
+            </div>
+
+            {/* Contextual Sub-Nav for Projects */}
+            {isProjectRoute && (
+              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 ml-4">
+                <Link to="/" className={subNavClass('/')}>Active</Link>
+                <Link to="/archive" className={subNavClass('/archive')}>Archived</Link>
+                <Link to="/reorder" className={subNavClass('/reorder')}>Order View</Link>
+              </div>
+            )}
+          </div>
+
+          <div className="text-sm font-black text-gray-300 uppercase tracking-[0.2em]">{systemTitle}</div>
+        </header>
+
+        {/* Dynamic Content */}
+        <main className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-[1600px] mx-auto">
+            <Routes>
+              <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
+              <Route path="/expenses" element={<ExpensesView />} />
+              <Route path="/reorder" element={<LeadReorder />} />
+              <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">Archived Projects</h2><ProjectsTable archivedView={true} /></>} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
 
 function App() {
   const [isInstalled, setIsInstalled] = useState<boolean | null>(null);
-  const [version, setVersion] = useState('');
+  const [version, setVersion] = useState('1.4.0');
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [systemSettings, setSystemSettings] = useState({ title: 'Lead Tracker', primary: '#e78b01', secondary: '#00b800' });
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
