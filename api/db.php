@@ -56,6 +56,7 @@ if ($is_installed) {
     }
 
     define('IS_MYSQL', (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
+    define('LEAD_API_KEY', $env_data['LEAD_API_KEY'] ?? 'sk_live_lead_tracker_123456');
 
     $host   = DB_HOST;
     $db     = DB_NAME;

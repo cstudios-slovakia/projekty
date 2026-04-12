@@ -206,6 +206,11 @@ export const Settings: React.FC = () => {
         {renderEntityColumn('Project Types', 'project_type')}
       </div>
 
+      <div className="flex flex-col lg:flex-row flex-wrap gap-6">
+        {renderEntityColumn('Lead Statuses', 'lead_status')}
+        {renderEntityColumn('Lead Sources', 'lead_source')}
+      </div>
+
       <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm">
         <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
           <UserPlus className="text-[var(--color-primary)]" /> User Management

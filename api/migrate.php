@@ -114,6 +114,66 @@ try {
         }
     }
 
+    // 6. Create leads table if missing
+    if (!table_exists($pdo, 'leads')) {
+        echo "Creating leads table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE leads (
+            id $pk,
+            company_name VARCHAR(255),
+            contact_name VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(50),
+            country VARCHAR(100),
+            message TEXT,
+            status_id INTEGER,
+            source_id INTEGER,
+            pm_id INTEGER,
+            is_archived BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    }
+
+    // 7. Create lead_activities table if missing
+    if (!table_exists($pdo, 'lead_activities')) {
+        echo "Creating lead_activities table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE lead_activities (
+            id $pk,
+            lead_id INTEGER,
+            type VARCHAR(50),
+            notes TEXT,
+            activity_date TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    }
+
+    // 8. Seed Default Lead Statuses and Sources
+    $seed_entities = [
+        ['lead_status', 'New', '#34d399'],
+        ['lead_status', 'In Contact', '#3b82f6'],
+        ['lead_status', 'Qualified', '#8b5cf6'],
+        ['lead_status', 'Lost', '#ef4444'],
+        ['lead_source', 'Website', '#94a3b8'],
+        ['lead_source', 'LinkedIn', '#0077b5'],
+        ['lead_source', 'Referral', '#f59e0b'],
+        ['lead_source', 'Direct', '#64748b']
+    ];
+    
+    $check_entity = $pdo->prepare("SELECT 1 FROM settings_entities WHERE type = ? AND name = ?");
+    $insert_entity = $pdo->prepare("INSERT INTO settings_entities (type, name, color) VALUES (?, ?, ?)");
+    
+    foreach ($seed_entities as $ent) {
+        $check_entity->execute([$ent[0], $ent[1]]);
+        if (!$check_entity->fetch()) {
+            echo "Seeding {$ent[0]}: {$ent[1]}...\n";
+            $insert_entity->execute($ent);
+        }
+    }
+
     echo "Migration completed successfully.\n";
 
 } catch (Exception $e) {
