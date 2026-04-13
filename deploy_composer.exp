@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "b115cadfc1"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27127"
+set dest_dir "cstudios.sk/sub/projektyerik"
+set new_version "v1.4.3"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "cd $dest_dir\r"
+expect "$ "
+
+# 1. Update composer.json version
+# We use sed to replace the version of cstudios-slovakia/projekty
+send "sed -i 's/\"cstudios-slovakia\\/projekty\": \".*\"/\"cstudios-slovakia\\/projekty\": \"$new_version\"/' composer.json\r"
+expect "$ "
+
+# 2. Run composer update
+# Use --no-dev and --optimize-autoloader for production
+send "composer update cstudios-slovakia/projekty --no-interaction\r"
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "$ "
+}
+
+# 3. Final migration just in case
+send "php vendor/cstudios-slovakia/projekty/api/migrate.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

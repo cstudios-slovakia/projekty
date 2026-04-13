@@ -5,8 +5,12 @@
  * Best for servers where .htaccess rewrites are restricted.
  */
 
-$vendor_api = __DIR__ . '/vendor/cstudios-slovakia/projekty/api';
-$api_dir = __DIR__ . '/api';
+// Detect if running from root or vendor
+$is_vendor = strpos(__DIR__, '/vendor/') !== false;
+$root_dir = $is_vendor ? dirname(dirname(dirname(__DIR__))) : __DIR__;
+
+$vendor_api = $root_dir . '/vendor/cstudios-slovakia/projekty/api';
+$api_dir = $root_dir . '/api';
 
 if (!file_exists($api_dir)) {
     mkdir($api_dir, 0755, true);
@@ -26,7 +30,8 @@ $api_files = [
     'migrate.php',
     'db.php',
     'reorder.php',
-    'install.php'
+    'install.php',
+    'pipeline.php'
 ];
 
 foreach ($api_files as $file) {
