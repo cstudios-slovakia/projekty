@@ -23,8 +23,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode, initialLocale?: string }> = ({ children, initialLocale = 'en' }) => {
   const [locale, setLocale] = useState(initialLocale);
-  const [translations, setTranslations] = useState<Translations>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [translations, setTranslations] = useState<Translations>(allTranslations[initialLocale] || allTranslations['en']);
+  const [isLoading, setIsLoading] = useState(false);
 
   const loadTranslations = (lang: string) => {
     setIsLoading(true);
