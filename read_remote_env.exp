@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "5610f84adb"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27696"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cat $dest_dir/.env"
+expect "password:"
+send "$password\r"
+expect eof

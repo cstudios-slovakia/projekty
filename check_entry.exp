@@ -13,19 +13,12 @@ expect "$ "
 send "cd $dest_dir\r"
 expect "$ "
 
-# 1. Surgical Cleanup
-# Delete the rogue api folder (proxies) and old dist/assets in root
-send "rm -rf api assets\r"
-expect "$ "
-send "rm -f index.html favicon.png vite.svg\r"
+# 1. Check Root index.php
+send "cat index.php\r"
 expect "$ "
 
-# 2. Verify .env and index.php
-send "ls -la .env index.php\r"
-expect "$ "
-
-# 3. Check vendor core
-send "ls -la vendor/cstudios-slovakia/projekty/api\r"
+# 2. Check vendor dist index.html
+send "ls -la vendor/cstudios-slovakia/projekty/frontend/dist/index.html\r"
 expect "$ "
 
 send "exit\r"

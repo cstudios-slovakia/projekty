@@ -1,17 +1,21 @@
 {
     "name": "cstudios-slovakia/projekty-instance",
-    "description": "Production instance of the Lead Tracker",
+    "description": "A premium project lead tracker with Multi-DB support.",
+    "type": "project",
     "require": {
-        "cstudios-slovakia/projekty": "v1.3.0"
+        "php": ">=8.0",
+        "ext-pdo": "*",
+        "ext-json": "*"
     },
     "scripts": {
+        "post-create-project-cmd": [
+            "php -r \"copy('api/config.php.example', 'api/config.php');\" || true"
+        ],
+        "post-install-cmd": [
+            "php api/migrate.php"
+        ],
         "post-update-cmd": [
-            "php vendor/cstudios-slovakia/projekty/api/migrate.php"
+            "php api/migrate.php"
         ]
-    },
-    "config": {
-        "allow-plugins": {
-            "php-http/discovery": true
-        }
     }
 }

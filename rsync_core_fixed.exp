@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "5610f84adb"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27696"
+set local_api "/Users/erik/Documents/vibe coding/projekty/api/"
+set remote_dest "uid1102122@shell.r5.websupport.sk:cstudios.sk/sub/projektyerik/vendor/cstudios-slovakia/projekty/api/"
+
+spawn rsync -avz -e "ssh -p $port -o StrictHostKeyChecking=no" $local_api $remote_dest
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

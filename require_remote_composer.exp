@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+set timeout 120
+set password "5610f84adb"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27696"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd $dest_dir && sed -i 's/\"name\": \"cstudios-slovakia\\\\/projekty\"/\"name\": \"cstudios-slovakia\\\\/projekty-instance\"/' composer.json && composer require cstudios-slovakia/projekty:v1.4.6 --no-interaction"
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
