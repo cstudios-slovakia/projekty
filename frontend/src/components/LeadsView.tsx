@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Plus, Search, RefreshCw, 
-  User, Globe, Mail, 
-  ArrowUpRight
+  Globe, Mail, 
+  ArrowUpRight, Zap
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { LeadSlideout } from './LeadSlideout';
@@ -29,6 +29,8 @@ interface Lead {
   pm_name?: string;
   pm_color?: string;
   last_activity?: string;
+  last_activity_type?: string;
+  last_activity_notes?: string;
 }
 
 interface SettingsEntity {
@@ -222,10 +224,27 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium">
-                  <User size={14} className="text-gray-300" />
-                  <span>PM: {lead.pm_name || 'Unassigned'}</span>
+                  <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: lead.pm_color || '#e2e8f0' }}></div>
+                  <span className="font-bold">PM: {lead.pm_name || 'Unassigned'}</span>
                 </div>
               </div>
+
+              {/* Last Action Snippet */}
+              {lead.last_activity_notes && (
+                <div className="mt-4 p-3 bg-gray-50/50 rounded-2xl border border-gray-100 flex flex-col gap-1 group-hover:bg-white transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Zap size={10} className="text-[var(--color-primary)]" />
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                        Latest Action {lead.last_activity_type ? `• ${lead.last_activity_type}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed italic">
+                    "{lead.last_activity_notes}"
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Footer */}

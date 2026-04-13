@@ -32,7 +32,9 @@ try {
                        s.name as status_name, s.color as status_color,
                        src.name as source_name, src.color as source_color,
                        pm.name as pm_name, pm.color as pm_color,
-                       (SELECT MAX(activity_date) FROM lead_activities WHERE lead_id = l.id) as last_activity
+                       (SELECT MAX(activity_date) FROM lead_activities WHERE lead_id = l.id) as last_activity,
+                       (SELECT type FROM lead_activities WHERE lead_id = l.id ORDER BY activity_date DESC LIMIT 1) as last_activity_type,
+                       (SELECT notes FROM lead_activities WHERE lead_id = l.id ORDER BY activity_date DESC LIMIT 1) as last_activity_notes
                 FROM leads l
                 LEFT JOIN settings_entities s ON l.status_id = s.id
                 LEFT JOIN settings_entities src ON l.source_id = src.id
@@ -48,7 +50,9 @@ try {
                        s.name as status_name, s.color as status_color,
                        src.name as source_name, src.color as source_color,
                        pm.name as pm_name, pm.color as pm_color,
-                       (SELECT MAX(activity_date) FROM lead_activities WHERE lead_id = l.id) as last_activity
+                       (SELECT MAX(activity_date) FROM lead_activities WHERE lead_id = l.id) as last_activity,
+                       (SELECT type FROM lead_activities WHERE lead_id = l.id ORDER BY activity_date DESC LIMIT 1) as last_activity_type,
+                       (SELECT notes FROM lead_activities WHERE lead_id = l.id ORDER BY activity_date DESC LIMIT 1) as last_activity_notes
                 FROM leads l
                 LEFT JOIN settings_entities s ON l.status_id = s.id
                 LEFT JOIN settings_entities src ON l.source_id = src.id
