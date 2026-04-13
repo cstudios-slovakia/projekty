@@ -227,30 +227,30 @@ export const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in px-1 md:px-0 pb-12">
-      {/* Tabs */}
-      <div className="flex overflow-x-auto custom-scrollbar border-b border-gray-100 bg-white rounded-t-[32px] px-8 pt-4 shadow-sm">
+      {/* Pills Navigation */}
+      <div className="flex items-center gap-1 bg-gray-900/5 p-1 rounded-2xl border border-gray-200/50 w-fit mb-4">
           <button 
               onClick={() => setActiveTab('project')}
-              className={`py-4 px-6 text-sm font-black uppercase tracking-widest border-b-4 transition-all whitespace-nowrap ${activeTab === 'project' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'project' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
               Project Settings
           </button>
           <button 
               onClick={() => setActiveTab('lead')}
-              className={`py-4 px-6 text-sm font-black uppercase tracking-widest border-b-4 transition-all whitespace-nowrap ${activeTab === 'lead' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'lead' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
               Lead Settings
           </button>
           <button 
               onClick={() => setActiveTab('users')}
-              className={`py-4 px-6 text-sm font-black uppercase tracking-widest border-b-4 transition-all whitespace-nowrap ${activeTab === 'users' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
               Users
           </button>
           {isAdmin && (
             <button 
                 onClick={() => setActiveTab('system')}
-                className={`py-4 px-6 text-sm font-black uppercase tracking-widest border-b-4 transition-all whitespace-nowrap ${activeTab === 'system' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'system' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
             >
                 System Settings
             </button>
