@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+set timeout 60
+set password "b115cadfc1"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27127"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "cd $dest_dir\r"
+expect "$ "
+
+# Run the shell publisher from the vendor directory
+send "php vendor/cstudios-slovakia/projekty/publish_shells.php\r"
+expect "$ "
+
+# Final check of api directory
+send "ls -la api\r"
+expect "$ "
+
+send "exit\r"
+expect eof

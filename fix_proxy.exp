@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+set timeout 60
+set password "b115cadfc1"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27127"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "cd $dest_dir\r"
+expect "$ "
+
+# 1. Manually Create the pipeline.php proxy
+send "cat << 'EOF' > api/pipeline.php\n"
+send "<?php\n"
+send "/** Proxy for pipeline.php **/\n"
+send "require_once dirname(__DIR__) . '/vendor/cstudios-slovakia/projekty/api/pipeline.php';\n"
+send "EOF\r"
+expect "$ "
+
+# 2. Fix permissions just in case
+send "chmod 644 api/pipeline.php\r"
+expect "$ "
+
+# 3. List the api directory to verify
+send "ls -la api\r"
+expect "$ "
+
+send "exit\r"
+expect eof

@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "b115cadfc1"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27127"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "cd $dest_dir/vendor/cstudios-slovakia/projekty/api\r"
+expect "$ "
+
+# Overwrite the broken core db.php with local logic
+send "cat << 'EOF' > db.php\n"
+send [exec cat /Users/erik/Documents/vibe coding/projekty/api/db.php]
+send "\nEOF\r"
+expect "$ "
+
+# Also restore pipeline.php just in case it's broken too
+send "cat << 'EOF' > pipeline.php\n"
+send [exec cat /Users/erik/Documents/vibe coding/projekty/api/pipeline.php]
+send "\nEOF\r"
+expect "$ "
+
+# And migrate.php
+send "cat << 'EOF' > migrate.php\n"
+send [exec cat /Users/erik/Documents/vibe coding/projekty/api/migrate.php]
+send "\nEOF\r"
+expect "$ "
+
+send "exit\r"
+expect eof

@@ -5,7 +5,7 @@ set user "uid1102122"
 set host "shell.r5.websupport.sk"
 set port "27127"
 set dest_dir "cstudios.sk/sub/projektyerik"
-set new_version "v1.4.3"
+set new_version "v1.4.4"
 
 spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
 expect "password:"
@@ -16,7 +16,7 @@ expect "$ "
 
 # 1. Update composer.json version
 # We use sed to replace the version of cstudios-slovakia/projekty
-send "sed -i 's/\"cstudios-slovakia\\/projekty\": \".*\"/\"cstudios-slovakia\\/projekty\": \"$new_version\"/' composer.json\r"
+send "sed -i 's/\"cstudios-slovakia\\\\/projekty\": \".*\"/\"cstudios-slovakia\\\\/projekty\": \"$new_version\"/' composer.json\r"
 expect "$ "
 
 # 2. Run composer update
@@ -30,7 +30,11 @@ expect {
     "$ "
 }
 
-# 3. Final migration just in case
+# 3. Publish API Shells (Proxies)
+send "php vendor/cstudios-slovakia/projekty/publish_shells.php\r"
+expect "$ "
+
+# 4. Final migration just in case
 send "php vendor/cstudios-slovakia/projekty/api/migrate.php\r"
 expect "$ "
 
