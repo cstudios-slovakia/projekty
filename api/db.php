@@ -56,6 +56,26 @@ if ($is_installed) {
     }
 
     define('IS_MYSQL', (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
+    $host   = DB_HOST;
+    $db     = DB_NAME;
+    $user   = DB_USER;
+    $pass   = DB_PASS;
+    $port   = DB_PORT;
+    $type   = DB_TYPE;
+    $prefix = defined('DB_PREFIX') ? DB_PREFIX : '';
+
+    if ($type === 'pgsql') {
+        $dsn = "pgsql:host=$host;port=$port;dbname=$db;";
+    } else {
+        $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
+    }
+
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+
     try {
         $pdo = new PDO($dsn, $user, $pass, $options);
         
