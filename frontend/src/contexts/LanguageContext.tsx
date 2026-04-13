@@ -1,4 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import enTranslations from '../i18n/en.json';
+import skTranslations from '../i18n/sk.json';
+import huTranslations from '../i18n/hu.json';
+
+const allTranslations: Record<string, any> = {
+  en: enTranslations,
+  sk: skTranslations,
+  hu: huTranslations
+};
 
 type Translations = { [key: string]: any };
 
@@ -17,29 +26,21 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode, initialLoca
   const [translations, setTranslations] = useState<Translations>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadTranslations = async (lang: string) => {
+  const loadTranslations = (lang: string) => {
     setIsLoading(true);
-    try {
-      // In a real build, these would be separate files. 
-      // For simplicity in this environment, we fetch from public or src.
-      // Assuming they are served/available. 
-      const response = await fetch(`/src/i18n/${lang}.json`);
-      const data = await response.json();
-      setTranslations(data);
-    } catch (error) {
-      console.error(`Failed to load translations for ${lang}`, error);
-      // Fallback to English if not already English
-      if (lang !== 'en') {
-        loadTranslations('en');
-      }
-    } finally {
-      setIsLoading(false);
+    if (allTranslations[lang]) {
+      setTranslations(allTranslations[lang]);
+    } else {
+      console.warn(`Translations for ${lang} not statically bundled, falling back to en`);
+      setTranslations(allTranslations['en']);
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
     loadTranslations(locale);
   }, [locale]);
+
 
   const t = (key: string): string => {
     const keys = key.split('.');
