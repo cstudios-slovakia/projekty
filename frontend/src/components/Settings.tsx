@@ -335,6 +335,55 @@ export const Settings: React.FC = () => {
             </div>
         </div>
       )}
+
+      {/* API Integration Instructions */}
+      <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm">
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+          API Integration <span className="bg-blue-50 text-blue-500 text-xs px-3 py-1 rounded-full uppercase tracking-widest font-black">Lead Pipeline</span>
+        </h3>
+        <p className="text-gray-500 mb-6 text-sm">
+          Connect your external websites, landing pages, or contact forms directly to the pipeline. Send a POST request to <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded font-mono border border-gray-200">/api/pipeline.php</code>.
+        </p>
+        
+        <div className="bg-gray-900 rounded-2xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-[var(--color-primary)]"></div>
+            <pre className="text-gray-300 font-mono text-xs whitespace-pre-wrap">
+{`curl -X POST https://yourdomain.com/api/pipeline.php \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "company_name": "Acme Corp",
+    "contact_name": "John Doe",
+    "email": "john@acme.com",
+    "phone": "+421900111222",
+    "message": "We need a new ecommerce website.",
+    "source_id": 1
+  }'`}
+            </pre>
+            <button 
+                onClick={() => navigator.clipboard.writeText(`curl -X POST https://yourdomain.com/api/pipeline.php \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "company_name": "Acme Corp",\n    "contact_name": "John Doe",\n    "email": "john@acme.com",\n    "phone": "+421900111222",\n    "message": "We need a new ecommerce website.",\n    "source_id": 1\n  }'`)}
+                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-lg p-2 transition-all opacity-0 group-hover:opacity-100"
+                title="Copy to clipboard"
+            >
+                Copy
+            </button>
+        </div>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <h5 className="font-bold text-xs uppercase tracking-widest text-gray-500 mb-2">Required Fields</h5>
+                <ul className="text-sm text-gray-600 space-y-1">
+                    <li><code className="text-gray-900">company_name</code> or <code className="text-gray-900">contact_name</code></li>
+                </ul>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <h5 className="font-bold text-xs uppercase tracking-widest text-gray-500 mb-2">Optional Fields</h5>
+                <ul className="text-sm text-gray-600 space-y-1">
+                    <li><code className="text-gray-900">email</code>, <code className="text-gray-900">phone</code>, <code className="text-gray-900">country</code></li>
+                    <li><code className="text-gray-900">message</code> (Lead Notes)</li>
+                    <li><code className="text-gray-900">source_id</code> (Foreign key to Lead Sources)</li>
+                </ul>
+            </div>
+        </div>
+      </div>
     </div>
   );
 };

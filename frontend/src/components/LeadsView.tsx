@@ -4,6 +4,7 @@ import {
   User, Globe, Mail, 
   ArrowUpRight
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { LeadSlideout } from './LeadSlideout';
 
 interface Lead {
@@ -264,7 +265,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
       </div>
 
       {/* Creation Modal */}
-      {isCreating && (
+      {isCreating && createPortal(
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <form 
             onSubmit={handleCreate}
@@ -382,17 +383,19 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Detail Slideout */}
-      {selectedLeadId && (
+      {selectedLeadId && createPortal(
         <LeadSlideout 
           id={selectedLeadId} 
           entities={entities}
           onClose={() => setSelectedLeadId(null)} 
           onUpdate={fetchLeads}
-        />
+        />,
+        document.body
       )}
     </div>
   );
