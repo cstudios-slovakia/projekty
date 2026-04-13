@@ -226,7 +226,7 @@ export const DashboardKPIs: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.active_leads')}</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.active_leads')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">{data.funnel.reduce((acc, curr) => acc + Number(curr.count), 0)}</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
@@ -235,7 +235,7 @@ export const DashboardKPIs: React.FC = () => {
         </div>
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.pipeline_vol')}</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.pipeline_vol')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.funnel.reduce((acc, curr) => acc + Number(curr.total_value), 0) / 1000).toFixed(1)}k</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
@@ -244,7 +244,7 @@ export const DashboardKPIs: React.FC = () => {
         </div>
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.expected_income')}</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.expected_income')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.income.reduce((acc, curr) => acc + Number(curr.expected_income), 0) / 1000).toFixed(1)}k</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500">
@@ -253,7 +253,7 @@ export const DashboardKPIs: React.FC = () => {
         </div>
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.success_rate')}</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.success_rate')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">18%</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500">
