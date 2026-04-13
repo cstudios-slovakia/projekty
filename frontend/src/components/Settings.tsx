@@ -29,24 +29,10 @@ export const Settings: React.FC = () => {
     accent_color_secondary: '#00b800',
     lead_api_key: ''
   });
-  const [isAdmin, setIsAdmin] = useState(false);
-
   useEffect(() => {
     fetchEntities();
     fetchUsers();
     fetchSysSettings();
-
-    // Check admin role
-    const token = localStorage.getItem('token');
-    if (token && token !== 'undefined') {
-        try {
-            const payload = JSON.parse(atob(token));
-            console.log("Session Role Check:", payload.role);
-            if (payload.role === 'admin') setIsAdmin(true);
-        } catch (e) {
-            console.error("Token parse error", e);
-        }
-    }
   }, []);
 
   const fetchSysSettings = () => {
@@ -247,14 +233,12 @@ export const Settings: React.FC = () => {
           >
               Users
           </button>
-          {isAdmin && (
-            <button 
-                onClick={() => setActiveTab('system')}
-                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'system' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
-            >
-                System Settings
-            </button>
-          )}
+          <button 
+              onClick={() => setActiveTab('system')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'system' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
+          >
+              System Settings
+          </button>
       </div>
 
       <div className="pt-2">
