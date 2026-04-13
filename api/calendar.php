@@ -18,7 +18,7 @@ try {
     // 2. Fetch lead meetings (future or all meetings)
     // We fetch any activity with type = 'Meeting' from non-archived leads
     $meetingsStmt = $pdo->prepare("
-        SELECT la.id, la.activity_date, la.notes, la.type, 
+        SELECT la.id, la.lead_id, la.activity_date, la.notes, la.type, 
                l.company_name, l.contact_name, l.pm_id
         FROM lead_activities la
         JOIN leads l ON la.lead_id = l.id
