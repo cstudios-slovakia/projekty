@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, DollarSign, Clock } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface Expense {
   id: number;
@@ -43,6 +44,7 @@ const getCurrentWeek = () => {
 };
 
 export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBudget, onClose, onBudgetChange }) => {
+  const { t } = useTranslation();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +138,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
           </div>
           <div className="relative z-10 flex justify-between items-start">
             <div className="flex-1 min-w-0 pr-8">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-80">Project Expenses</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-80">{t('projects.slideout.expenses') || 'Project Expenses'}</p>
               <h2 className="text-3xl font-black text-white leading-tight break-words">{projectName}</h2>
             </div>
             <button onClick={onClose} className="p-2.5 hover:bg-white/20 rounded-xl transition-all text-white/50 hover:text-white flex-shrink-0">
@@ -151,7 +153,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
           <div className="px-6 md:px-8 pt-8 pb-4">
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Dev Budget</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.dev_budget') || 'Dev Budget'}</p>
                   <div className="flex items-center gap-1">
                     <span className="text-xs text-gray-400">€</span>
                     <input
@@ -164,12 +166,12 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                   </div>
                 </div>
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Spent</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.spent') || 'Spent'}</p>
                   <p className="text-lg font-black text-red-500">€{totalCost.toLocaleString()}</p>
-                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">{totalHours}h logged</p>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">{totalHours}{t('common.hours_unit') || 'h'} {t('projects.logged') || 'logged'}</p>
                 </div>
                 <div className={`rounded-2xl p-4 border shadow-sm ${remaining >= 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Remaining</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.remaining') || 'Remaining'}</p>
                   <p className={`text-lg font-black ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>€{remaining.toLocaleString()}</p>
                 </div>
               </div>
@@ -178,14 +180,14 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
           {/* Expense List */}
           <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-3">
             {loading ? (
-              <div className="text-center text-gray-400 py-12 animate-pulse">Loading expenses...</div>
+              <div className="text-center text-gray-400 py-12 animate-pulse">{t('common.loading') || 'Loading expenses...'}</div>
             ) : expenses.length === 0 ? (
               <div className="text-center py-16">
                 <div className="w-16 h-16 rounded-3xl bg-gray-50 flex items-center justify-center text-gray-300 mx-auto mb-4">
                   <Clock size={28} />
                 </div>
-                <p className="text-gray-400 font-medium">No expenses logged yet</p>
-                <p className="text-xs text-gray-300 mt-1">Add the first time entry below</p>
+                <p className="text-gray-400 font-medium">{t('projects.no_expenses') || 'No expenses logged yet'}</p>
+                <p className="text-xs text-gray-300 mt-1">{t('projects.no_expenses_subtitle') || 'Add the first time entry below'}</p>
               </div>
             ) : (
               expenses.map(exp => (
@@ -201,7 +203,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                       {exp.entity_id && (
                         <>
                           <span>•</span>
-                          <span><strong>{exp.hours}h</strong> × €{Number(exp.hourly_rate).toLocaleString()}/h</span>
+                          <span><strong>{exp.hours}{t('common.hours_unit') || 'h'}</strong> × €{Number(exp.hourly_rate).toLocaleString()}/h</span>
                         </>
                       )}
                       {exp.updated_at && (
@@ -229,7 +231,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
 
         {/* Add New Expense Row */}
         <div className="border-t border-gray-100 p-6 md:p-8 bg-gray-50/50">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Log New Expense</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('projects.slideout.add_expense_title') || 'Log New Expense'}</p>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <select
@@ -237,26 +239,26 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                 onChange={e => setNewRow({ ...newRow, entity_id: e.target.value })}
                 className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
               >
-                <option value="">Who worked?</option>
-                <optgroup label="Developers">
+                <option value="">{t('projects.who_worked') || 'Who worked?'}</option>
+                <optgroup label={t('projects.developers') || 'Developers'}>
                   {entities.filter(e => e.type === 'developer').map(e => (
-                    <option key={e.id} value={e.id}>{e.name} (Dev) — €{Number(e.hourly_rate)}/h</option>
+                    <option key={e.id} value={e.id}>{e.name} ({t('common.dev_tag') || 'Dev'}) — €{Number(e.hourly_rate)}/h</option>
                   ))}
                 </optgroup>
-                <optgroup label="Designers">
+                <optgroup label={t('projects.designers') || 'Designers'}>
                   {entities.filter(e => e.type === 'designer').map(e => (
-                    <option key={e.id} value={e.id}>{e.name} (Design) — €{Number(e.hourly_rate)}/h</option>
+                    <option key={e.id} value={e.id}>{e.name} ({t('common.design_tag') || 'Design'}) — €{Number(e.hourly_rate)}/h</option>
                   ))}
                 </optgroup>
-                <optgroup label="Other">
-                  <option value="custom">Custom expense...</option>
+                <optgroup label={t('common.other') || 'Other'}>
+                  <option value="custom">{t('projects.custom_expense') || 'Custom expense...'}</option>
                 </optgroup>
               </select>
               
               {newRow.entity_id === 'custom' ? (
                 <input
                   type="number"
-                  placeholder="Total Cost (€)"
+                  placeholder={t('projects.total_cost_placeholder') || 'Total Cost (€)'}
                   value={newRow.custom_cost}
                   onChange={e => setNewRow({ ...newRow, custom_cost: e.target.value })}
                   className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[var(--color-primary)] transition-all"
@@ -266,7 +268,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
               ) : (
                 <input
                   type="number"
-                  placeholder="Hours"
+                  placeholder={t('projects.hours_placeholder') || 'Hours'}
                   value={newRow.hours}
                   onChange={e => setNewRow({ ...newRow, hours: e.target.value })}
                   className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[var(--color-primary)] transition-all"
@@ -279,7 +281,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
             {newRow.entity_id === 'custom' && (
               <input
                 type="text"
-                placeholder="Expense description..."
+                placeholder={t('projects.expense_description_placeholder') || 'Expense description...'}
                 value={newRow.custom_name}
                 onChange={e => setNewRow({ ...newRow, custom_name: e.target.value })}
                 className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
@@ -298,7 +300,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                 disabled={(!newRow.entity_id || (newRow.entity_id !== 'custom' && !newRow.hours) || (newRow.entity_id === 'custom' && (!newRow.custom_name || !newRow.custom_cost)))}
                 className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:scale-100"
               >
-                <Plus size={18} /> Add
+                <Plus size={18} /> {t('common.add')}
               </button>
             </div>
           </div>

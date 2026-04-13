@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, Filler } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import { Briefcase, Save, Calendar, RefreshCw } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 
 ChartJS.register(
   CategoryScale,
@@ -22,15 +23,19 @@ interface DashboardData {
   workload_dev: any[];
   workload_design: any[];
   workload_pm: any[];
+  leads?: any[];
 }
 
 const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
   // Sort data into logical pipeline order
+  const { t } = useTranslation();
   const order = ['New Lead', 'Price Offer Sent', 'Price Offer Accepted'];
   const funnelData = order.map(status => {
     const item = data.find(d => d.status === status);
+    const labelKey = status.toLowerCase().replace(/ /g, '_');
     return { 
       label: status, 
+      displayLabel: t(`leads.status_${labelKey}`) || status,
       value: item ? Number(item.count) : 0,
       amount: item ? Number(item.total_value) : 0 
     };
@@ -46,7 +51,7 @@ const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
         <div className="w-36 flex flex-col justify-between py-2 text-[13px] font-black text-gray-800 uppercase tracking-tighter">
           {funnelData.map(d => (
             <div key={d.label} className="h-10 flex flex-col justify-center">
-              <div className="leading-tight">{d.label}</div>
+              <div className="leading-tight">{d.displayLabel}</div>
               <div className="text-[#e28c00] text-[12px] font-black">€{Math.round(d.amount).toLocaleString()}</div>
             </div>
           ))}
@@ -108,6 +113,7 @@ const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
 };
 
 export const DashboardKPIs: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [workloadTab, setWorkloadTab] = useState<'dev' | 'design' | 'pm'>('dev');
   const [useComplexity, setUseComplexity] = useState(false);
@@ -129,7 +135,7 @@ export const DashboardKPIs: React.FC = () => {
     return () => window.removeEventListener('projectsUpdated', handleUpdate);
   }, []);
 
-  if (!data) return <div className="h-48 flex items-center justify-center text-gray-400 font-mono text-xs animate-pulse">Initializing Data Stream...</div>;
+  if (!data) return <div className="h-48 flex items-center justify-center text-gray-400 font-mono text-xs animate-pulse">{t('common.loading')}</div>;
 
   // 1. Workload Bar Chart (Tabbed & Stacked & Weighted)
   const currentWorkload = workloadTab === 'dev' ? data.workload_dev : (workloadTab === 'design' ? data.workload_design : data.workload_pm);
@@ -141,13 +147,13 @@ export const DashboardKPIs: React.FC = () => {
     labels: currentWorkload.map((d: any) => d.name),
     datasets: [
       {
-        label: 'Active',
+        label: t('common.active') || 'Active',
         data: currentWorkload.map((d: any) => getActiveVal(d)),
         backgroundColor: currentWorkload.map((d: any) => d.color || (workloadTab === 'dev' ? '#3b82f6' : (workloadTab === 'design' ? '#a855f7' : '#ec4899'))),
         borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 8, bottomRight: 8 },
       },
       {
-        label: 'Assigned',
+        label: t('common.assigned') || 'Assigned',
         data: currentWorkload.map((d: any) => getTotalVal(d) - getActiveVal(d)),
         backgroundColor: currentWorkload.map((d: any) => (d.color || (workloadTab === 'dev' ? '#3b82f6' : (workloadTab === 'design' ? '#a855f7' : '#ec4899'))) + '33'),
         borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 },
@@ -189,7 +195,7 @@ export const DashboardKPIs: React.FC = () => {
   const incomeChartData = {
     labels: data.income.map(i => i.month),
     datasets: [{
-      label: 'Expected Income (€)',
+      label: t('dashboard.income.label') || 'Expected Income (€)',
       data: data.income.map(i => i.expected_income),
       borderColor: '#10b981',
       backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -205,22 +211,22 @@ export const DashboardKPIs: React.FC = () => {
     <div className="space-y-6 mb-12 animate-fade-in px-1 md:px-0">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Project Landscape</h2>
-          <p className="text-gray-500 text-sm">Key performance indicators and pipeline velocity.</p>
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{t('dashboard.title')}</h2>
+          <p className="text-gray-500 text-sm">{t('dashboard.subtitle')}</p>
         </div>
         <button 
           onClick={fetchData}
           className="flex items-center gap-2 p-1.5 px-4 bg-white hover:bg-gray-50 text-gray-400 hover:text-[var(--color-primary)] rounded-xl border border-gray-100 shadow-sm transition-all text-xs font-bold active:scale-95"
         >
           <RefreshCw size={14} className={!data ? 'animate-spin' : ''} />
-          Refresh
+          {t('common.refresh')}
         </button>
       </div>
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Leads</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.active_leads')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">{data.funnel.reduce((acc, curr) => acc + Number(curr.count), 0)}</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
@@ -229,7 +235,7 @@ export const DashboardKPIs: React.FC = () => {
         </div>
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Pipeline Vol.</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.pipeline_vol')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.funnel.reduce((acc, curr) => acc + Number(curr.total_value), 0) / 1000).toFixed(1)}k</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
@@ -238,7 +244,7 @@ export const DashboardKPIs: React.FC = () => {
         </div>
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Expected Income</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.expected_income')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.income.reduce((acc, curr) => acc + Number(curr.expected_income), 0) / 1000).toFixed(1)}k</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500">
@@ -247,7 +253,7 @@ export const DashboardKPIs: React.FC = () => {
         </div>
         <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Success Rate</p>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpi.success_rate')}</p>
             <h4 className="text-xl md:text-3xl font-black text-gray-900">18%</h4>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500">
@@ -259,8 +265,8 @@ export const DashboardKPIs: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Project Funnel */}
         <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[350px] md:min-h-[400px]">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">Sales Funnel</h3>
-          <p className="text-[10px] text-gray-400 mb-6 md:mb-8 uppercase tracking-[0.2em] font-black">Lead Transformation Cycle</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">{t('dashboard.funnel.title')}</h3>
+          <p className="text-[10px] text-gray-400 mb-6 md:mb-8 uppercase tracking-[0.2em] font-black">{t('dashboard.funnel.subtitle')}</p>
           <div className="flex-1 flex flex-col justify-center overflow-x-hidden">
             <FunnelChart data={data.funnel} />
           </div>
@@ -270,8 +276,8 @@ export const DashboardKPIs: React.FC = () => {
         <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[400px]">
           <div className="flex justify-between items-start mb-10">
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Workload</h3>
-              <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">Capacity Analysis</p>
+              <h3 className="text-xl font-bold text-gray-900">{t('dashboard.workload.title')}</h3>
+              <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">{t('dashboard.workload.subtitle')}</p>
             </div>
             <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
               <button 
@@ -299,7 +305,7 @@ export const DashboardKPIs: React.FC = () => {
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Complexity Weighting</span>
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('dashboard.workload.complexity')}</span>
             <button 
               onClick={() => setUseComplexity(!useComplexity)}
               className={`w-12 h-6 rounded-full transition-all relative ${useComplexity ? 'bg-[#e78b01]' : 'bg-gray-200'}`}
@@ -311,8 +317,8 @@ export const DashboardKPIs: React.FC = () => {
 
         {/* Income Stream */}
         <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[400px]">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">Expected Income</h3>
-          <p className="text-[10px] text-gray-400 mb-8 uppercase tracking-[0.2em] font-black">Monthly Forecast</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">{t('dashboard.income.title')}</h3>
+          <p className="text-[10px] text-gray-400 mb-8 uppercase tracking-[0.2em] font-black">{t('dashboard.income.subtitle')}</p>
           <div className="flex-1">
             <Line data={incomeChartData} options={chartOptions} />
           </div>

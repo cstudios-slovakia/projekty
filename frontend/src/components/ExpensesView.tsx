@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, TrendingUp, TrendingDown, Search, RefreshCw, Clock } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 
 interface Project {
@@ -14,6 +15,7 @@ interface Project {
 }
 
 export const ExpensesView: React.FC = () => {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterName, setFilterName] = useState('');
@@ -62,16 +64,16 @@ export const ExpensesView: React.FC = () => {
       {/* Header & Stats Summary */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-baseline gap-4">
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Financial Overview</h2>
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{t('financials.title') || 'Financial Overview'}</h2>
           <button 
             onClick={fetchData}
             className="flex items-center gap-2 p-1 px-3 bg-white hover:bg-gray-50 text-gray-400 hover:text-[var(--color-primary)] rounded-lg border border-gray-100 shadow-sm transition-all text-[10px] font-black uppercase tracking-widest active:scale-95"
           >
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-            Refresh
+            {t('common.refresh')}
           </button>
         </div>
-        <p className="text-gray-500 text-sm">Real-time profit and expense tracking across all active projects.</p>
+        <p className="text-gray-500 text-sm">{t('financials.subtitle') || 'Real-time profit and expense tracking across all active projects.'}</p>
         
             <div className="flex items-center gap-3">
                 <div className="bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
@@ -79,7 +81,7 @@ export const ExpensesView: React.FC = () => {
                         <TrendingUp size={16} className="text-green-600" />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Total Profit</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">{t('dashboard.kpis.total_profit')}</p>
                         <p className="text-sm font-black text-gray-900">
                             €{filteredProjects.reduce((sum, p) => sum + (p.total_value - p.total_spent), 0).toLocaleString()}
                         </p>
@@ -94,7 +96,7 @@ export const ExpensesView: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text" 
-            placeholder="Search project name..." 
+            placeholder={t('projects.search_placeholder')} 
             className="w-full bg-white text-gray-900 rounded-2xl px-12 py-3 border border-gray-100 focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] outline-none transition-all"
             value={filterName}
             onChange={e => setFilterName(e.target.value)}
@@ -105,7 +107,7 @@ export const ExpensesView: React.FC = () => {
           value={filterPM}
           onChange={e => setFilterPM(e.target.value)}
         >
-          <option value="">All Managers</option>
+          <option value="">{t('projects.all_pms') || 'All Managers'}</option>
           {pms.map(pm => <option key={pm} value={pm!}>{pm}</option>)}
         </select>
       </div>
@@ -115,12 +117,12 @@ export const ExpensesView: React.FC = () => {
         <table className="w-full text-left text-sm border-collapse">
           <thead>
             <tr className="italic uppercase text-[10px] font-black text-gray-400 tracking-[0.2em]">
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">Project Name</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">Project Lead</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Expenses</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Price (Gross)</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Profit</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">Margin %</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.title')}</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.pm')}</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.value')}</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.profit') || 'Profit'}</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -138,7 +140,7 @@ export const ExpensesView: React.FC = () => {
                         <button 
                             onClick={() => setExpenseProjectId(p.id)}
                             className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
-                            title="Quick Add Expense"
+                            title={t('projects.slideout.add_expense')}
                         >
                             <Plus size={16} />
                         </button>
@@ -161,7 +163,7 @@ export const ExpensesView: React.FC = () => {
                         <span className="font-semibold text-gray-700">{p.pm_name}</span>
                       </div>
                     ) : (
-                      <span className="text-gray-300 italic">Unassigned</span>
+                      <span className="text-gray-300 italic">{t('leads.unassigned')}</span>
                     )}
                   </td>
                   <td className="p-6 text-right text-gray-500 font-medium">
@@ -194,7 +196,7 @@ export const ExpensesView: React.FC = () => {
             <div className="w-16 h-16 bg-gray-50 rounded-2xl mx-auto flex items-center justify-center text-gray-300">
                 <Search size={32} />
             </div>
-            <p className="text-gray-400 font-medium italic">No projects found matching your search.</p>
+            <p className="text-gray-400 font-medium italic">{t('projects.no_projects') || 'No projects found matching your search.'}</p>
           </div>
         )}
       </div>

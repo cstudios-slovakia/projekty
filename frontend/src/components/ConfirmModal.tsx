@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, X, Check, Loader2 } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { createPortal } from 'react-dom';
 
 interface ConfirmModalProps {
@@ -19,10 +20,11 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
+  confirmText,
   confirmColor = 'bg-[var(--color-primary)]',
   isDestructive = false
 }) => {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -85,7 +87,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             disabled={isSubmitting}
             className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleConfirm}
@@ -97,7 +99,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             ) : (
               <Check size={16} />
             )}
-            {isSubmitting ? 'Processing...' : confirmText}
+            {isSubmitting ? t('common.processing') || 'Processing...' : (confirmText || t('common.confirm'))}
           </button>
         </div>
       </div>

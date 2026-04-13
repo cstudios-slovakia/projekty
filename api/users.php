@@ -17,7 +17,7 @@ if ($method === 'OPTIONS') {
 
 try {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT id, username, role FROM users ORDER BY id ASC");
+        $stmt = $pdo->query("SELECT id, username, role, language FROM users ORDER BY id ASC");
         echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
         
     } elseif ($method === 'POST') {
@@ -45,6 +45,20 @@ try {
             $is_mysql = (defined('DB_TYPE') && (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
             $newId = $is_mysql ? $pdo->lastInsertId() : $pdo->lastInsertId('users_id_seq');
             echo json_encode(["status" => "success", "id" => $newId]);
+        }
+    } elseif ($method === 'PUT') {
+        // Update user (e.g. language)
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$userId) {
+            http_response_code(400);
+            echo json_encode(["status" => "error", "message" => "Missing ID"]);
+            exit;
+        }
+
+        if (isset($input['language'])) {
+            $stmt = $pdo->prepare("UPDATE users SET language = ? WHERE id = ?");
+            $stmt->execute([$input['language'], $userId]);
+            echo json_encode(["status" => "success", "message" => "Language updated"]);
         }
     } elseif ($method === 'DELETE') {
         if (!$userId) {

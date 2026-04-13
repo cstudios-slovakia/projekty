@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { GripVertical, Save, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface Project {
   id: number;
@@ -11,6 +12,7 @@ interface Project {
 }
 
 export const LeadReorder: React.FC = () => {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,31 +52,31 @@ export const LeadReorder: React.FC = () => {
     .then(res => {
       setSaving(false);
       if(res.status === 'success') {
-        alert('Order saved successfully');
+        alert(t('common.save_success'));
         window.dispatchEvent(new CustomEvent('projectsUpdated'));
       }
     })
     .catch(() => setSaving(false));
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading leads...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">{t('common.loading')}</div>;
 
   return (
     <div className="max-w-3xl mx-auto py-4 md:py-8 px-4 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div>
           <Link to="/" className="text-sm text-gray-400 hover:text-[#e78b01] flex items-center gap-1 mb-2 transition-colors">
-            <ArrowLeft size={14} /> Back to Pipeline
+            <ArrowLeft size={14} /> {t('leads.back_to_pipeline') || 'Back to Pipeline'}
           </Link>
-          <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Manual Ordering</h2>
-          <p className="text-sm text-gray-500 mt-1">Drag and drop leads to set their custom order.</p>
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">{t('leads.manual_ordering') || 'Manual Ordering'}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('leads.manual_ordering_subtitle') || 'Drag and drop leads to set their custom order.'}</p>
         </div>
         <button 
           onClick={saveOrder}
           disabled={saving}
           className="w-full md:w-auto bg-[#e78b01] text-white px-8 py-4 md:py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
         >
-          {saving ? 'Saving...' : <><Save size={20} /> Save Order</>}
+          {saving ? t('common.saving') : <><Save size={20} /> {t('leads.save_order') || 'Save Order'}</>}
         </button>
       </div>
 
@@ -112,7 +114,7 @@ export const LeadReorder: React.FC = () => {
 
       {projects.length === 0 && (
         <div className="bg-gray-50 rounded-3xl p-12 text-center border-2 border-dashed border-gray-100 italic text-gray-400">
-          No active projects found to reorder.
+          {t('projects.no_projects') || 'No active projects found to reorder.'}
         </div>
       )}
     </div>

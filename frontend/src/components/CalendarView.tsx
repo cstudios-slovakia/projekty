@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Briefcase, Zap, Grid, AlignLeft } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { ProjectSlideout } from './ProjectSlideout';
 import { LeadSlideout } from './LeadSlideout';
 
@@ -42,6 +43,7 @@ interface CalendarEntity {
 }
 
 export const CalendarView: React.FC = () => {
+  const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [data, setData] = useState<{ 
     projects: CalendarProject[], 
@@ -202,7 +204,7 @@ export const CalendarView: React.FC = () => {
           <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
             <CalendarIcon size={20} />
           </div>
-          <h2 className="text-xl font-black text-gray-900 tracking-tight">Timeline</h2>
+          <h2 className="text-xl font-black text-gray-900 tracking-tight">{t('nav.calendar')}</h2>
         </div>
         <div className="flex items-center gap-4 bg-gray-50 rounded-2xl p-1.5 border border-gray-100">
           <div className="flex bg-white rounded-xl shadow-sm border border-gray-100 p-1 mr-2">
@@ -210,13 +212,13 @@ export const CalendarView: React.FC = () => {
                onClick={() => setActiveTab('timeline')} 
                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${activeTab === 'timeline' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
             >
-               <AlignLeft size={14} /> Timeline
+               <AlignLeft size={14} /> {t('calendar.timeline') || 'Timeline'}
             </button>
             <button 
                onClick={() => setActiveTab('grid')} 
                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${activeTab === 'grid' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
             >
-               <Grid size={14} /> Grid
+               <Grid size={14} /> {t('calendar.grid') || 'Grid'}
             </button>
           </div>
           <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white rounded-xl shadow-sm hover:shadow text-gray-600 transition-all">
@@ -236,7 +238,7 @@ export const CalendarView: React.FC = () => {
             {/* Timeline Header (Days) */}
             <div className="flex border-b border-gray-200 bg-gray-50/50 sticky top-0 z-30 shadow-sm">
               <div className="w-48 flex-shrink-0 border-r border-gray-200 p-4 font-black text-xs text-gray-400 uppercase tracking-widest flex items-center bg-white sticky left-0 z-40">
-                Team / Events
+                {t('projects.team') || 'Team'} / {t('calendar.events') || 'Events'}
               </div>
           <div className="flex-1 relative flex">
             {daysArray.map(day => (
@@ -252,8 +254,8 @@ export const CalendarView: React.FC = () => {
           {/* Row: GLOBAL EVENTS */}
           <div className="flex border-b border-gray-100 group hover:bg-gray-50/30 transition-colors min-h-[5rem]">
             <div className="w-48 flex-shrink-0 border-r border-gray-100 p-4 flex flex-col justify-center bg-white sticky left-0 z-30 shadow-[4px_0_12px_rgba(0,0,0,0.02)]">
-                <span className="font-bold text-sm text-gray-900">Milestones</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Deadlines & Meetings</span>
+                <span className="font-bold text-sm text-gray-900">{t('calendar.milestones')}</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">{t('calendar.events_subtitle') || 'Deadlines & Meetings'}</span>
             </div>
             <div className="flex-1 relative bg-white py-2">
               {/* Grid Lines */}
@@ -305,7 +307,7 @@ export const CalendarView: React.FC = () => {
           </div>
 
           <div className="bg-gray-100 px-4 py-1 flex items-center text-[9px] font-black uppercase tracking-widest text-gray-400 sticky top-0 z-20 shadow-sm">
-             Designers
+             {t('projects.designers')}
           </div>
 
           {/* Rows: DESIGNERS */}
@@ -341,7 +343,7 @@ export const CalendarView: React.FC = () => {
           ))}
 
           <div className="bg-gray-100 px-4 py-1 flex items-center text-[9px] font-black uppercase tracking-widest text-gray-400 sticky top-0 z-20 shadow-sm mt-4">
-             Developers
+             {t('projects.developers')}
           </div>
 
           {/* Rows: DEVELOPERS */}
@@ -377,7 +379,7 @@ export const CalendarView: React.FC = () => {
           ))}
 
           {designers.length === 0 && developers.length === 0 && (
-             <div className="p-12 text-center text-gray-400 font-bold">No team members configured. Add them in Settings.</div>
+             <div className="p-12 text-center text-gray-400 font-bold">{t('calendar.no_team_configured') || 'No team members configured. Add them in Settings.'}</div>
           )}
         </div>
           </>
@@ -387,7 +389,7 @@ export const CalendarView: React.FC = () => {
            <div className="flex-1 bg-gray-50 p-6 flex flex-col items-center">
                <div className="w-full max-w-6xl grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                    {/* Days Header */}
-                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                   {[t('calendar.mon'), t('calendar.tue'), t('calendar.wed'), t('calendar.thu'), t('calendar.fri'), t('calendar.sat'), t('calendar.sun')].map(day => (
                       <div key={day} className="bg-white p-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
                          {day}
                       </div>
@@ -412,7 +414,7 @@ export const CalendarView: React.FC = () => {
                                       className="text-[10px] font-bold px-2 py-1 rounded bg-red-50 text-red-700 border border-red-100 truncate cursor-pointer hover:shadow-sm"
                                       onClick={() => setOpenProjectId(p.id)}
                                    >
-                                      🏁 Deadline: {p.name}
+                                      🏁 {t('calendar.deadline_prefix') || 'Deadline'}: {p.name}
                                    </div>
                                 ))}
                                 {cell.currentMonth && meets.map(m => (
@@ -421,7 +423,7 @@ export const CalendarView: React.FC = () => {
                                       className="text-[10px] font-bold px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200 truncate cursor-pointer hover:shadow-sm"
                                       onClick={() => setOpenLeadId(m.lead_id)}
                                    >
-                                      🤝 Meeting: {m.company_name}
+                                      🤝 {t('calendar.meeting_prefix') || 'Meeting'}: {m.company_name}
                                    </div>
                                 ))}
                                 {cell.currentMonth && leads.map(l => (
@@ -430,7 +432,7 @@ export const CalendarView: React.FC = () => {
                                       className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 truncate cursor-pointer hover:shadow-sm"
                                       onClick={() => setOpenLeadId(l.id)}
                                    >
-                                      ✨ New Lead: {l.company_name}
+                                      ✨ {t('calendar.new_lead_prefix') || 'New Lead'}: {l.company_name}
                                    </div>
                                 ))}
                              </div>

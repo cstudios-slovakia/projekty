@@ -26,6 +26,7 @@ function get_schema_sql($db_type, $prefix = '') {
             username VARCHAR(50) UNIQUE NOT NULL,
             password_hash VARCHAR(255) NOT NULL,
             role VARCHAR(20) DEFAULT 'user',
+            language VARCHAR(5) DEFAULT 'en',
             reset_token VARCHAR(255) NULL
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
         
@@ -143,7 +144,7 @@ function get_schema_sql($db_type, $prefix = '') {
     return $sql;
 }
 
-function run_schema($pdo, $db_type, $prefix = '', $admin_password = null) {
+function run_schema($pdo, $db_type, $prefix = '', $admin_password = null, $default_language = 'en') {
     try {
         $sql = get_schema_sql($db_type, $prefix);
         // Execute multiple queries
@@ -153,7 +154,8 @@ function run_schema($pdo, $db_type, $prefix = '', $admin_password = null) {
         $defaults = [
             ['system_title', 'Lead Tracker'],
             ['accent_color_primary', '#e78b01'],
-            ['accent_color_secondary', '#00b800']
+            ['accent_color_secondary', '#00b800'],
+            ['default_language', $default_language]
         ];
         $insert = $pdo->prepare("INSERT INTO {$prefix}system_settings (`key`, `value`) VALUES (?, ?)");
         if ($db_type === 'pgsql') {
@@ -167,8 +169,8 @@ function run_schema($pdo, $db_type, $prefix = '', $admin_password = null) {
         // Create admin user
         if ($admin_password) {
             $hash = password_hash($admin_password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO {$prefix}users (username, password_hash, role) VALUES ('admin', ?, 'admin')");
-            $stmt->execute([$hash]);
+            $stmt = $pdo->prepare("INSERT INTO {$prefix}users (username, password_hash, role, language) VALUES ('admin', ?, 'admin', ?)");
+            $stmt->execute([$hash, $default_language]);
         }
 
         return ["status" => "success", "message" => "Installation successful"];

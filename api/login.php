@@ -23,7 +23,7 @@ if (!$username || !$password) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id, username, password_hash, role FROM users WHERE username = :username");
+    $stmt = $pdo->prepare("SELECT id, username, password_hash, role, language FROM users WHERE username = :username");
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch();
 
@@ -36,6 +36,7 @@ try {
                 "id" => $user['id'],
                 "username" => $user['username'],
                 "role" => $user['role'],
+                "language" => $user['language'] ?? 'en',
                 "token" => $token
             ]
         ]);

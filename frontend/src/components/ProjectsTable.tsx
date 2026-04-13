@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ConfirmModal } from './ConfirmModal';
 
@@ -59,6 +60,7 @@ const statusOptions = ['New Lead', 'Price Offer Sent', 'Price Offer Accepted', '
 const progressOptions = ['Not Started', 'In Progress', 'Finished'];
 
 export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [entities, setEntities] = useState<SettingsEntity[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -160,7 +162,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   };
 
   const handleCreate = () => {
-    if (!newProjectForm.name) return alert("Name is required");
+    if (!newProjectForm.name) return alert(t('projects.name_required') || "Name is required");
     fetch('/api/projects.php', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -189,9 +191,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
     if (isArchiving) {
       setConfirmModal({
         isOpen: true,
-        title: 'Archive Project',
-        message: `Are you sure you want to archive "${p.name}"? This project will be moved to the archives and hidden from the active pipeline.`,
-        confirmText: 'Archive Project',
+        title: t('common.archive') + ' ' + t('nav.projects'),
+        message: t('projects.confirm_archive') || `Are you sure you want to archive "${p.name}"? This project will be moved to the archives and hidden from the active pipeline.`,
+        confirmText: t('common.archive'),
         onConfirm: () => executeArchive(p.id, true),
         isDestructive: false
       });
@@ -272,7 +274,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
       <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm flex flex-wrap gap-4 items-center">
         <div className="flex-1 min-w-[300px] relative">
           <input 
-            placeholder="Search projects by name..." 
+            placeholder={t('projects.search_placeholder')} 
             className="w-full bg-gray-50 text-gray-900 rounded-2xl px-5 py-3 border border-gray-100 focus:bg-white transition-all outline-none"
             value={filterName}
             onChange={e => setFilterName(e.target.value)}
@@ -283,15 +285,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value)}
         >
-          <option value="">All Statuses</option>
-          {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          <option value="">{t('projects.all_statuses') || 'All Statuses'}</option>
+          {statusOptions.map(opt => <option key={opt} value={opt}>{t(`leads.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
         </select>
         <select 
           className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
           value={filterPM}
           onChange={e => setFilterPM(e.target.value)}
         >
-          <option value="">All PMs</option>
+          <option value="">{t('projects.all_pms') || 'All PMs'}</option>
           {pms.map(pm => <option key={pm.id} value={pm.id}>{pm.name}</option>)}
         </select>
         <select 
@@ -299,19 +301,19 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
           value={filterDev}
           onChange={e => setFilterDev(e.target.value)}
         >
-          <option value="">All Devs</option>
+          <option value="">{t('projects.all_devs') || 'All Devs'}</option>
           {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
         <button 
           onClick={fetchData}
           className="p-3 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 hover:text-[var(--color-primary)] transition-all hover:bg-white active:scale-90"
-          title="Refresh Data"
+          title={t('common.refresh')}
         >
           <RefreshCw size={20} />
         </button>
         {!isCreating && !archivedView && (
           <button onClick={() => setIsCreating(true)} className="bg-[var(--color-secondary)] hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02] active:scale-95 ml-auto">
-            <Plus size={20} /> New Project
+            <Plus size={20} /> {t('projects.new_project')}
           </button>
         )}
       </div>
@@ -322,19 +324,19 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
             <tr>
               <th className="p-5 w-12 text-center"></th>
               <th className="p-5 md:w-1/4 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('name')}>
-                <div className="flex items-center">Project Info <SortIcon col="name" /></div>
+                <div className="flex items-center">{t('projects.project_info') || 'Project Info'} <SortIcon col="name" /></div>
               </th>
               <th className="p-5 w-32 text-center cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('deadline')}>
-                <div className="flex items-center justify-center">Deadline <SortIcon col="deadline" /></div>
+                <div className="flex items-center justify-center">{t('projects.deadline')} <SortIcon col="deadline" /></div>
               </th>
               <th className="p-5 w-44 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('status')}>
-                <div className="flex items-center">Workflow <SortIcon col="status" /></div>
+                <div className="flex items-center">{t('projects.workflow') || 'Workflow'} <SortIcon col="status" /></div>
               </th>
-              <th className="p-5 w-48">Team</th>
+              <th className="p-5 w-48">{t('projects.team') || 'Team'}</th>
               <th className="p-5 w-40 text-right cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('total_value')}>
-                <div className="flex items-center justify-end">Financials <SortIcon col="total_value" /></div>
+                <div className="flex items-center justify-end">{t('projects.financials') || 'Financials'} <SortIcon col="total_value" /></div>
               </th>
-              <th className="p-5 w-24 text-center">Actions</th>
+              <th className="p-5 w-24 text-center">{t('common.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 block md:table-row-group">
@@ -342,66 +344,66 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
               <tr className="bg-gray-50/50 block md:table-row border-b md:border-none p-4 md:p-0">
                 <td className="hidden md:table-cell p-5"></td>
                 <td className="p-4 md:p-5 block md:table-cell">
-                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Project Name</div>
-                  <input name="name" placeholder="Project Name" className="bg-white border-gray-200 text-gray-900 rounded-xl px-4 py-2 w-full border text-base font-bold shadow-sm" value={newProjectForm.name || ''} onChange={e => handleChange(e, true)} />
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.title') || 'Project Title'}</div>
+                  <input name="name" placeholder={t('projects.title') || 'Project Title'} className="bg-white border-gray-200 text-gray-900 rounded-xl px-4 py-2 w-full border text-base font-bold shadow-sm" value={newProjectForm.name || ''} onChange={e => handleChange(e, true)} />
                   <select name="status" className="bg-white border-gray-200 text-gray-700 rounded-xl px-3 py-2 w-full border text-xs mt-2" value={newProjectForm.status || ''} onChange={e => handleChange(e, true)}>
-                    {statusOptions.map(opt => <option key={opt}>{opt}</option>)}
+                    {statusOptions.map(opt => <option key={opt} value={opt}>{t(`leads.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                   </select>
                 </td>
                 <td className="p-4 md:p-5 text-left md:text-center block md:table-cell border-t md:border-none">
-                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Accepted date</div>
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('common.created')}</div>
                   <input type="date" name="accepted_date" className="bg-white border-gray-200 text-gray-700 rounded-xl px-3 py-2 w-full md:w-auto border text-xs shadow-sm" value={newProjectForm.accepted_date || ''} onChange={e => handleChange(e, true)} />
                 </td>
                 <td className="p-4 md:p-5 space-y-3 block md:table-cell border-t md:border-none">
-                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Workflow Status</div>
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.workflow')}</div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-gray-400">DESIGN</label>
+                    <label className="text-[10px] font-bold text-gray-400">{t('common.design_tag') || 'DESIGN'}</label>
                     <select name="design_status" className="bg-white border-gray-200 text-gray-700 rounded-xl px-3 py-2 w-full border text-xs" value={newProjectForm.design_status || ''} onChange={e => handleChange(e, true)}>
-                      {progressOptions.map(opt => <option key={opt}>{opt}</option>)}
+                      {progressOptions.map(opt => <option key={opt} value={opt}>{t(`projects.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                     </select>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-gray-400">DEV</label>
+                    <label className="text-[10px] font-bold text-gray-400">{t('common.dev_tag') || 'DEV'}</label>
                     <select name="dev_status" className="bg-white border-gray-200 text-gray-700 rounded-xl px-3 py-2 w-full border text-xs" value={newProjectForm.dev_status || ''} onChange={e => handleChange(e, true)}>
-                      {progressOptions.map(opt => <option key={opt}>{opt}</option>)}
+                      {progressOptions.map(opt => <option key={opt} value={opt}>{t(`projects.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                     </select>
                   </div>
                 </td>
                 <td className="p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none">
-                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Team Assignment</div>
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.team')}</div>
                   <select name="pm_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.pm_id || ''} onChange={e => handleChange(e, true)}>
-                    <option value="">Project Manager</option>
+                    <option value="">{t('projects.pm')}</option>
                     {pms.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                   </select>
                   <select name="designer_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.designer_id || ''} onChange={e => handleChange(e, true)}>
-                    <option value="">Designer</option>
+                    <option value="">{t('projects.designer')}</option>
                     {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                   </select>
                   <select name="dev_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.dev_id || ''} onChange={e => handleChange(e, true)}>
-                    <option value="">Developer</option>
+                    <option value="">{t('projects.developer')}</option>
                     {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                   </select>
                 </td>
                 <td className="p-4 md:p-5 space-y-4 block md:table-cell border-t md:border-none">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">Financials</label>
-                    <input type="number" name="total_value" placeholder="Total Value €" className="bg-white border-gray-200 text-gray-900 rounded-xl px-3 py-2 w-full border text-sm font-bold" value={newProjectForm.total_value || ''} onChange={e => handleChange(e, true)} />
-                    <input type="number" name="already_paid" placeholder="Already Paid €" className="bg-white border-gray-200 text-gray-500 rounded-xl px-3 py-2 w-full border text-xs" value={newProjectForm.already_paid || ''} onChange={e => handleChange(e, true)} />
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('projects.financials') || 'Financials'}</label>
+                    <input type="number" name="total_value" placeholder={t('projects.total_cost_placeholder') || "Total Value €"} className="bg-white border-gray-200 text-gray-900 rounded-xl px-3 py-2 w-full border text-sm font-bold" value={newProjectForm.total_value || ''} onChange={e => handleChange(e, true)} />
+                    <input type="number" name="already_paid" placeholder={t('projects.paid') || "Already Paid €"} className="bg-white border-gray-200 text-gray-500 rounded-xl px-3 py-2 w-full border text-xs" value={newProjectForm.already_paid || ''} onChange={e => handleChange(e, true)} />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">Complexity (1-7)</label>
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('projects.complexity')} (1-7)</label>
                     <select name="complexity" className="bg-white border-gray-200 text-gray-700 rounded-xl px-3 py-2 w-full border text-xs font-bold" value={newProjectForm.complexity || 3} onChange={e => handleChange(e, true)}>
-                      {[1,2,3,4,5,6,7].map(num => <option key={num} value={num}>Level {num}</option>)}
+                      {[1,2,3,4,5,6,7].map(num => <option key={num} value={num}>{t('projects.level')} {num}</option>)}
                     </select>
                   </div>
                 </td>
                 <td className="p-4 md:p-5 text-center block md:table-cell border-t md:border-none">
                   <div className="flex justify-center gap-4">
                     <button onClick={handleCreate} className="flex-1 md:flex-none p-4 md:p-3 bg-[#00b800] hover:bg-green-600 rounded-2xl text-white shadow-lg transition-all font-bold flex items-center justify-center gap-2">
-                      <Save size={20} /> <span className="md:hidden">CREATE PROJECT</span>
+                      <Save size={20} /> <span className="md:hidden text-xs font-black uppercase tracking-widest">{t('projects.new_project')}</span>
                     </button>
-                    <button onClick={() => setIsCreating(false)} className="px-6 py-4 md:p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-gray-400 transition-all font-blacks md:hidden" title="Cancel">
-                      CANCEL
+                    <button onClick={() => setIsCreating(false)} className="px-6 py-4 md:p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-gray-400 transition-all font-blacks md:hidden" title={t('common.cancel')}>
+                      {t('common.cancel')}
                     </button>
                   </div>
                 </td>
@@ -419,7 +421,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                     <td className={`p-3 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : ''}`}>
                       <div className="flex items-center justify-between md:justify-center">
                         <button onClick={() => toggleExpand(p.id)} className="p-2.5 rounded-xl bg-gray-50 md:bg-transparent hover:bg-gray-100 text-gray-500 md:text-gray-400 transition-all flex items-center gap-2">
-                          <span className="md:hidden text-[10px] font-black uppercase tracking-wider">Details</span>
+                          <span className="md:hidden text-[10px] font-black uppercase tracking-wider">{t('projects.slideout.details')}</span>
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
                         <div className="md:hidden flex items-center gap-2">
@@ -481,7 +483,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                     });
                                   }}
                                 >
-                                  {statusOptions.map(opt => <option key={opt} value={opt} className="bg-white text-gray-900 uppercase font-bold">{opt}</option>)}
+                                  {statusOptions.map(opt => <option key={opt} value={opt} className="bg-white text-gray-900 uppercase font-bold">{t(`leads.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                                 </select>
                               );
                             })()}
@@ -501,7 +503,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
                     <td className="p-4 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                         <div className="flex items-center justify-between md:flex-col md:items-center">
-                          <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Target Deadline</span>
+                          <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('projects.deadline')}</span>
                           {isEditing ? (
                             <input type="date" name="deadline" className="bg-gray-50 border border-gray-200 text-gray-700 rounded-xl px-2 py-1.5 w-40 md:w-full text-xs font-bold" value={editForm.deadline || ''} onChange={handleChange} />
                           ) : (
@@ -514,15 +516,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                     </td>
 
                     <td className="p-4 md:p-5 space-y-2 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
-                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Workflow Status</div>
+                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.workflow')}</div>
                       <div className="flex flex-col gap-1 cursor-pointer" onClick={() => startEdit(p)}>
                         <div className="flex justify-between items-center px-1">
-                          <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Design</span>
-                          {!isEditing && <span className={`text-[10px] font-bold ${p.design_status === 'Finished' ? 'text-green-500' : 'text-gray-400'}`}>{p.design_status}</span>}
+                          <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{t('common.design_tag') || 'Design'}</span>
+                          {!isEditing && <span className={`text-[10px] font-bold ${p.design_status === 'Finished' ? 'text-green-500' : 'text-gray-400'}`}>{t(`projects.status_${p.design_status.toLowerCase().replace(/ /g, '_')}`) || p.design_status}</span>}
                         </div>
                         {isEditing ? (
                           <select name="design_status" className="bg-gray-50 border border-gray-200 text-gray-700 rounded-xl px-2 py-1.5 w-full text-xs" value={editForm.design_status || ''} onChange={handleChange}>
-                            {progressOptions.map(opt => <option key={opt}>{opt}</option>)}
+                            {progressOptions.map(opt => <option key={opt} value={opt}>{t(`projects.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                           </select>
                         ) : (
                           <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -532,12 +534,12 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       </div>
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-center px-1">
-                          <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Development</span>
-                          {!isEditing && <span className={`text-[10px] font-bold ${p.dev_status === 'Finished' ? 'text-green-500' : 'text-gray-400'}`}>{p.dev_status}</span>}
+                          <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{t('common.dev_tag') || 'Development'}</span>
+                          {!isEditing && <span className={`text-[10px] font-bold ${p.dev_status === 'Finished' ? 'text-green-500' : 'text-gray-400'}`}>{t(`projects.status_${p.dev_status.toLowerCase().replace(/ /g, '_')}`) || p.dev_status}</span>}
                         </div>
                         {isEditing ? (
                           <select name="dev_status" className="bg-gray-50 border border-gray-200 text-gray-700 rounded-xl px-2 py-1.5 w-full text-xs" value={editForm.dev_status || ''} onChange={handleChange}>
-                            {progressOptions.map(opt => <option key={opt}>{opt}</option>)}
+                            {progressOptions.map(opt => <option key={opt} value={opt}>{t(`projects.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                           </select>
                         ) : (
                           <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -547,16 +549,16 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       </div>
                     </td>
                     <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
-                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Team Assigned</div>
+                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.team')}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
                           <select name="pm_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.pm_id || ''} onChange={handleChange}>
-                            <option value="">PM</option>
+                            <option value="">{t('projects.pm') || 'PM'}</option>
                             {pms.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                           </select>
                           <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
                             <select name="designer_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.designer_id || ''} onChange={handleChange}>
-                              <option value="">Designer</option>
+                              <option value="">{t('projects.designer') || 'Designer'}</option>
                               {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                             </select>
                             {editForm.designer_id && (
@@ -570,7 +572,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           
                           <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
                             <select name="dev_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.dev_id || ''} onChange={handleChange}>
-                              <option value="">Dev</option>
+                              <option value="">{t('projects.developer') || 'Dev'}</option>
                               {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                             </select>
                             {editForm.dev_id && (
@@ -585,28 +587,28 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       ) : (
                         <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
                           {p.pm_name && (
-                            <span className="bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5" title="Project Manager">
+                            <span className="bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5" title={t('projects.pm')}>
                               <User size={12} /> {p.pm_name}
                             </span>
                           )}
                           {p.designer_name && (
-                            <span className="bg-purple-50 text-purple-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-purple-100 flex items-center gap-1.5" title="Designer">
+                            <span className="bg-purple-50 text-purple-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-purple-100 flex items-center gap-1.5" title={t('projects.designer')}>
                               <Palette size={12} /> {p.designer_name}
                             </span>
                           )}
                           {p.dev_name && (
-                            <span className="bg-emerald-50 text-emerald-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5" title="Developer">
+                            <span className="bg-emerald-50 text-emerald-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5" title={t('projects.developer')}>
                               <Monitor size={12} /> {p.dev_name}
                             </span>
                           )}
-                          {!p.pm_name && !p.designer_name && !p.dev_name && <span className="text-gray-300 italic text-xs">Unassigned</span>}
+                          {!p.pm_name && !p.designer_name && !p.dev_name && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
                         </div>
                       )}
                     </td>
 
                     <td className="p-4 md:p-5 text-left md:text-right block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                       <div className="flex items-center justify-between md:flex-col md:items-end">
-                        <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">Financials</span>
+                        <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('projects.financials')}</span>
                         {isEditing ? (
                           <div className="flex flex-col gap-1 w-40 md:w-full">
                             <input type="number" name="total_value" className="bg-gray-50 border border-gray-200 text-gray-900 text-right rounded-xl px-3 py-1.5 w-full text-sm font-bold" value={editForm.total_value || 0} onChange={handleChange} />
@@ -630,13 +632,13 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                       <div key={i} style={{ width: `${(exp.cost / devBudget) * 100}%`, backgroundColor: exp.color }} className="h-full border-r border-[#ffffff20] last:border-0" />
                                     )) : <div className="w-full h-full bg-gray-100" />}
                                   </div>
-                                  <span className={`text-[9px] font-black mt-1 ${percentBurned > 100 ? 'text-red-500' : 'text-gray-400'}`}>{percentBurned}% BURNED</span>
+                                  <span className={`text-[9px] font-black mt-1 ${percentBurned > 100 ? 'text-red-500' : 'text-gray-400'}`}>{percentBurned}% {t('projects.burned')}</span>
                                 </div>
                               );
                             })()}
                             <div className="flex flex-col text-right">
                               <span className="text-gray-900 font-black text-xl md:text-xl block leading-none tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
-                              {Number(p.already_paid) > 0 && <span className="text-green-500 text-[11px] font-bold mt-1.5 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} PAID</span>}
+                              {Number(p.already_paid) > 0 && <span className="text-green-500 text-[11px] font-bold mt-1.5 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} {t('projects.paid')}</span>}
                             </div>
                           </div>
                         )}
@@ -690,16 +692,16 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             {/* Project Type & Complexity */}
                             <div className="space-y-6">
                               <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Briefcase size={14} /> Project Metadata
+                                <Briefcase size={14} /> {t('projects.metadata') || 'Project Metadata'}
                               </h4>
                               <div className="space-y-4">
                                 <div className="space-y-1.5">
-                                  <label className="text-[11px] font-black text-gray-500 ml-1">WORK COMPLEXITY</label>
+                                  <label className="text-[11px] font-black text-gray-500 ml-1 uppercase tracking-wider">{t('projects.complexity') || 'WORK COMPLEXITY'}</label>
                                   {isEditing ? (
                                     <div className="flex items-center gap-4">
                                       <input type="range" name="complexity" min="1" max="7" className="flex-1 accent-[#e78b01]" value={editForm.complexity || 1} onChange={handleChange} />
                                       <div className="flex flex-col items-center">
-                                        <span className="font-bold text-[#e78b01] bg-orange-50 px-3 py-1 rounded-lg">Level {editForm.complexity}</span>
+                                        <span className="font-bold text-[#e78b01] bg-orange-50 px-3 py-1 rounded-lg">{t('projects.level')} {editForm.complexity}</span>
                                         {(() => {
                                           const x = Number(editForm.complexity) || 1;
                                           return <span className="text-[10px] font-black text-orange-300 mt-1 uppercase">{Math.round((25/9)*Math.pow(x,2)+(25/9)*x+400/9)} PTS</span>;
@@ -709,10 +711,10 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                   ) : (
                                     <div className="flex items-center gap-2">
                                       {[1, 2, 3, 4, 5, 6, 7].map(level => (
-                                        <div key={level} className={`h-2 flex-1 rounded-full ${level <= p.complexity ? 'bg-[#e78b01]' : 'bg-gray-100 opacity-50'}`}></div>
+                                        <div key={level} className={`h-2 flex-1 rounded-full ${level <= (p.complexity || 0) ? 'bg-[#e78b01]' : 'bg-gray-100 opacity-50'}`}></div>
                                       ))}
                                       <div className="flex flex-col ml-3">
-                                        <span className="text-xs font-bold text-gray-500">Lvl {p.complexity}</span>
+                                        <span className="text-xs font-bold text-gray-500">{t('projects.level_short') || 'Lvl'} {p.complexity}</span>
                                         {(() => {
                                            const x = Number(p.complexity) || 1;
                                            return <span className="text-[10px] font-black text-gray-300 uppercase leading-none">{Math.round((25/9)*Math.pow(x,2)+(25/9)*x+400/9)}pts impact</span>;
@@ -722,16 +724,16 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                   )}
                                 </div>
                                 <div className="space-y-1.5">
-                                  <label className="text-[11px] font-black text-gray-500 ml-1">PROJECT TYPE</label>
+                                  <label className="text-[11px] font-black text-gray-500 ml-1 uppercase tracking-wider">{t('projects.types') || 'PROJECT TYPE'}</label>
                                   {isEditing ? (
                                     <select name="project_type_id" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm" value={editForm.project_type_id || ''} onChange={handleChange}>
-                                      <option value="">Select Category...</option>
+                                      <option value="">{t('projects.select_category') || 'Select Category...'}</option>
                                       {projectTypes.map(pt => <option key={pt.id} value={pt.id}>{pt.name}</option>)}
                                     </select>
                                   ) : (
                                     <div className="flex items-center gap-2">
                                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: p.project_type_color }}></div>
-                                      <span className="font-bold text-gray-800">{p.project_type_name || 'Uncategorized'}</span>
+                                      <span className="font-bold text-gray-800">{p.project_type_name || t('projects.uncategorized')}</span>
                                     </div>
                                   )}
                                 </div>
@@ -741,11 +743,11 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             {/* Scheduling & Intervals */}
                             <div className="space-y-6">
                               <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Calendar size={14} /> Timeline Intervals
+                                <Calendar size={14} /> {t('calendar.milestones') || 'Milestones'}
                               </h4>
                               <div className="space-y-5">
                                 <div className="space-y-2">
-                                  <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase tracking-wider">Design Phase (From - To)</label>
+                                  <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase tracking-wider">{t('projects.design_phase')} (From - To)</label>
                                   <div className="grid grid-cols-2 gap-2">
                                     <input 
                                       type="date" 
@@ -764,7 +766,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                   </div>
                                 </div>
                                 <div className="space-y-2">
-                                  <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase tracking-wider">Development Phase (From - To)</label>
+                                  <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase tracking-wider">{t('projects.dev_phase')} (From - To)</label>
                                   <div className="grid grid-cols-2 gap-2">
                                     <input 
                                       type="date" 
@@ -783,7 +785,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                   </div>
                                 </div>
                                 <div className="pt-2">
-                                  <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase tracking-wider">Project Hard Deadline</label>
+                                  <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase tracking-wider">{t('projects.hard_deadline')}</label>
                                   <input 
                                     type="date" 
                                     name="deadline" 
@@ -798,11 +800,11 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             {/* Internal Notes */}
                             <div className="space-y-6">
                               <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Info size={14} /> Internal Logistics & Notes
+                                <Pencil size={14} /> {t('leads.activities.notes')}
                               </h4>
                               <textarea 
                                 name="notes"
-                                placeholder="Add project-specific details or internal comments..."
+                                placeholder={t('projects.notes_placeholder') || "Add project-specific details or internal comments..."}
                                 className={`w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm h-40 resize-none outline-none focus:bg-white transition-all ${!isEditing ? 'pointer-events-none' : ''}`}
                                 value={(isEditing ? editForm.notes : p.notes) || ''}
                                 onChange={handleChange}
@@ -811,7 +813,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               {/* Dev Budget & Expenses */}
                               <div className="pt-4 border-t border-gray-100 space-y-4">
                                 <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                  <DollarSign size={14} /> Development Budget
+                                  <DollarSign size={14} /> {t('projects.dev_budget') || 'Development Budget'}
                                 </h4>
                                 <div className="flex items-center gap-3">
                                   <div className="flex items-center gap-1 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 flex-1">
@@ -829,7 +831,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                     onClick={() => setExpenseProjectId(p.id)}
                                     className="bg-[#e78b01] text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all"
                                   >
-                                    <DollarSign size={16} /> Expenses
+                                    <DollarSign size={16} /> {t('nav.expenses')}
                                   </button>
                                 </div>
                                 {(() => {
@@ -846,14 +848,14 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                   return (
                                     <div className="grid grid-cols-2 gap-3 mt-4 animate-fade-in delay-75">
                                       <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-center">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 shadow-sm">Target Profit</p>
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 shadow-sm">{t('projects.profit') || 'Target Profit'}</p>
                                         <p className="text-sm font-black text-gray-900">€{targetProfit.toLocaleString()}</p>
-                                        <p className="text-[10px] font-bold text-gray-400">{targetProfitPct}% margin</p>
+                                        <p className="text-[10px] font-bold text-gray-400">{targetProfitPct}% {t('projects.margin') || 'margin'}</p>
                                       </div>
                                       <div className={`p-3 rounded-xl border flex flex-col justify-center transition-colors ${currentProfit < targetProfit ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
-                                        <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${currentProfit < targetProfit ? 'text-red-400' : 'text-green-500'}`}>Current Profit</p>
+                                        <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${currentProfit < targetProfit ? 'text-red-400' : 'text-green-500'}`}>{t('projects.current_profit') || 'Current Profit'}</p>
                                         <p className={`text-sm font-black ${currentProfit < targetProfit ? 'text-red-600' : 'text-green-600'}`}>€{currentProfit.toLocaleString()}</p>
-                                        <p className={`text-[10px] font-bold ${currentProfit < targetProfit ? 'text-red-500' : 'text-green-600'}`}>{currentProfitPct}% margin</p>
+                                        <p className={`text-[10px] font-bold ${currentProfit < targetProfit ? 'text-red-500' : 'text-green-600'}`}>{currentProfitPct}% {t('projects.margin') || 'margin'}</p>
                                       </div>
                                     </div>
                                   );

@@ -4,6 +4,7 @@ import {
   Globe, Mail, 
   ArrowUpRight, Zap
 } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { createPortal } from 'react-dom';
 import { LeadSlideout } from './LeadSlideout';
 
@@ -45,6 +46,7 @@ interface Props {
 }
 
 export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
+  const { t } = useTranslation();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [entities, setEntities] = useState<SettingsEntity[]>([]);
   const [filterName, setFilterName] = useState('');
@@ -98,11 +100,11 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
         setNewLeadForm({ company_name: '', contact_name: '', email: '', phone: '', country: '', message: '' });
         fetchLeads();
       } else {
-        alert("Error: " + (res.message || "Failed to initialize lead"));
+        alert(t('common.error') + ": " + (res.message || t('leads.error_msg') || 'Failed to save lead'));
       }
     })
     .catch(err => {
-      alert("Connection error: The Leads API might be down or not responding.");
+      alert(t('login.connection_error') + ": The Leads API might be down or not responding.");
       console.error(err);
     });
   };
@@ -115,14 +117,14 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
   });
 
   const getRelativeTime = (dateStr: string) => {
-    if (!dateStr) return 'No activity';
+    if (!dateStr) return t('leads.activities.no_activity');
     const date = new Date(dateStr);
     const now = new Date();
     const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
     
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    if (diff < 60) return t('leads.activities.just_now') || 'Just now';
+    if (diff < 3600) return `${Math.floor(diff/60)}${t('common.minutes_unit') || 'm'} ${t('common.ago') || 'ago'}`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}${t('common.hours_unit') || 'h'} ${t('common.ago') || 'ago'}`;
     return date.toLocaleDateString();
   };
 
@@ -138,7 +140,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
         <div className="flex items-center gap-4 bg-white rounded-2xl p-2 border border-gray-200 shadow-sm flex-1 w-full md:w-auto">
           <div className="pl-3 text-gray-400"><Search size={18} /></div>
           <input 
-            placeholder="Search leads..." 
+            placeholder={t('leads.search_placeholder')} 
             className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-gray-900"
             value={filterName}
             onChange={e => setFilterName(e.target.value)}
@@ -149,7 +151,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
           >
-            <option value="">Status</option>
+            <option value="">{t('common.status')}</option>
             {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
           <select 
@@ -157,7 +159,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
             value={filterSource}
             onChange={e => setFilterSource(e.target.value)}
           >
-            <option value="">Source</option>
+            <option value="">{t('common.source')}</option>
             {sources.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
@@ -171,7 +173,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
           </button>
           {!archivedView && (
             <button onClick={() => setIsCreating(true)} className="flex-1 md:flex-none bg-[var(--color-primary)] text-white px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-95 transition-all">
-              <Plus size={18} /> New Lead
+              <Plus size={18} /> {t('leads.new_lead')}
             </button>
           )}
         </div>
@@ -195,12 +197,12 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
                   borderColor: `${lead.status_color}30`
                 }}
               >
-                {lead.status_name || 'No Status'}
+                {lead.status_name ? (t(`leads.status_${lead.status_name.toLowerCase().replace(/ /g, '_')}`) || lead.status_name) : (t('common.no_status') || 'No Status')}
               </div>
               {isFutureActivity(lead.last_activity) && (
                 <div className="flex items-center gap-1.5 bg-green-50 text-green-600 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse border border-green-100">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  Next Action
+                  {t('leads.next_action')}
                 </div>
               )}
             </div>
@@ -215,7 +217,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium">
                   <Globe size={14} className="text-gray-300" />
-                  <span>{lead.country || 'Unknown Location'}</span>
+                  <span>{lead.country || t('common.unknown_location') || 'Unknown Location'}</span>
                 </div>
                 {lead.email && (
                   <div className="flex items-center gap-2 text-gray-500 text-xs font-medium">
@@ -225,7 +227,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
                 )}
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium">
                   <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: lead.pm_color || '#e2e8f0' }}></div>
-                  <span className="font-bold">PM: {lead.pm_name || 'Unassigned'}</span>
+                  <span className="font-bold">{t('common.pm')}: {lead.pm_name || t('leads.unassigned')}</span>
                 </div>
               </div>
 
@@ -236,7 +238,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
                     <div className="flex items-center gap-1.5">
                       <Zap size={10} className="text-[var(--color-primary)]" />
                       <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                        Latest Action {lead.last_activity_type ? `• ${lead.last_activity_type}` : ''}
+                        {t('leads.activities.latest_action') || 'Latest Action'} {lead.last_activity_type ? `• ${lead.last_activity_type}` : ''}
                       </span>
                     </div>
                   </div>
@@ -250,7 +252,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Last Activity</span>
+                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{t('leads.last_activity')}</span>
                 <span className={`text-xs font-bold ${isFutureActivity(lead.last_activity) ? 'text-green-600' : 'text-gray-600'}`}>
                   {getRelativeTime(lead.last_activity || '')}
                 </span>
@@ -266,7 +268,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
             {/* Source Label (Floating) */}
             <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="bg-gray-900 text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest">
-                    {lead.source_name || 'Direct'}
+                    {lead.source_name ? (t(`leads.source_${lead.source_name.toLowerCase().replace(/ /g, '_')}`) || lead.source_name) : (t('common.direct') || 'Direct')}
                 </span>
             </div>
           </div>
@@ -274,12 +276,12 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
 
         {filteredLeads.length === 0 && (
           <div className="col-span-full py-20 bg-white rounded-[32px] border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
-             <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-200 mb-4">
+              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-200 mb-4">
                 <Users size={32} />
-             </div>
-             <h4 className="text-lg font-bold text-gray-400">No leads found</h4>
-             <p className="text-sm text-gray-300 max-w-xs mt-1">Try adjusting your filters or create a new lead to get started tracking your pipeline.</p>
-          </div>
+              </div>
+              <h4 className="text-lg font-bold text-gray-400">{t('leads.no_leads')}</h4>
+              <p className="text-sm text-gray-300 max-w-xs mt-1">{t('leads.try_adjusting')}</p>
+           </div>
         )}
       </div>
 
@@ -297,37 +299,37 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
               <div className="p-3 bg-[var(--color-primary)] text-white rounded-2xl shadow-lg shadow-[var(--color-primary)]/20">
                 <Plus size={24} />
               </div>
-              New Pipeline Lead
+              {t('leads.initialize_lead')}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Company Name</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.company_name')}</label>
                   <input 
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all font-bold"
                     placeholder="e.g. Acme Corp"
-                    value={newLeadForm.company_name}
+                    value={newLeadForm.company_name || ''}
                     onChange={e => setNewLeadForm({...newLeadForm, company_name: e.target.value})}
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Contact Person</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.contact_person')}</label>
                   <input 
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
                     placeholder="John Doe"
-                    value={newLeadForm.contact_name}
+                    value={newLeadForm.contact_name || ''}
                     onChange={e => setNewLeadForm({...newLeadForm, contact_name: e.target.value})}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.email')}</label>
                   <input 
                     type="email"
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
                     placeholder="hello@acme.com"
-                    value={newLeadForm.email}
+                    value={newLeadForm.email || ''}
                     onChange={e => setNewLeadForm({...newLeadForm, email: e.target.value})}
                   />
                 </div>
@@ -335,32 +337,32 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
 
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.phone')}</label>
                   <input 
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
                     placeholder="+421 ..."
-                    value={newLeadForm.phone}
+                    value={newLeadForm.phone || ''}
                     onChange={e => setNewLeadForm({...newLeadForm, phone: e.target.value})}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Country</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.country')}</label>
                   <input 
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
                     placeholder="Slovakia"
-                    value={newLeadForm.country}
+                    value={newLeadForm.country || ''}
                     onChange={e => setNewLeadForm({...newLeadForm, country: e.target.value})}
                   />
                 </div>
                 <div className="space-y-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Initial Settings</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('settings.tabs.lead')}</label>
                     <div className="grid grid-cols-2 gap-2">
                         <select 
                             className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-xs font-bold"
                             value={String(newLeadForm.status_id || '')}
                             onChange={e => setNewLeadForm({...newLeadForm, status_id: Number(e.target.value)})}
                         >
-                            <option value="">Status</option>
+                            <option value="">{t('common.status')}</option>
                             {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                         <select 
@@ -368,7 +370,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
                             value={String(newLeadForm.source_id || '')}
                             onChange={e => setNewLeadForm({...newLeadForm, source_id: Number(e.target.value)})}
                         >
-                            <option value="">Source</option>
+                            <option value="">{t('common.source')}</option>
                             {sources.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                     </div>
@@ -377,11 +379,11 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
             </div>
 
             <div className="mt-6 space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Inquiry Message</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.inquiry_message')}</label>
               <textarea 
                 className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all h-32 resize-none"
-                placeholder="Details about the lead or the project inquiry..."
-                value={newLeadForm.message}
+                placeholder={t('leads.inquiry_placeholder') || "Details about the lead or the project inquiry..."}
+                value={newLeadForm.message || ''}
                 onChange={e => setNewLeadForm({...newLeadForm, message: e.target.value})}
               />
             </div>
@@ -392,13 +394,13 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
                 onClick={() => setIsCreating(false)}
                 className="px-8 py-4 font-black uppercase text-xs tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button 
                 type="submit"
                 className="bg-gray-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl hover:bg-[var(--color-primary)] transition-all active:scale-95"
               >
-                Initialize Lead
+                {t('leads.initialize_lead')}
               </button>
             </div>
           </form>

@@ -14,7 +14,8 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
     username: '',
     password: '',
     prefix: '',
-    admin_password: ''
+    admin_password: '',
+    default_language: 'en'
   });
 
   const handleNext = async () => {
@@ -91,7 +92,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
             </div>
             <div className={`flex items-center gap-3 transition-opacity ${step === 2 ? 'opacity-100' : 'opacity-40'}`}>
               <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${step >= 2 ? 'border-[#e78b01] bg-[#e78b01] text-white' : 'border-gray-600'}`}>2</div>
-              <span className="font-medium">Admin Account</span>
+              <span className="font-medium">System Settings</span>
             </div>
             <div className={`flex items-center gap-3 transition-opacity ${step === 3 || status === 'success' ? 'opacity-100' : 'opacity-40'}`}>
               <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${status === 'success' ? 'border-green-500 bg-green-500 text-white' : 'border-gray-600'}`}>3</div>
@@ -119,7 +120,7 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
             <>
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {step === 1 ? 'Connect your database' : 'Set up administrator'}
+                  {step === 1 ? 'Connect your database' : 'System Configuration'}
                 </h2>
                 <p className="text-gray-500 text-sm">
                   {step === 1 ? 'Enter your server credentials to initialize the software.' : 'Create the first admin account to manage your projects.'}
@@ -196,6 +197,19 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
                         <ShieldCheck size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input type="password" className={`${inputClass} pl-11`} placeholder="Set a strong password" value={formData.admin_password} onChange={e => setFormData({...formData, admin_password: e.target.value})} />
                       </div>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Default System Language</label>
+                      <select 
+                        className={inputClass}
+                        value={formData.default_language}
+                        onChange={e => setFormData({...formData, default_language: e.target.value})}
+                      >
+                        <option value="en">🇺🇸 English</option>
+                        <option value="sk">🇸🇰 Slovenský</option>
+                        <option value="hu">🇭🇺 Magyar</option>
+                      </select>
+                      <p className="text-[10px] text-gray-400 mt-1 ml-1">The interface will default to this language for new users.</p>
                     </div>
                   </div>
                 )}

@@ -91,20 +91,26 @@ try {
         $pdo->exec("ALTER TABLE project_expenses ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
     }
 
-    // 5. Seed default settings if missing
+    // 5. Add language to users if missing
+    if (!column_exists($pdo, 'users', 'language')) {
+        echo "Adding language to users...\n";
+        $pdo->exec("ALTER TABLE users ADD COLUMN language VARCHAR(5) DEFAULT 'en'");
+    }
+
+    // 6. Seed default settings if missing
     $defaults = [
         ['system_title', 'Lead Tracker'],
         ['accent_color_primary', '#e78b01'],
-        ['accent_color_secondary', '#00b800']
+        ['accent_color_secondary', '#00b800'],
+        ['default_language', 'en']
     ];
     $stmt = $pdo->prepare("SELECT 1 FROM system_settings WHERE \"key\" = ?");
     $insert = $pdo->prepare("INSERT INTO system_settings (\"key\", \"value\") VALUES (?, ?)");
     
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-    if ($driver !== 'pgsql') {
-        $stmt = $pdo->prepare("SELECT 1 FROM system_settings WHERE `key` = ?");
-        $insert = $pdo->prepare("INSERT INTO system_settings (`key`, `value`) VALUES (?, ?)");
-    }
+    $q = ($driver === 'pgsql') ? '"' : '`';
+    $stmt = $pdo->prepare("SELECT 1 FROM system_settings WHERE {$q}key{$q} = ?");
+    $insert = $pdo->prepare("INSERT INTO system_settings ({$q}key{$q}, {$q}value{$q}) VALUES (?, ?)");
 
     foreach ($defaults as $row) {
         $stmt->execute([$row[0]]);

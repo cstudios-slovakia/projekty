@@ -76,7 +76,8 @@ if (file_put_contents(__DIR__ . '/config.php', $config_content) === false) {
 
 // 3. Run Schema
 require_once 'install_utils.php';
-$result = run_schema($pdo, $driver, $prefix, $admin_pass);
+$default_lang = $input['default_language'] ?? 'en';
+$result = run_schema($pdo, $driver, $prefix, $admin_pass, $default_lang);
 
 if ($result['status'] === 'success') {
     // 4. Create .env marker

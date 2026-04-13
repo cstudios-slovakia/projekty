@@ -9,8 +9,15 @@ import { LeadReorder } from './components/LeadReorder';
 import { SetupWizard } from './components/SetupWizard';
 import { LeadsView } from './components/LeadsView';
 import { CalendarView } from './components/CalendarView';
+import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
 
-function Layout({ systemTitle, version }: { systemTitle: string, version: string }) {
+interface LayoutProps {
+  systemTitle: string;
+  version: string;
+}
+
+function Layout({ systemTitle, version }: LayoutProps) {
+  const { t } = useTranslation();
   const location = useLocation();
 
   const handleLogout = () => {
@@ -46,35 +53,35 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
         </div>
 
         <div className="flex-1 flex flex-col gap-4">
-          <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title="Projects">
+          <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title={t('nav.projects')}>
             <Briefcase size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Projects</span>
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.projects')}</span>
           </Link>
-          <Link to="/leads" className={sidebarLinkClass(['/leads', '/leads-archive'])} title="Leads">
+          <Link to="/leads" className={sidebarLinkClass(['/leads', '/leads-archive'])} title={t('nav.leads')}>
             <Users size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Leads</span>
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.leads')}</span>
           </Link>
-          <Link to="/expenses" className={sidebarLinkClass(['/expenses'])} title="Expenses">
+          <Link to="/expenses" className={sidebarLinkClass(['/expenses'])} title={t('nav.expenses')}>
             <Euro size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Expenses</span>
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.expenses')}</span>
           </Link>
-          <Link to="/calendar" className={sidebarLinkClass(['/calendar'])} title="Calendar">
+          <Link to="/calendar" className={sidebarLinkClass(['/calendar'])} title={t('nav.calendar')}>
             <CalendarIcon size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Calendar</span>
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.calendar')}</span>
           </Link>
-          <Link to="/settings" className={sidebarLinkClass(['/settings'])} title="Settings">
+          <Link to="/settings" className={sidebarLinkClass(['/settings'])} title={t('nav.settings')}>
             <SettingsIcon size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Settings</span>
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.settings')}</span>
           </Link>
         </div>
 
         <button 
           onClick={handleLogout} 
           className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all group relative"
-          title="Logout"
+          title={t('nav.logout')}
         >
           <LogOut size={24} />
-          <span className="absolute left-16 bg-red-600 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Logout</span>
+          <span className="absolute left-16 bg-red-600 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.logout')}</span>
         </button>
       </aside>
 
@@ -85,7 +92,7 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
           <div className="flex items-center gap-8">
             <div className="flex flex-col">
               <h1 className="text-xl font-black text-gray-900 tracking-tight leading-none uppercase">
-                {isProjectRoute ? 'Projects' : location.pathname.replace('/', '').charAt(0).toUpperCase() + location.pathname.slice(2)}
+                {isProjectRoute ? t('nav.projects') : t(`nav.${location.pathname.replace('/', '').replace('-', '_')}`)}
               </h1>
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
                 v{version}
@@ -95,16 +102,16 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
             {/* Contextual Sub-Nav for Projects */}
             {isProjectRoute && (
               <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 ml-4">
-                <Link to="/" className={subNavClass('/')}>Active</Link>
-                <Link to="/archive" className={subNavClass('/archive')}>Archived</Link>
-                <Link to="/reorder" className={subNavClass('/reorder')}>Order View</Link>
+                <Link to="/" className={subNavClass('/')}>{t('nav.active')}</Link>
+                <Link to="/archive" className={subNavClass('/archive')}>{t('nav.archived')}</Link>
+                <Link to="/reorder" className={subNavClass('/reorder')}>{t('nav.order_view')}</Link>
               </div>
             )}
 
             {isLeadRoute && (
               <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 ml-4">
-                <Link to="/leads" className={subNavClass('/leads')}>Active</Link>
-                <Link to="/leads-archive" className={subNavClass('/leads-archive')}>Archived</Link>
+                <Link to="/leads" className={subNavClass('/leads')}>{t('nav.active')}</Link>
+                <Link to="/leads-archive" className={subNavClass('/leads-archive')}>{t('nav.archived')}</Link>
               </div>
             )}
           </div>
@@ -119,9 +126,9 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
               <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
               <Route path="/expenses" element={<ExpensesView />} />
               <Route path="/reorder" element={<LeadReorder />} />
-              <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">Archived Projects</h2><ProjectsTable archivedView={true} /></>} />
+              <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.projects')}</h2><ProjectsTable archivedView={true} /></>} />
               <Route path="/leads" element={<LeadsView archivedView={false} />} />
-              <Route path="/leads-archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">Archived Leads</h2><LeadsView archivedView={true} /></>} />
+              <Route path="/leads-archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.leads')}</h2><LeadsView archivedView={true} /></>} />
               <Route path="/calendar" element={<CalendarView />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
@@ -130,6 +137,57 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
       </div>
     </div>
   );
+}
+
+interface AppContentProps {
+  systemSettings: { title: string; primary: string; secondary: string };
+  version: string;
+  token: string | null;
+  setToken: (t: string | null) => void;
+  loginForm: any;
+  setLoginForm: (f: any) => void;
+  handleLogin: (e: React.FormEvent) => void;
+  error: string;
+}
+
+function AppContent({ systemSettings, version, token, loginForm, setLoginForm, handleLogin, error }: AppContentProps) {
+  const { t } = useTranslation();
+  
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 font-sans relative overflow-hidden">
+        {/* Soft Glow Effects */}
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[var(--color-primary)]/5 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[var(--color-secondary)]/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="w-full max-w-md bg-white rounded-[32px] p-8 border border-gray-200 shadow-2xl relative z-10 transition-all scale-in">
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-gradient-to-tr from-[var(--color-primary)] to-yellow-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20 mb-6">
+              <LogOut size={32} className="text-white rotate-180" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">{systemSettings.title}</h2>
+            <p className="text-gray-500">{t('login.title')}</p>
+          </div>
+          {error && <div className="bg-red-50/20 text-red-600 border border-red-100 p-4 rounded-xl mb-6 text-sm text-center">{error}</div>}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">{t('login.username')}</label>
+              <input type="text" placeholder={t('login.username_placeholder') || "e.g. admin"} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e78b01]/20 focus:border-[#e78b01] transition-all" value={loginForm.username} onChange={e => setLoginForm({...loginForm, username: e.target.value})} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">{t('login.password')}</label>
+              <input type="password" placeholder="••••••••" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e78b01]/20 focus:border-[#e78b01] transition-all" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} required />
+            </div>
+            <button type="submit" className="w-full bg-gradient-to-r from-[var(--color-primary)] to-yellow-500 hover:from-yellow-500 hover:to-[var(--color-primary)] text-white rounded-xl px-4 py-3.5 font-bold shadow-lg shadow-[var(--color-primary)]/20 transition-all active:scale-[0.98] mt-2">
+              {t('login.button')}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return <Layout systemTitle={systemSettings.title} version={version} />;
 }
 
 function App() {
@@ -186,7 +244,9 @@ function App() {
       const data = await res.json();
       if (data.status === 'success') {
         localStorage.setItem('token', data.user.token);
+        localStorage.setItem('lang', data.user.language || 'en');
         setToken(data.user.token);
+        window.location.reload(); 
       } else {
         setError(data.message || 'Login failed');
       }
@@ -208,41 +268,20 @@ function App() {
   }
 
   return (
-    <HashRouter>
-      {!token ? (
-        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 font-sans relative overflow-hidden">
-          {/* Soft Glow Effects */}
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[var(--color-primary)]/5 rounded-full blur-[120px] pointer-events-none"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[var(--color-secondary)]/5 rounded-full blur-[100px] pointer-events-none"></div>
-
-          <div className="w-full max-w-md bg-white rounded-[32px] p-8 border border-gray-200 shadow-2xl relative z-10 transition-all scale-in">
-            <div className="text-center mb-10">
-              <div className="w-16 h-16 bg-gradient-to-tr from-[var(--color-primary)] to-yellow-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20 mb-6">
-                <LogOut size={32} className="text-white rotate-180" />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">{systemSettings.title}</h2>
-              <p className="text-gray-500">Sign in to your account</p>
-            </div>
-            {error && <div className="bg-red-50/20 text-red-600 border border-red-100 p-4 rounded-xl mb-6 text-sm text-center">{error}</div>}
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Username</label>
-                <input type="text" placeholder="e.g. admin" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e78b01]/20 focus:border-[#e78b01] transition-all" value={loginForm.username} onChange={e => setLoginForm({...loginForm, username: e.target.value})} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Password</label>
-                <input type="password" placeholder="••••••••" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e78b01]/20 focus:border-[#e78b01] transition-all" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} required />
-              </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-[var(--color-primary)] to-yellow-500 hover:from-yellow-500 hover:to-[var(--color-primary)] text-white rounded-xl px-4 py-3.5 font-bold shadow-lg shadow-[var(--color-primary)]/20 transition-all active:scale-[0.98] mt-2">
-                Sign In
-              </button>
-            </form>
-          </div>
-        </div>
-      ) : (
-        <Layout systemTitle={systemSettings.title} version={version} />
-      )}
-    </HashRouter>
+    <LanguageProvider initialLocale={localStorage.getItem('lang') || 'en'}>
+      <HashRouter>
+        <AppContent 
+          systemSettings={systemSettings}
+          version={version}
+          token={token}
+          setToken={setToken}
+          loginForm={loginForm}
+          setLoginForm={setLoginForm}
+          handleLogin={handleLogin}
+          error={error}
+        />
+      </HashRouter>
+    </LanguageProvider>
   );
 }
 

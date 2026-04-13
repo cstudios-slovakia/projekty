@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, UserPlus, UserX } from 'lucide-react';
+import { Plus, Trash2, UserPlus, UserX, Shield, User as UserIcon } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface Entity {
   id: number;
@@ -16,6 +17,7 @@ interface User {
 }
 
 export const Settings: React.FC = () => {
+  const { t, changeLanguage, availableLocales } = useTranslation();
   const [entities, setEntities] = useState<Entity[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
@@ -27,7 +29,12 @@ export const Settings: React.FC = () => {
     system_title: 'Lead Tracker', 
     accent_color_primary: '#e78b01', 
     accent_color_secondary: '#00b800',
-    lead_api_key: ''
+    lead_api_key: '',
+    default_language: 'en'
+  });
+  
+  const [userSettings, setUserSettings] = useState({
+    language: localStorage.getItem('user_language') || 'en'
   });
   useEffect(() => {
     fetchEntities();
@@ -45,7 +52,8 @@ export const Settings: React.FC = () => {
             system_title: d.system_title || 'Lead Tracker',
             accent_color_primary: d.accent_color_primary || '#e78b01',
             accent_color_secondary: d.accent_color_secondary || '#00b800',
-            lead_api_key: d.lead_api_key || ''
+            lead_api_key: d.lead_api_key || '',
+            default_language: d.default_language || 'en'
           });
         }
       });
@@ -66,8 +74,22 @@ export const Settings: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sysSettings)
     }).then(r => r.json()).then(() => {
-        alert('System settings updated! Refreshing...');
+        alert(t('common.save_success') || 'Settings updated!');
         window.location.reload();
+    });
+  };
+
+  const saveUserLanguage = (lang: string) => {
+    setUserSettings({ language: lang });
+    fetch('/api/users.php', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: lang })
+    }).then(r => r.json()).then(res => {
+      if (res.status === 'success') {
+        localStorage.setItem('user_language', lang);
+        changeLanguage(lang);
+      }
     });
   };
 
@@ -97,7 +119,7 @@ export const Settings: React.FC = () => {
   };
 
   const handleDeleteEntity = (id: number) => {
-    if(!confirm('Delete this entity?')) return;
+    if(!confirm(t('common.confirm_delete'))) return;
     fetch(`/api/settings.php?id=${id}`, { method: 'DELETE' }).then(() => fetchEntities());
   };
 
@@ -122,7 +144,7 @@ export const Settings: React.FC = () => {
   };
 
   const handleDeleteUser = (id: number) => {
-    if(!confirm('Delete this user?')) return;
+    if(!confirm(t('common.confirm_delete'))) return;
     fetch(`/api/users.php?id=${id}`, { method: 'DELETE' }).then(() => fetchUsers());
   };
 
@@ -139,7 +161,7 @@ export const Settings: React.FC = () => {
   ];
 
   const renderEntityColumn = (title: string, type: string) => {
-    const list = entities.filter(e => e.type === type);
+    const list = entities.filter((e: Entity) => e.type === type);
     return (
       <div className="flex-1 min-w-[350px] bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col h-full">
         <div className="flex justify-between items-center mb-6">
@@ -151,7 +173,7 @@ export const Settings: React.FC = () => {
           <div className="flex gap-2">
             <input 
               type="text" 
-              placeholder={`New ${title.slice(0,-1)}...`} 
+              placeholder={t('settings.add_new') + "..."} 
               className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]"
               value={newEntity.type === type ? newEntity.name : ''}
               onChange={e => setNewEntity({ type, name: e.target.value, color: newEntity.color })}
@@ -165,7 +187,7 @@ export const Settings: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {predefinedColors.map(c => (
+            {predefinedColors.map((c: string) => (
               <button
                 key={c}
                 onClick={() => setNewEntity({ ...newEntity, type, color: c })}
@@ -177,35 +199,35 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className="space-y-2 overflow-y-auto flex-1 pr-2 max-h-[400px]">
-          {list.map(e => (
-            <div key={e.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl group border border-transparent hover:border-gray-200 transition-all">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-4 h-4 rounded-full shadow-inner flex-shrink-0" style={{ backgroundColor: e.color }}></div>
-                <div className="flex flex-col min-w-0">
-                  <span className="font-bold text-gray-900 truncate text-sm leading-tight">{e.name}</span>
-                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">ID #{e.id}</span>
-                </div>
-              </div>
-              {(type === 'developer' || type === 'designer') && (
-                <div className="flex items-center gap-1 mx-2 flex-shrink-0">
-                  <span className="text-[10px] text-gray-400 font-bold">€</span>
-                  <input
-                    type="number"
-                    className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-700 outline-none focus:border-[var(--color-primary)] text-right"
-                    defaultValue={e.hourly_rate || 0}
-                    onBlur={(ev) => handleUpdateRate(e, Number(ev.target.value))}
-                    placeholder="/h"
-                    min="0"
-                  />
-                  <span className="text-[10px] text-gray-400 font-bold">/h</span>
-                </div>
-              )}
-              <button onClick={() => handleDeleteEntity(e.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
-          {list.length === 0 && <p className="text-center text-gray-400 py-8 text-sm italic">No {title.toLowerCase()} yet.</p>}
+           {list.map((e: Entity) => (
+             <div key={e.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl group border border-transparent hover:border-gray-200 transition-all">
+               <div className="flex items-center gap-3 flex-1 min-w-0">
+                 <div className="w-4 h-4 rounded-full shadow-inner flex-shrink-0" style={{ backgroundColor: e.color || '#ccc' }}></div>
+                 <div className="flex flex-col min-w-0">
+                   <span className="font-bold text-gray-900 truncate text-sm leading-tight">{e.name}</span>
+                   <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">ID #{e.id}</span>
+                 </div>
+               </div>
+               {(type === 'developer' || type === 'designer') && (
+                 <div className="flex items-center gap-1 mx-2 flex-shrink-0">
+                   <span className="text-[10px] text-gray-400 font-bold">€</span>
+                   <input
+                     type="number"
+                     className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-700 outline-none focus:border-[var(--color-primary)] text-right"
+                     defaultValue={e.hourly_rate || 0}
+                     onBlur={(ev) => handleUpdateRate(e, Number(ev.target.value))}
+                     placeholder="/h"
+                     min="0"
+                   />
+                   <span className="text-[10px] text-gray-400 font-bold">/h</span>
+                 </div>
+               )}
+               <button onClick={() => handleDeleteEntity(e.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
+                 <Trash2 size={16} />
+               </button>
+             </div>
+           ))}
+           {list.length === 0 && <p className="text-center text-gray-400 py-8 text-sm italic">{t('common.no_data')}</p>}
         </div>
       </div>
     );
@@ -219,25 +241,25 @@ export const Settings: React.FC = () => {
               onClick={() => setActiveTab('project')}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'project' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
-              Project Settings
+              {t('settings.tabs.project')}
           </button>
           <button 
               onClick={() => setActiveTab('lead')}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'lead' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
-              Lead Settings
+              {t('settings.tabs.lead')}
           </button>
           <button 
               onClick={() => setActiveTab('users')}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
-              Users
+              {t('settings.tabs.users')}
           </button>
           <button 
               onClick={() => setActiveTab('system')}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'system' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
-              System Settings
+              {t('settings.tabs.system')}
           </button>
       </div>
 
@@ -245,18 +267,18 @@ export const Settings: React.FC = () => {
         {/* TAB: Project Settings */}
         {activeTab === 'project' && (
           <div className="flex flex-col lg:flex-row flex-wrap gap-6">
-            {renderEntityColumn('Developers', 'developer')}
-            {renderEntityColumn('Designers', 'designer')}
-            {renderEntityColumn('Project Managers', 'pm')}
-            {renderEntityColumn('Project Types', 'project_type')}
+            {renderEntityColumn(t('projects.developers'), 'developer')}
+            {renderEntityColumn(t('projects.designers'), 'designer')}
+            {renderEntityColumn(t('projects.pms') || 'Project Managers', 'pm')}
+            {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type')}
           </div>
         )}
 
         {/* TAB: Lead Settings */}
         {activeTab === 'lead' && (
           <div className="flex flex-col lg:flex-row flex-wrap gap-6">
-            {renderEntityColumn('Lead Statuses', 'lead_status')}
-            {renderEntityColumn('Lead Sources', 'lead_source')}
+            {renderEntityColumn(t('leads.statuses') || 'Lead Statuses', 'lead_status')}
+            {renderEntityColumn(t('leads.sources') || 'Lead Sources', 'lead_source')}
           </div>
         )}
 
@@ -264,15 +286,15 @@ export const Settings: React.FC = () => {
         {activeTab === 'users' && (
           <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm">
             <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-              <UserPlus className="text-[var(--color-primary)]" /> User Management
+              <UserPlus className="text-[var(--color-primary)]" /> {t('settings.users.title') || 'User Management'}
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
               <form onSubmit={handleCreateUser} className="space-y-4">
-                <h4 className="font-bold text-gray-700 mb-4">Add New User</h4>
+                <h4 className="font-bold text-gray-700 mb-4">{t('settings.users.add_new')}</h4>
                 <input 
                   type="text" 
-                  placeholder="Username" 
+                  placeholder={t('login.username')} 
                   className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
                   value={newUser.username}
                   onChange={e => setNewUser({...newUser, username: e.target.value})}
@@ -280,21 +302,21 @@ export const Settings: React.FC = () => {
                 />
                 <input 
                   type="password" 
-                  placeholder="Password" 
+                  placeholder={t('login.password')} 
                   className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
                   value={newUser.password}
                   onChange={e => setNewUser({...newUser, password: e.target.value})}
                   required
                 />
                 <button type="submit" className="w-full md:w-auto bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                  Create User Account
+                  {t('settings.users.create_button')}
                 </button>
               </form>
 
               <div>
-                <h4 className="font-bold text-gray-700 mb-6 font-mono tracking-wider uppercase text-xs">Active System Users</h4>
+                <h4 className="font-bold text-gray-700 mb-6 font-mono tracking-wider uppercase text-xs">{t('settings.users.active_users')}</h4>
                 <div className="space-y-3">
-                  {users.map(u => (
+                  {users.map((u: User) => (
                     <div key={u.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all">
@@ -321,30 +343,50 @@ export const Settings: React.FC = () => {
         {/* TAB: System Settings */}
         {activeTab === 'system' && (
           <div className="space-y-8">
+            {/* User Profile / Language */}
+            <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm overflow-hidden relative">
+                <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
+                  <UserIcon className="text-[var(--color-primary)]" /> {t('settings.profile.title') || 'Personal Preferences'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('settings.profile.language') || 'Interface Language'}</label>
+                        <div className="flex gap-4">
+                            {availableLocales.map((l: any) => (
+                                <button 
+                                    key={l.code}
+                                    onClick={() => saveUserLanguage(l.code)}
+                                    className={`flex-1 py-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${userSettings.language === l.code ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-inner' : 'border-gray-100 bg-gray-50 hover:bg-white hover:border-gray-200'}`}
+                                >
+                                    <span className="text-2xl">{l.flag}</span>
+                                    <span className="text-xs font-bold text-gray-700">{l.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="bg-white rounded-[32px] border-4 border-[var(--color-primary)]/10 p-6 md:p-10 shadow-xl overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                     <Plus size={120} className="rotate-45" />
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center text-white">
-                    <Plus size={18} />
-                  </span>
-                  Global System Appearance & Security
+                  <Shield className="text-[var(--color-primary)]" /> {t('settings.system.title') || 'Global System Appearance & Security'}
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">System Title</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('settings.system.app_title') || 'System Title'}</label>
                         <input 
                             type="text" 
                             value={sysSettings.system_title}
                             onChange={e => setSysSettings({...sysSettings, system_title: e.target.value})}
                             className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
-                            placeholder="e.g. Lead Tracker"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Primary Accent Color</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('settings.system.primary_color') || 'Primary Accent Color'}</label>
                         <div className="flex gap-3">
                             <input 
                                 type="color" 
@@ -361,7 +403,7 @@ export const Settings: React.FC = () => {
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Secondary Accent</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('settings.system.secondary_color') || 'Secondary Accent'}</label>
                         <div className="flex gap-3">
                             <input 
                                 type="color" 
@@ -378,21 +420,36 @@ export const Settings: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-2 md:col-span-3 pt-6 border-t border-gray-100">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Lead API Security Key</label>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('settings.system.default_language') || 'System Default Language'}</label>
+                        <select 
+                            value={sysSettings.default_language}
+                            onChange={e => setSysSettings({...sysSettings, default_language: e.target.value})}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]"
+                        >
+                            {availableLocales.map((l: any) => (
+                                <option key={l.code} value={l.code}>
+                                    {l.flag} {l.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2 pt-0">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('settings.system.api_key') || 'Lead API Security Key'}</label>
                         <div className="flex flex-col md:flex-row gap-3">
                             <input 
                                 type="text" 
                                 value={sysSettings.lead_api_key}
                                 onChange={e => setSysSettings({...sysSettings, lead_api_key: e.target.value})}
                                 className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-sm"
-                                placeholder="sk_live_..."
+                                placeholder={t('settings.system.api_key_placeholder') || "sk_live_..."}
                             />
                             <button 
                                 onClick={generateApiKey}
                                 className="px-6 py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all active:scale-95 whitespace-nowrap"
                             >
-                                Generate New
+                                {t('settings.system.generate_new') || 'Generate New'}
                             </button>
                         </div>
                     </div>
@@ -402,7 +459,7 @@ export const Settings: React.FC = () => {
                         onClick={saveSysSettings}
                         className="bg-gray-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95"
                     >
-                        Save System Configuration
+                        {t('settings.system.save_button') || 'Save System Configuration'}
                     </button>
                 </div>
             </div>
@@ -410,10 +467,10 @@ export const Settings: React.FC = () => {
             {/* API Integration Instructions */}
             <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm relative z-10">
               <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                API Integration <span className="bg-blue-50 text-blue-500 text-xs px-3 py-1 rounded-full uppercase tracking-widest font-black">Lead Pipeline</span>
+                {t('settings.api.title')} <span className="bg-blue-50 text-blue-500 text-xs px-3 py-1 rounded-full uppercase tracking-widest font-black">{t('leads.title')} {t('calendar.timeline') || 'Pipeline'}</span>
               </h3>
               <p className="text-gray-500 mb-6 text-sm">
-                Connect your external websites, landing pages, or contact forms directly to the pipeline. Send a POST request to <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded font-mono border border-gray-200">/api/pipeline.php</code>.
+                {t('settings.api.subtitle')} <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded font-mono border border-gray-200">/api/pipeline.php</code>.
               </p>
               
               <div className="bg-gray-900 rounded-2xl p-6 relative overflow-hidden group">
@@ -434,20 +491,20 @@ export const Settings: React.FC = () => {
                   <button 
                       onClick={() => navigator.clipboard.writeText(`curl -X POST https://yourdomain.com/api/pipeline.php \\\n  -H "Content-Type: application/json" \\\n  -H "X-API-KEY: ${sysSettings.lead_api_key || 'sk_live_lead_tracker_123456'}" \\\n  -d '{\n    "company_name": "Acme Corp",\n    "contact_name": "John Doe",\n    "email": "john@acme.com",\n    "phone": "+421900111222",\n    "message": "We need a new ecommerce website.",\n    "source_id": 1\n  }'`)}
                       className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-lg p-2 transition-all opacity-0 group-hover:opacity-100"
-                      title="Copy to clipboard"
+                      title={t('common.copy') || "Copy"}
                   >
-                      Copy
+                      {t('common.copy') || "Copy"}
                   </button>
               </div>
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                      <h5 className="font-bold text-[10px] uppercase tracking-widest text-gray-500 mb-2">Required Fields</h5>
+                      <h5 className="font-bold text-[10px] uppercase tracking-widest text-gray-500 mb-2">{t('settings.api.required')}</h5>
                       <ul className="text-sm text-gray-600 space-y-1">
-                          <li><code className="text-gray-900">company_name</code> or <code className="text-gray-900">contact_name</code></li>
+                          <li><code className="text-gray-900">company_name</code> {t('common.or')} <code className="text-gray-900">contact_name</code></li>
                       </ul>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                      <h5 className="font-bold text-[10px] uppercase tracking-widest text-gray-500 mb-2">Optional Fields</h5>
+                      <h5 className="font-bold text-[10px] uppercase tracking-widest text-gray-500 mb-2">{t('settings.api.optional')}</h5>
                       <ul className="text-sm text-gray-600 space-y-1">
                           <li><code className="text-gray-900">email</code>, <code className="text-gray-900">phone</code>, <code className="text-gray-900">country</code></li>
                           <li><code className="text-gray-900">message</code> (Lead Notes)</li>

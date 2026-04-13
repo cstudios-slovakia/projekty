@@ -5,6 +5,7 @@ import {
   User, Users, Video, Info, Save,
   Clock
 } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { createPortal } from 'react-dom';
 
 interface Activity {
@@ -46,6 +47,7 @@ interface Props {
 }
 
 export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate }) => {
+  const { t } = useTranslation();
   const [lead, setLead] = useState<Lead | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -109,14 +111,14 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
   };
 
   const handleUpgrade = () => {
-    if (!confirm('Are you sure you want to upgrade this lead to a live project?')) return;
+    if (!confirm(t('common.confirm_upgrade') || 'Are you sure you want to upgrade this lead to a live project?')) return;
     fetch(`/api/pipeline.php?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ upgrade: true })
     }).then(r => r.json()).then(res => {
       if (res.status === 'success') {
-        alert('Lead successfully upgraded to project!');
+        alert(t('leads.upgrade_success') || 'Lead successfully upgraded to project!');
         onClose();
         onUpdate();
         window.location.href = `/#/`; // Navigate to projects
@@ -125,7 +127,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
   };
 
   const handleDelete = () => {
-    if (!confirm('Permanent deletion! Are you sure?')) return;
+    if (!confirm(t('common.confirm_delete'))) return;
     fetch(`/api/pipeline.php?id=${id}`, { method: 'DELETE' }).then(() => {
         onClose();
         onUpdate();
@@ -159,9 +161,13 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
              <div>
                 <h2 className="text-xl font-black text-gray-900 leading-none mb-1">{lead.company_name || 'Individual Lead'}</h2>
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{statuses.find(s => s.id === lead.status_id)?.name || 'New'}</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        {lead.status_id ? (t(`leads.status_${statuses.find(s => s.id === lead.status_id)?.name.toLowerCase().replace(/ /g, '_')}`) || statuses.find(s => s.id === lead.status_id)?.name) : t('common.new')}
+                    </span>
                     <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Source: {sources.find(s => s.id === lead.source_id)?.name || 'Direct'}</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        {t('common.source')}: {lead.source_id ? (t(`leads.source_${sources.find(s => s.id === lead.source_id)?.name.toLowerCase().replace(/ /g, '_')}`) || sources.find(s => s.id === lead.source_id)?.name) : t('common.direct')}
+                    </span>
                 </div>
              </div>
           </div>
@@ -176,13 +182,13 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                 onClick={() => setActiveTab('timeline')}
                 className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'timeline' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
             >
-                Activity Timeline
+                {t('leads.activities.title')}
             </button>
             <button 
                 onClick={() => setActiveTab('details')}
                 className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'details' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
             >
-                Lead Details
+                {t('projects.slideout.details')}
             </button>
         </div>
 
@@ -193,7 +199,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                     {/* Log Activity Form */}
                     <div className="bg-gray-50 border border-gray-100 rounded-[32px] p-6 shadow-inner">
                         <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                            <Plus size={16} className="text-[var(--color-primary)]" /> Log Activity
+                            <Plus size={16} className="text-[var(--color-primary)]" /> {t('leads.activities.log_activity')}
                         </h3>
                         <form onSubmit={handlePostActivity} className="space-y-4">
                             <div className="grid grid-cols-2 gap-3">
@@ -202,12 +208,12 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     value={newActivity.type}
                                     onChange={e => setNewActivity({...newActivity, type: e.target.value})}
                                 >
-                                    <option>Call</option>
-                                    <option>Email</option>
-                                    <option>Meeting</option>
-                                    <option>Online Call</option>
-                                    <option>Proposal</option>
-                                    <option>Other</option>
+                                    <option value="Call">{t('leads.activity.call') || 'Call'}</option>
+                                    <option value="Email">{t('leads.activity.email') || 'Email'}</option>
+                                    <option value="Meeting">{t('leads.activity.meeting') || 'Meeting'}</option>
+                                    <option value="Online Call">{t('leads.activity.online_call') || 'Online Call'}</option>
+                                    <option value="Proposal">{t('leads.activity.proposal') || 'Proposal'}</option>
+                                    <option value="Other">{t('common.other') || 'Other'}</option>
                                 </select>
                                 <input 
                                     type="datetime-local" 
@@ -217,14 +223,14 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                 />
                             </div>
                             <textarea 
-                                placeholder="Summary of the activity or next steps..."
+                                placeholder={t('leads.activities.notes_placeholder') || "Summary of the activity or next steps..."}
                                 className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-4 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                                 value={newActivity.notes}
                                 onChange={e => setNewActivity({...newActivity, notes: e.target.value})}
                             />
                             <div className="flex justify-end">
                                 <button className="bg-gray-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95">
-                                    Post to Timeline
+                                    {t('leads.activities.add_log')}
                                 </button>
                             </div>
                         </form>
@@ -247,11 +253,11 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex flex-col">
                                             <span className={`text-[10px] font-black uppercase tracking-widest ${isFuture(act.activity_date) ? 'text-green-600' : 'text-gray-400'}`}>
-                                                {act.type} • {new Date(act.activity_date).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                {t(`leads.activity.${act.type.toLowerCase().replace(/ /g, '_')}`) || act.type} • {new Date(act.activity_date).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {isFuture(act.activity_date) && (
                                                 <span className="text-[9px] font-bold text-green-500 mt-0.5 flex items-center gap-1">
-                                                    <Clock size={8} /> Scheduled
+                                                    <Clock size={8} /> {t('leads.activity.scheduled') || 'Scheduled'}
                                                 </span>
                                             )}
                                         </div>
@@ -262,7 +268,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                         ))}
                         {activities.length === 0 && (
                             <div className="text-center py-20">
-                                <p className="text-gray-300 text-sm italic">No activities logged yet.</p>
+                                <p className="text-gray-300 text-sm italic">{t('leads.activities.no_activity')}</p>
                             </div>
                         )}
                     </div>
@@ -272,7 +278,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                     {/* Basic Info */}
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Contact Name</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.contact_person')}</label>
                             {isEditing ? (
                                 <input value={editForm.contact_name || ''} onChange={e => setEditForm({...editForm, contact_name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white" />
                             ) : (
@@ -280,7 +286,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                             )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.email') || 'Email'}</label>
                             {isEditing ? (
                                 <input value={editForm.email || ''} onChange={e => setEditForm({...editForm, email: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white" />
                             ) : (
@@ -288,7 +294,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                             )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.phone') || 'Phone'}</label>
                             {isEditing ? (
                                 <input value={editForm.phone || ''} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white" />
                             ) : (
@@ -296,7 +302,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                             )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Country</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.country') || 'Country'}</label>
                             {isEditing ? (
                                 <input value={editForm.country || ''} onChange={e => setEditForm({...editForm, country: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white" />
                             ) : (
@@ -306,7 +312,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Original Inquiry</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.inquiry_message')}</label>
                         {isEditing ? (
                             <textarea value={editForm.message || ''} onChange={e => setEditForm({...editForm, message: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-sm h-32 focus:bg-white resize-none" />
                         ) : (
@@ -318,7 +324,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
 
                     <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.status')}</label>
                             <select 
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold"
                                 value={String(isEditing ? editForm.status_id : lead.status_id) || ''}
@@ -334,12 +340,12 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     }
                                 }}
                             >
-                                <option value="">Select Status</option>
+                                <option value="">{t('leads.select_status') || 'Select Status'}</option>
                                 {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Source</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.source')}</label>
                             <select 
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold"
                                 value={String(isEditing ? editForm.source_id : lead.source_id) || ''}
@@ -360,7 +366,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">PM</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.pm')}</label>
                             <select 
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold"
                                 value={String(isEditing ? editForm.pm_id : lead.pm_id) || ''}
@@ -376,7 +382,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     }
                                 }}
                             >
-                                <option value="">Assigned PM</option>
+                                <option value="">{t('projects.all_pms') || 'Assigned PM'}</option>
                                 {pms.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                         </div>
@@ -385,11 +391,11 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                     <div className="flex gap-4 pt-4 border-t border-gray-100">
                         {isEditing ? (
                             <button onClick={handleSaveLead} className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
-                                <Save size={18} /> Save Changes
+                                <Save size={18} /> {t('common.save')}
                             </button>
                         ) : (
                             <button onClick={() => setIsEditing(true)} className="flex-1 bg-gray-50 text-gray-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-100 transition-all">
-                                Edit Lead Profile
+                                {t('leads.edit_profile') || 'Edit Lead Profile'}
                             </button>
                         )}
                         <button 
@@ -401,11 +407,11 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                 }).then(() => { fetchLead(); onUpdate(); onClose(); });
                             }}
                             className="p-4 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-2xl transition-all"
-                            title={lead.is_archived ? "Unarchive" : "Archive"}
+                            title={lead.is_archived ? t('common.unarchive') : t('common.archive')}
                         >
                             <Archive size={20} />
                         </button>
-                        <button onClick={handleDelete} className="p-4 bg-gray-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all">
+                        <button onClick={handleDelete} className="p-4 bg-gray-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all" title={t('common.delete')}>
                             <Trash2 size={20} />
                         </button>
                     </div>
@@ -420,7 +426,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                 className="w-full py-5 bg-gradient-to-r from-[var(--color-primary)] to-amber-500 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-[var(--color-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 group"
             >
                 <Briefcase size={22} className="group-hover:rotate-12 transition-transform" />
-                UPGRADE TO LIVE PROJECT
+                {t('leads.upgrade_button') || 'UPGRADE TO LIVE PROJECT'}
             </button>
         </footer>
       </div>
