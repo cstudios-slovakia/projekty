@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+set timeout 60
+set password "b115cadfc1"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27127"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "cd $dest_dir\r"
+expect "$ "
+
+# 1. DELETE the manual API shells (conflicting with index.php routing)
+send "rm -rf api\r"
+expect "$ "
+
+# 2. Check for .env
+send "ls -la .env\r"
+expect {
+    "No such file or directory" {
+        send "echo 'ERROR: .env missing!'\r"
+    }
+    ".env" {
+        send "echo 'SUCCESS: .env found.'\r"
+    }
+}
+expect "$ "
+
+# 3. Check index.php
+send "grep \"vendor_core\" index.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

@@ -1,0 +1,32 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "5610f84adb"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27696"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "cd $dest_dir\r"
+expect "$ "
+
+# 1. Surgical Cleanup
+# Delete the rogue api folder (proxies) and old dist/assets in root
+send "rm -rf api assets\r"
+expect "$ "
+send "rm -f index.html favicon.png vite.svg\r"
+expect "$ "
+
+# 2. Verify .env and index.php
+send "ls -la .env index.php\r"
+expect "$ "
+
+# 3. Check vendor core
+send "ls -la vendor/cstudios-slovakia/projekty/api\r"
+expect "$ "
+
+send "exit\r"
+expect eof

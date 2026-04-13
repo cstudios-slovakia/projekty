@@ -1,0 +1,48 @@
+#!/usr/bin/expect -f
+set timeout 10
+set password "b115cadfc1"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "27127"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+# Retry loop for connection refused
+set max_retries 3
+set count 0
+
+while {$count < $max_retries} {
+    spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd $dest_dir && ls -la"
+    expect {
+        "password:" {
+            send "$password\r"
+            expect {
+                "$ " {
+                    # Connection successful, perform fix
+                    send "rm -rf api\r"
+                    expect "$ "
+                    send "ls -la .env\r"
+                    expect "$ "
+                    # Fix index.php if needed (hardcode logic)
+                    send "cat << 'EOF' > index.php\n"
+                    send [exec cat /Users/erik/Documents/vibe coding/projekty/index.php]
+                    send "\nEOF\r"
+                    expect "$ "
+                    send "exit\r"
+                    set count $max_retries
+                }
+            }
+        }
+        "Connection refused" {
+            set count [expr $count + 1]
+            sleep 5
+            puts "Retrying connection ($count)..."
+        }
+        timeout {
+            puts "Connection timed out."
+            set count $max_retries
+        }
+        eof {
+            set count $max_retries
+        }
+    }
+}
