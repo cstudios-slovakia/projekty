@@ -17,7 +17,11 @@ if ($method === 'OPTIONS') {
 // Security Check for Write Actions (POST, PUT, DELETE)
 if ($method === 'POST') {
     $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? $_GET['key'] ?? null;
-    if (!$apiKey || $apiKey !== LEAD_API_KEY) {
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $referer = $_SERVER['HTTP_REFERER'] ?? '';
+    $isInternalRequest = ($host && $referer && strpos($referer, $host) !== false);
+
+    if (!$isInternalRequest && (!$apiKey || $apiKey !== LEAD_API_KEY)) {
         http_response_code(401);
         echo json_encode(["status" => "error", "message" => "Unauthorized: Invalid API Key"]);
         exit;
