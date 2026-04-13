@@ -170,7 +170,10 @@ export const Settings: React.FC = () => {
             <div key={e.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl group border border-transparent hover:border-gray-200 transition-all">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-4 h-4 rounded-full shadow-inner flex-shrink-0" style={{ backgroundColor: e.color }}></div>
-                <span className="font-medium text-gray-700 truncate">{e.name}</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-gray-900 truncate text-sm leading-tight">{e.name}</span>
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">ID #{e.id}</span>
+                </div>
               </div>
               {(type === 'developer' || type === 'designer') && (
                 <div className="flex items-center gap-1 mx-2 flex-shrink-0">
@@ -350,6 +353,7 @@ export const Settings: React.FC = () => {
             <pre className="text-gray-300 font-mono text-xs whitespace-pre-wrap">
 {`curl -X POST https://yourdomain.com/api/pipeline.php \\
   -H "Content-Type: application/json" \\
+  -H "X-API-KEY: sk_live_lead_tracker_123456" \\
   -d '{
     "company_name": "Acme Corp",
     "contact_name": "John Doe",
@@ -360,7 +364,7 @@ export const Settings: React.FC = () => {
   }'`}
             </pre>
             <button 
-                onClick={() => navigator.clipboard.writeText(`curl -X POST https://yourdomain.com/api/pipeline.php \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "company_name": "Acme Corp",\n    "contact_name": "John Doe",\n    "email": "john@acme.com",\n    "phone": "+421900111222",\n    "message": "We need a new ecommerce website.",\n    "source_id": 1\n  }'`)}
+                onClick={() => navigator.clipboard.writeText(`curl -X POST https://yourdomain.com/api/pipeline.php \\\n  -H "Content-Type: application/json" \\\n  -H "X-API-KEY: sk_live_lead_tracker_123456" \\\n  -d '{\n    "company_name": "Acme Corp",\n    "contact_name": "John Doe",\n    "email": "john@acme.com",\n    "phone": "+421900111222",\n    "message": "We need a new ecommerce website.",\n    "source_id": 1\n  }'`)}
                 className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-lg p-2 transition-all opacity-0 group-hover:opacity-100"
                 title="Copy to clipboard"
             >

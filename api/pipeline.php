@@ -14,6 +14,16 @@ if ($method === 'OPTIONS') {
     exit;
 }
 
+// Security Check for Write Actions (POST, PUT, DELETE)
+if ($method === 'POST') {
+    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? $_GET['key'] ?? null;
+    if (!$apiKey || $apiKey !== LEAD_API_KEY) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Unauthorized: Invalid API Key"]);
+        exit;
+    }
+}
+
 try {
     if ($method === 'GET') {
         if ($leadId) {
