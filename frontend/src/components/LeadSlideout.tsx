@@ -5,6 +5,7 @@ import {
   User, Users, Video, Info, Save,
   Clock
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface Activity {
   id: number;
@@ -139,7 +140,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
 
   if (!lead) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[110] flex justify-end">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-xs animate-fade-in" onClick={onClose}></div>
@@ -423,6 +424,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
             </button>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, X, Check, Loader2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     }
   };
 
-  return (
+  return createPortal(
     <div className={`fixed inset-0 z-[200] flex items-center justify-center p-4 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       {/* Backdrop */}
       <div 
@@ -100,6 +101,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
