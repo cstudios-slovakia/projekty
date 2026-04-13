@@ -119,8 +119,16 @@ try {
         $stmt->execute([$leadId]);
         echo json_encode(["status" => "success"]);
     }
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode([
+        "status" => "error", 
+        "message" => "Database Error: " . $e->getMessage(),
+        "code" => $e->getCode(),
+        "query_error" => $e->errorInfo ?? null
+    ]);
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => "System Error: " . $e->getMessage()]);
 }
 ?>

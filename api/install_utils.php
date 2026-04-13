@@ -10,6 +10,8 @@ function get_schema_sql($db_type, $prefix = '') {
     $timestamp = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP";
 
     $sql = "
+        DROP TABLE IF EXISTS {$prefix}lead_activities CASCADE;
+        DROP TABLE IF EXISTS {$prefix}leads CASCADE;
         DROP TABLE IF EXISTS {$prefix}comments CASCADE;
         DROP TABLE IF EXISTS {$prefix}audit_logs CASCADE;
         DROP TABLE IF EXISTS {$prefix}project_expenses CASCADE;
@@ -35,6 +37,31 @@ function get_schema_sql($db_type, $prefix = '') {
             contact_person VARCHAR(255) NULL,
             email_phone VARCHAR(255) NULL,
             hourly_rate $numeric DEFAULT 0
+        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
+
+        CREATE TABLE {$prefix}leads (
+            id $pk,
+            company_name VARCHAR(255) NULL,
+            contact_name VARCHAR(255) NULL,
+            email VARCHAR(255) NULL,
+            phone VARCHAR(255) NULL,
+            country VARCHAR(255) NULL,
+            message $text NULL,
+            status_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
+            source_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
+            pm_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
+            is_archived BOOLEAN DEFAULT FALSE,
+            created_at $timestamp,
+            updated_at $timestamp
+        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
+
+        CREATE TABLE {$prefix}lead_activities (
+            id $pk,
+            lead_id INTEGER REFERENCES {$prefix}leads(id) ON DELETE CASCADE,
+            `type` VARCHAR(50) NOT NULL,
+            notes $text,
+            activity_date $timestamp,
+            created_at $timestamp
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
 
         CREATE TABLE {$prefix}projects (

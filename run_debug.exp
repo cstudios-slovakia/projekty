@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "191dbd15fc"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "28027"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd $dest_dir && php api/debug_lead_creation.php"
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

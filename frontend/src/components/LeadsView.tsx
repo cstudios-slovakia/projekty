@@ -63,7 +63,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
   }, [archivedView]);
 
   const fetchLeads = () => {
-    fetch(`/api/leads.php?archived=${archivedView}`)
+    fetch(`/api/pipeline.php?archived=${archivedView}`)
       .then(r => r.json())
       .then(res => {
         if (res.status === 'success') setLeads(res.data || []);
@@ -83,16 +83,24 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    fetch('/api/leads.php', {
+    fetch('/api/pipeline.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newLeadForm)
-    }).then(r => r.json()).then(res => {
+    })
+    .then(r => r.json())
+    .then(res => {
       if (res.status === 'success') {
         setIsCreating(false);
         setNewLeadForm({ company_name: '', contact_name: '', email: '', phone: '', country: '', message: '' });
         fetchLeads();
+      } else {
+        alert("Error: " + (res.message || "Failed to initialize lead"));
       }
+    })
+    .catch(err => {
+      alert("Connection error: The Leads API might be down or not responding.");
+      console.error(err);
     });
   };
 

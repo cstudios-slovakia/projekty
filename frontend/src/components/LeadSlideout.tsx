@@ -58,7 +58,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
   }, [id]);
 
   const fetchLead = () => {
-    fetch(`/api/leads.php?id=${id}`)
+    fetch(`/api/pipeline.php?id=${id}`)
       .then(r => r.json())
       .then(res => {
         if (res.status === 'success') {
@@ -78,7 +78,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
 
   const handleSaveLead = (e: React.FormEvent) => {
     e.preventDefault();
-    fetch(`/api/leads.php?id=${id}`, {
+    fetch(`/api/pipeline.php?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editForm)
@@ -109,7 +109,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
 
   const handleUpgrade = () => {
     if (!confirm('Are you sure you want to upgrade this lead to a live project?')) return;
-    fetch(`/api/leads.php?id=${id}`, {
+    fetch(`/api/pipeline.php?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ upgrade: true })
@@ -125,7 +125,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
 
   const handleDelete = () => {
     if (!confirm('Permanent deletion! Are you sure?')) return;
-    fetch(`/api/leads.php?id=${id}`, { method: 'DELETE' }).then(() => {
+    fetch(`/api/pipeline.php?id=${id}`, { method: 'DELETE' }).then(() => {
         onClose();
         onUpdate();
     });
@@ -325,7 +325,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     const val = Number(e.target.value);
                                     if (isEditing) setEditForm({...editForm, status_id: val});
                                     else {
-                                        fetch(`/api/leads.php?id=${id}`, {
+                                        fetch(`/api/pipeline.php?id=${id}`, {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({ status_id: val })
@@ -346,7 +346,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     const val = Number(e.target.value);
                                     if (isEditing) setEditForm({...editForm, source_id: val});
                                     else {
-                                        fetch(`/api/leads.php?id=${id}`, {
+                                        fetch(`/api/pipeline.php?id=${id}`, {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({ source_id: val })
@@ -367,7 +367,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     const val = Number(e.target.value);
                                     if (isEditing) setEditForm({...editForm, pm_id: val});
                                     else {
-                                        fetch(`/api/leads.php?id=${id}`, {
+                                        fetch(`/api/pipeline.php?id=${id}`, {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({ pm_id: val })
@@ -393,7 +393,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                         )}
                         <button 
                             onClick={() => {
-                                fetch(`/api/leads.php?id=${id}`, {
+                                fetch(`/api/pipeline.php?id=${id}`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ is_archived: !lead.is_archived })

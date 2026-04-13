@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock } from 'lucide-react';
 import { ExpenseSlideout } from './ExpenseSlideout';
+import { ConfirmModal } from './ConfirmModal';
 
 interface Project {
   id: number;
@@ -77,6 +78,18 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectForm, setNewProjectForm] = useState<Partial<Project>>({
     name: '', status: 'New Lead', design_status: 'Not Started', dev_status: 'Not Started', complexity: 3
+  });
+
+  // Confirm Modal state
+  const [confirmModal, setConfirmModal] = useState<{ 
+    isOpen: boolean; 
+    title: string; 
+    message: string; 
+    onConfirm: () => void | Promise<void>; 
+    confirmText?: string;
+    isDestructive?: boolean 
+  }>({
+    isOpen: false, title: '', message: '', onConfirm: () => {}
   });
 
   useEffect(() => {
@@ -168,14 +181,30 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
     });
   };
 
-  const toggleArchive = (p: Project) => {
+  const toggleArchive = (e: React.MouseEvent, p: Project) => {
+    e.stopPropagation();
+    e.preventDefault();
     const isArchiving = !p.is_archived;
-    if (isArchiving && !confirm(`Are you sure you want to archive "${p.name}"?`)) return;
     
-    fetch(`/api/projects.php?id=${p.id}`, {
+    if (isArchiving) {
+      setConfirmModal({
+        isOpen: true,
+        title: 'Archive Project',
+        message: `Are you sure you want to archive "${p.name}"? This project will be moved to the archives and hidden from the active pipeline.`,
+        confirmText: 'Archive Project',
+        onConfirm: () => executeArchive(p.id, true),
+        isDestructive: false
+      });
+    } else {
+      executeArchive(p.id, false);
+    }
+  };
+
+  const executeArchive = (id: number, isArchived: boolean) => {
+    return fetch(`/api/projects.php?id=${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ is_archived: isArchiving })
+      body: JSON.stringify({ is_archived: isArchived })
     }).then(() => {
       fetchData();
       notifyUpdate();
@@ -394,7 +423,13 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
                         <div className="md:hidden flex items-center gap-2">
-                          <button onClick={() => toggleArchive(p)} className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl"><Archive size={16} /></button>
+                          <button 
+                            type="button"
+                            onClick={(e) => toggleArchive(e, p)} 
+                            className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl"
+                          >
+                            <Archive size={16} />
+                          </button>
                         </div>
                       </div>
                     </td>
@@ -597,10 +632,20 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           </button>
                         ) : (
                           <>
-                            <button onClick={() => startEdit(p)} className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-[#e78b01] hover:border-[#e78b01] rounded-xl transition-all shadow-sm" title="Edit Details">
+                            <button 
+                              type="button"
+                              onClick={() => startEdit(p)} 
+                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-[#e78b01] hover:border-[#e78b01] rounded-xl transition-all shadow-sm" 
+                              title="Edit Details"
+                            >
                                <Info size={18} />
                             </button>
-                            <button onClick={() => toggleArchive(p)} className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 rounded-xl transition-all shadow-sm" title={p.is_archived ? "Unarchive" : "Archive"}>
+                            <button 
+                              type="button"
+                              onClick={(e) => toggleArchive(e, p)} 
+                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 rounded-xl transition-all shadow-sm" 
+                              title={p.is_archived ? "Unarchive" : "Archive"}
+                            >
                                <Archive size={18} />
                             </button>
                           </>
@@ -813,18 +858,28 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         const proj = projects.find(p => p.id === expenseProjectId);
         if (!proj) return null;
         return (
-          <ExpenseSlideout
-            projectId={proj.id}
-            projectName={proj.name}
-            devBudget={proj.dev_budget}
-            onClose={() => setExpenseProjectId(null)}
+          <ExpenseSlideout 
+            projectId={proj.id} 
+            projectName={proj.name} 
+            devBudget={proj.dev_budget} 
+            onClose={() => setExpenseProjectId(null)} 
             onBudgetChange={() => {
               fetchData();
               notifyUpdate();
-            }}
+            }} 
           />
         );
       })()}
+      
+      <ConfirmModal 
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        isDestructive={confirmModal.isDestructive}
+      />
     </div>
   );
 };

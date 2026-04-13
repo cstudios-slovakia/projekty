@@ -8,25 +8,25 @@ curl -s -k -u "$FTP_USER" -Q "MKD assets" $FTP_SERVER/ || true
 
 for file in *; do
     if [ -f "$file" ]; then
-        curl -s -k -T "$file" -u "$FTP_USER" $FTP_SERVER/
+        curl -s -k -T "$file" -u "$FTP_USER" "$FTP_SERVER/$file"
     fi
 done
 
 for file in .*; do
     if [ -f "$file" ]; then
-        curl -s -k -T "$file" -u "$FTP_USER" $FTP_SERVER/
+        curl -s -k -T "$file" -u "$FTP_USER" "$FTP_SERVER/$file"
     fi
 done
 
 for file in assets/*; do
     if [ -f "$file" ]; then
-        curl -s -k -T "$file" -u "$FTP_USER" $FTP_SERVER/assets/
+        curl -s -k -T "$file" -u "$FTP_USER" "$FTP_SERVER/$file"
     fi
 done
 
 # Upload api into /api/
 cd "/Users/erik/Documents/vibe coding/projekty/api"
-curl -s -k -u "$FTP_USER" -Q "MKD api" $FTP_SERVER/ || true
+curl -s -k -u "$FTP_USER" -Q "MKD api" "$FTP_SERVER/" || true
 for file in *.php; do
-    curl -s -k -T "$file" -u "$FTP_USER" $FTP_SERVER/api/
+    curl -s -k -T "$file" -u "$FTP_USER" "$FTP_SERVER/api/$file"
 done
