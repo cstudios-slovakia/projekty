@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil } from 'lucide-react';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ConfirmModal } from './ConfirmModal';
 
@@ -635,10 +635,10 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             <button 
                               type="button"
                               onClick={() => startEdit(p)} 
-                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-[#e78b01] hover:border-[#e78b01] rounded-xl transition-all shadow-sm" 
+                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-500 rounded-xl transition-all shadow-sm" 
                               title="Edit Details"
                             >
-                               <Info size={18} />
+                               <Pencil size={18} />
                             </button>
                             <button 
                               type="button"
