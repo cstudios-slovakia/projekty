@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+set timeout 600
+set password "4484a99705"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "26940"
+set build_dir "cstudios.sk/sub/projektyerik/vendor/cstudios-slovakia/projekty/frontend"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "cd $build_dir\r"
+expect "$ "
+send "npm install && npm run build\r"
+# Wait specifically for the build to finish (typically ends with "built in ...s" or returning to prompt)
+expect {
+    timeout { puts "Build timed out after 10 minutes!"; exit 1 }
+    "$ "
+}
+send "ls -la dist\r"
+expect "$ "
+send "exit\r"
+expect eof

@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set password "4484a99705"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "26940"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "free -m\r"
+expect "$ "
+send "exit\r"
+expect eof

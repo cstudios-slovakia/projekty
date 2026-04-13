@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+set password "4484a99705"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "26940"
+set build_dir "cstudios.sk/sub/projektyerik/vendor/cstudios-slovakia/projekty/frontend"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+send "node -v && npm -v\r"
+expect "$ "
+send "cd $build_dir && npm install && npm run build\r"
+expect "$ "
+send "ls -la dist\r"
+expect "$ "
+send "exit\r"
+expect eof
