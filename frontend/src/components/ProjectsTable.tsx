@@ -554,14 +554,33 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             <option value="">PM</option>
                             {pms.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                           </select>
-                          <select name="designer_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.designer_id || ''} onChange={handleChange}>
-                            <option value="">Designer</option>
-                            {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                          </select>
-                          <select name="dev_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.dev_id || ''} onChange={handleChange}>
-                            <option value="">Dev</option>
-                            {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                          </select>
+                          <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
+                            <select name="designer_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.designer_id || ''} onChange={handleChange}>
+                              <option value="">Designer</option>
+                              {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                            </select>
+                            {editForm.designer_id && (
+                              <div className="flex items-center gap-1">
+                                <input type="date" name="design_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_start ? editForm.design_start.split(' ')[0] : ''} onChange={handleChange} title="Design Start" />
+                                <span className="text-[10px] text-gray-300">-</span>
+                                <input type="date" name="design_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_end ? editForm.design_end.split(' ')[0] : ''} onChange={handleChange} title="Design End" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
+                            <select name="dev_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.dev_id || ''} onChange={handleChange}>
+                              <option value="">Dev</option>
+                              {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                            </select>
+                            {editForm.dev_id && (
+                              <div className="flex items-center gap-1">
+                                <input type="date" name="dev_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_start ? editForm.dev_start.split(' ')[0] : ''} onChange={handleChange} title="Dev Start" />
+                                <span className="text-[10px] text-gray-300">-</span>
+                                <input type="date" name="dev_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={handleChange} title="Dev End" />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>

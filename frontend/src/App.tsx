@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LogOut, Settings as SettingsIcon, Euro, Briefcase, Users, Loader2 } from 'lucide-react';
+import { LogOut, Settings as SettingsIcon, Euro, Briefcase, Users, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
 import { DashboardKPIs } from './components/DashboardKPIs';
 import { ExpensesView } from './components/ExpensesView';
@@ -8,6 +8,7 @@ import { Settings } from './components/Settings';
 import { LeadReorder } from './components/LeadReorder';
 import { SetupWizard } from './components/SetupWizard';
 import { LeadsView } from './components/LeadsView';
+import { CalendarView } from './components/CalendarView';
 
 function Layout({ systemTitle, version }: { systemTitle: string, version: string }) {
   const location = useLocation();
@@ -56,6 +57,10 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
           <Link to="/expenses" className={sidebarLinkClass(['/expenses'])} title="Expenses">
             <Euro size={24} />
             <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Expenses</span>
+          </Link>
+          <Link to="/calendar" className={sidebarLinkClass(['/calendar'])} title="Calendar">
+            <CalendarIcon size={24} />
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Calendar</span>
           </Link>
           <Link to="/settings" className={sidebarLinkClass(['/settings'])} title="Settings">
             <SettingsIcon size={24} />
@@ -117,6 +122,7 @@ function Layout({ systemTitle, version }: { systemTitle: string, version: string
               <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">Archived Projects</h2><ProjectsTable archivedView={true} /></>} />
               <Route path="/leads" element={<LeadsView archivedView={false} />} />
               <Route path="/leads-archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">Archived Leads</h2><LeadsView archivedView={true} /></>} />
+              <Route path="/calendar" element={<CalendarView />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>
