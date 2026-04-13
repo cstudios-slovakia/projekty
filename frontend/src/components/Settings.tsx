@@ -34,7 +34,7 @@ export const Settings: React.FC = () => {
   });
   
   const [userSettings, setUserSettings] = useState({
-    language: localStorage.getItem('user_language') || 'en'
+    language: localStorage.getItem('lang') || 'en'
   });
   useEffect(() => {
     fetchEntities();
@@ -80,17 +80,24 @@ export const Settings: React.FC = () => {
   };
 
   const saveUserLanguage = (lang: string) => {
-    setUserSettings({ language: lang });
-    fetch('/api/users.php', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ language: lang })
-    }).then(r => r.json()).then(res => {
-      if (res.status === 'success') {
-        localStorage.setItem('user_language', lang);
-        changeLanguage(lang);
-      }
-    });
+    setUserSettings({ ...userSettings, language: lang });
+    const userId = localStorage.getItem('userId');
+    
+    if (userId) {
+      fetch(`/api/users.php?id=${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: lang })
+      }).then(r => r.json()).then(res => {
+        if (res.status === 'success') {
+          localStorage.setItem('lang', lang);
+          changeLanguage(lang);
+        }
+      });
+    } else {
+      localStorage.setItem('lang', lang);
+      changeLanguage(lang);
+    }
   };
 
   const fetchEntities = () => {
@@ -345,9 +352,12 @@ export const Settings: React.FC = () => {
           <div className="space-y-8">
             {/* User Profile / Language */}
             <div className="bg-white rounded-[32px] border border-gray-200 p-6 md:p-10 shadow-sm overflow-hidden relative">
-                <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
-                  <UserIcon className="text-[var(--color-primary)]" /> {t('settings.profile.title') || 'Personal Preferences'}
-                </h3>
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="text-2xl font-black text-gray-900 flex items-center gap-3">
+                    <UserIcon className="text-[var(--color-primary)]" /> {t('settings.profile.title') || 'Personal Preferences'}
+                  </h3>
+                  <button onClick={() => saveUserLanguage(userSettings.language)} className="bg-gray-900 text-white px-6 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-[var(--color-primary)] transition-all active:scale-95">Save</button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('settings.profile.language') || 'Interface Language'}</label>
@@ -355,7 +365,7 @@ export const Settings: React.FC = () => {
                             {availableLocales.map((l: any) => (
                                 <button 
                                     key={l.code}
-                                    onClick={() => saveUserLanguage(l.code)}
+                                    onClick={() => setUserSettings({ ...userSettings, language: l.code })}
                                     className={`flex-1 py-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${userSettings.language === l.code ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-inner' : 'border-gray-100 bg-gray-50 hover:bg-white hover:border-gray-200'}`}
                                 >
                                     <span className="text-2xl">{l.flag}</span>
