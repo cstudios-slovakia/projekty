@@ -32,7 +32,13 @@
     "ago": "ago",
     "no_status": "No Status",
     "unknown_location": "Unknown Location",
-    "minutes_unit": "m"
+    "minutes_unit": "m",
+    "archive": "Archive",
+    "assigned": "Assigned",
+    "confirm": "Confirm",
+    "confirm_upgrade": "Are you sure you want to upgrade?",
+    "direct": "Direct",
+    "new": "New"
   },
   "nav": {
     "projects": "Projects",
@@ -75,7 +81,8 @@
     },
     "income": {
       "title": "Expected Income",
-      "subtitle": "Monthly Forecast"
+      "subtitle": "Monthly Forecast",
+      "label": "Income"
     }
   },
   "leads": {
@@ -112,6 +119,11 @@
     "manual_ordering": "Manual Ordering",
     "manual_ordering_subtitle": "Drag and drop leads to set their custom order.",
     "save_order": "Save Order",
+    "edit_profile": "Edit Profile",
+    "error_msg": "Something went wrong",
+    "select_status": "Select status",
+    "upgrade_button": "Upgrade",
+    "upgrade_success": "Upgrade successful",
     "activities": {
       "title": "Timeline & Activities",
       "add_log": "Add Log",
@@ -122,6 +134,15 @@
       "latest_action": "Latest Action",
       "notes_placeholder": "Summary of the activity or next steps...",
       "no_activity": "No activities recorded yet.",
+      "just_now": "Just now",
+      "call": "Call",
+      "email": "Email",
+      "meeting": "Meeting",
+      "online_call": "Online Call",
+      "proposal": "Proposal",
+      "scheduled": "Scheduled"
+    },
+    "activity": {
       "call": "Call",
       "email": "Email",
       "meeting": "Meeting",
@@ -159,8 +180,20 @@
     "designers": "Designers",
     "types": "Project Types",
     "all_pms": "All Managers",
-    "profit": "Profit",
-    "margin": "Margin %",
+    "all_devs": "All Developers",
+    "all_statuses": "All Statuses",
+    "confirm_archive": "Archive this project?",
+    "design_phase": "Design Phase",
+    "dev_phase": "Development Phase",
+    "hard_deadline": "Hard Deadline",
+    "metadata": "Project Metadata",
+    "name_required": "Name is required",
+    "no_expenses": "No expenses found",
+    "no_expenses_subtitle": "Add your first expense to track costs.",
+    "project_info": "Project Info",
+    "select_category": "Select Category",
+    "uncategorized": "Uncategorized",
+    "workflow": "Workflow",
     "dev_budget": "Dev Budget",
     "spent": "Spent",
     "remaining": "Remaining",

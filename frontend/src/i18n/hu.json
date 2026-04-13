@@ -32,7 +32,13 @@
     "ago": "ezelőtt",
     "no_status": "Nincs állapot",
     "unknown_location": "Ismeretlen helyszín",
-    "minutes_unit": "p"
+    "minutes_unit": "p",
+    "archive": "Archiválás",
+    "assigned": "Kiosztva",
+    "confirm": "Megerősítés",
+    "confirm_upgrade": "Biztosan frissíteni szeretne?",
+    "direct": "Közvetlen",
+    "new": "Új"
   },
   "nav": {
     "projects": "Projektek",
@@ -75,7 +81,8 @@
     },
     "income": {
       "title": "Várható bevétel",
-      "subtitle": "Havi előrejelzés"
+      "subtitle": "Havi előrejelzés",
+      "label": "Bevétel"
     }
   },
   "leads": {
@@ -112,6 +119,11 @@
     "manual_ordering": "Kézi sorrendezés",
     "manual_ordering_subtitle": "Húzza át a lead-eket a saját sorrend beállításához.",
     "save_order": "Sorrend mentése",
+    "edit_profile": "Profil szerkesztése",
+    "error_msg": "Valami hiba történt",
+    "select_status": "Állapot kiválasztása",
+    "upgrade_button": "Frissítés",
+    "upgrade_success": "Sikeres frissítés",
     "activities": {
       "title": "Idővonal és aktivitások",
       "add_log": "Napló hozzáadása",
@@ -122,6 +134,15 @@
       "latest_action": "Legutóbbi művelet",
       "notes_placeholder": "Az tevékenység összefoglalása vagy a következő lépések...",
       "no_activity": "Még nincsenek rögzített tevékenységek.",
+      "just_now": "Épp most",
+      "call": "Hívás",
+      "email": "E-mail",
+      "meeting": "Találkozó",
+      "online_call": "Online hívás",
+      "proposal": "Javaslat",
+      "scheduled": "Ütemezve"
+    },
+    "activity": {
       "call": "Hívás",
       "email": "E-mail",
       "meeting": "Találkozó",
@@ -159,8 +180,20 @@
     "designers": "Designerek",
     "types": "Projekttípusok",
     "all_pms": "Minden vezető",
-    "profit": "Profit",
-    "margin": "Árrés %",
+    "all_devs": "Összes fejlesztő",
+    "all_statuses": "Összes állapot",
+    "confirm_archive": "Archiválja a projektet?",
+    "design_phase": "Tervezési szakasz",
+    "dev_phase": "Fejlesztési szakasz",
+    "hard_deadline": "Szigorú határidő",
+    "metadata": "Projekt metaadatok",
+    "name_required": "Név kötelező",
+    "no_expenses": "Nem találhatók kiadások",
+    "no_expenses_subtitle": "Adja hozzá az első kiadást a költségek nyomon követéséhez.",
+    "project_info": "Projekt infó",
+    "select_category": "Kategória választása",
+    "uncategorized": "Besorolatlan",
+    "workflow": "Munkafolyamat",
     "dev_budget": "Fejlesztési keret",
     "spent": "Elköltve",
     "remaining": "Fennmaradó",

@@ -32,7 +32,13 @@
     "ago": "pred",
     "no_status": "Bez stavu",
     "unknown_location": "Neznáma lokalita",
-    "minutes_unit": "m"
+    "minutes_unit": "m",
+    "archive": "Archivovať",
+    "assigned": "Pridelené",
+    "confirm": "Potvrdiť",
+    "confirm_upgrade": "Naozaj chcete vykonať upgrade?",
+    "direct": "Priamo",
+    "new": "Nový"
   },
   "nav": {
     "projects": "Projekty",
@@ -75,7 +81,8 @@
     },
     "income": {
       "title": "Očakávaný príjem",
-      "subtitle": "Mesačná prognóza"
+      "subtitle": "Mesačná prognóza",
+      "label": "Príjem"
     }
   },
   "leads": {
@@ -112,6 +119,11 @@
     "manual_ordering": "Manuálne radenie",
     "manual_ordering_subtitle": "Presuňte lead-y pre nastavenie ich vlastného poradia.",
     "save_order": "Uložiť poradie",
+    "edit_profile": "Upraviť profil",
+    "error_msg": "Niečo sa pokazilo",
+    "select_status": "Vybrať stav",
+    "upgrade_button": "Upgrade",
+    "upgrade_success": "Upgrade úspešný",
     "activities": {
       "title": "Časová os a aktivity",
       "add_log": "Pridať záznam",
@@ -122,6 +134,15 @@
       "latest_action": "Posledná akcia",
       "notes_placeholder": "Zhrnutie aktivity alebo ďalšie kroky...",
       "no_activity": "Zatiaľ neboli zaznamenané žiadne aktivity.",
+      "just_now": "Práve teraz",
+      "call": "Hovor",
+      "email": "E-mail",
+      "meeting": "Stretnutie",
+      "online_call": "Online hovor",
+      "proposal": "Ponuka",
+      "scheduled": "Naplánované"
+    },
+    "activity": {
       "call": "Hovor",
       "email": "E-mail",
       "meeting": "Stretnutie",
@@ -159,8 +180,20 @@
     "designers": "Dizajnéri",
     "types": "Typy projektov",
     "all_pms": "Všetci manažéri",
-    "profit": "Zisk",
-    "margin": "Marža %",
+    "all_devs": "Všetci vývojári",
+    "all_statuses": "Všetky stavy",
+    "confirm_archive": "Archivovať tento projekt?",
+    "design_phase": "Fáza dizajnu",
+    "dev_phase": "Fáza vývoja",
+    "hard_deadline": "Pevný termín",
+    "metadata": "Metadáta projektu",
+    "name_required": "Meno je povinné",
+    "no_expenses": "Nenašli sa žiadne výdavky",
+    "no_expenses_subtitle": "Pridajte svoj prvý výdavok na sledovanie nákladov.",
+    "project_info": "Info o projekte",
+    "select_category": "Vybrať kategóriu",
+    "uncategorized": "Nekategorizované",
+    "workflow": "Workflow",
     "dev_budget": "Rozpočet vývoja",
     "spent": "Míňané",
     "remaining": "Zostáva",

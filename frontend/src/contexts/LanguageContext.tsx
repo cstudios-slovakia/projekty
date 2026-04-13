@@ -49,10 +49,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode, initialLoca
       if (result && result[k]) {
         result = result[k];
       } else {
-        return key; // Return the key itself if not found
+        return ''; // Return empty string if not found to allow || fallbacks
       }
     }
-    return typeof result === 'string' ? result : key;
+    return typeof result === 'string' ? result : '';
   };
 
   const changeLanguage = async (lang: string, userId?: number) => {
