@@ -27,7 +27,16 @@ try {
     $meetingsStmt->execute();
     $meetings = $meetingsStmt->fetchAll();
 
-    // 3. Fetch designers and developers for rows, plus PMs for meeting context if needed
+    // 3. Fetch lead creations
+    $leadsStmt = $pdo->prepare("
+        SELECT id, company_name, contact_name, created_at 
+        FROM leads 
+        WHERE is_archived = FALSE
+    ");
+    $leadsStmt->execute();
+    $leads = $leadsStmt->fetchAll();
+
+    // 4. Fetch designers and developers for rows, plus PMs for meeting context if needed
     $entitiesStmt = $pdo->prepare("
         SELECT id, type, name, color 
         FROM settings_entities 
@@ -41,6 +50,7 @@ try {
         "data" => [
             "projects" => $projects,
             "meetings" => $meetings,
+            "leads" => $leads,
             "entities" => $entities
         ]
     ]);

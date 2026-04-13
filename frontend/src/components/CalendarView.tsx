@@ -27,6 +27,13 @@ interface CalendarMeeting {
   pm_id: number | null;
 }
 
+interface CalendarLead {
+  id: number;
+  company_name: string;
+  contact_name: string;
+  created_at: string;
+}
+
 interface CalendarEntity {
   id: number;
   type: string;
@@ -36,9 +43,15 @@ interface CalendarEntity {
 
 export const CalendarView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [data, setData] = useState<{ projects: CalendarProject[], meetings: CalendarMeeting[], entities: CalendarEntity[] }>({
+  const [data, setData] = useState<{ 
+    projects: CalendarProject[], 
+    meetings: CalendarMeeting[], 
+    leads: CalendarLead[],
+    entities: CalendarEntity[] 
+  }>({
     projects: [],
     meetings: [],
+    leads: [],
     entities: []
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -147,18 +160,19 @@ export const CalendarView: React.FC = () => {
     const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     const dateStr = d.toISOString().split('T')[0];
     
-    return data.projects.filter(p => {
-       if (p.deadline?.startsWith(dateStr)) return true;
-       if (p.design_start && p.design_end && p.design_start <= dateStr && p.design_end >= dateStr) return true;
-       if (p.dev_start && p.dev_end && p.dev_start <= dateStr && p.dev_end >= dateStr) return true;
-       return false;
-    });
+    return data.projects.filter(p => p.deadline?.startsWith(dateStr));
   }
 
   const getDayMeetings = (day: number) => {
     const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     const dateStr = d.toISOString().split('T')[0];
     return data.meetings.filter(m => m.activity_date?.startsWith(dateStr));
+  }
+
+  const getDayLeads = (day: number) => {
+    const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const dateStr = d.toISOString().split('T')[0];
+    return data.leads.filter(l => l.created_at?.startsWith(dateStr));
   }
 
   return (
@@ -363,6 +377,7 @@ export const CalendarView: React.FC = () => {
                    {calendarCells.map((cell, idx) => {
                       const projs = cell.currentMonth ? getDayProjects(cell.day) : [];
                       const meets = cell.currentMonth ? getDayMeetings(cell.day) : [];
+                      const leads = cell.currentMonth ? getDayLeads(cell.day) : [];
                       
                       return (
                          <div key={idx} className={`min-h-[140px] bg-white p-2 relative flex flex-col ${!cell.currentMonth ? 'opacity-40 bg-gray-50' : 'hover:bg-gray-50/50 transition-colors'}`}>
@@ -374,20 +389,28 @@ export const CalendarView: React.FC = () => {
                                 {cell.currentMonth && projs.map(p => (
                                    <div 
                                       key={`g-p-${p.id}`} 
-                                      className="text-[10px] font-bold px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-100 truncate cursor-pointer hover:shadow-sm"
+                                      className="text-[10px] font-bold px-2 py-1 rounded bg-red-50 text-red-700 border border-red-100 truncate cursor-pointer hover:shadow-sm"
                                       onClick={() => setOpenProjectId(p.id)}
                                    >
-                                      {p.deadline?.startsWith(new Date(currentDate.getFullYear(), currentDate.getMonth(), cell.day).toISOString().split('T')[0]) ? '🏁 ' : ''}
-                                      {p.name}
+                                      🏁 Deadline: {p.name}
                                    </div>
                                 ))}
                                 {cell.currentMonth && meets.map(m => (
                                    <div 
                                       key={`g-m-${m.id}`} 
-                                      className="text-[10px] font-bold px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-100 truncate cursor-pointer hover:shadow-sm"
+                                      className="text-[10px] font-bold px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200 truncate cursor-pointer hover:shadow-sm"
                                       onClick={() => setOpenLeadId(m.lead_id)}
                                    >
-                                      🤝 {m.company_name}
+                                      🤝 Meeting: {m.company_name}
+                                   </div>
+                                ))}
+                                {cell.currentMonth && leads.map(l => (
+                                   <div 
+                                      key={`g-l-${l.id}`} 
+                                      className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 truncate cursor-pointer hover:shadow-sm"
+                                      onClick={() => setOpenLeadId(l.id)}
+                                   >
+                                      ✨ New Lead: {l.company_name}
                                    </div>
                                 ))}
                              </div>
