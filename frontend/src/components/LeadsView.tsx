@@ -268,7 +268,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <form 
             onSubmit={handleCreate}
-            className="bg-white w-full max-w-2xl rounded-[40px] p-8 md:p-12 shadow-2xl animate-scale-in relative overflow-hidden"
+            className="bg-white w-full max-w-2xl rounded-[40px] p-8 md:p-12 shadow-2xl animate-scale-in relative"
           >
             {/* Background Decorations */}
             <div className="absolute -top-12 -right-12 w-48 h-48 bg-[var(--color-primary)]/5 rounded-full blur-3xl"></div>
