@@ -209,7 +209,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                           <span>•</span>
                           <span className="flex items-center gap-1 opacity-70">
                               <Clock size={10} />
-                              {new Date(exp.updated_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                              {new Date(exp.updated_at).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </>
                       )}

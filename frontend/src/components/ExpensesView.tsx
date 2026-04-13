@@ -146,7 +146,7 @@ export const ExpensesView: React.FC = () => {
                         {p.updated_at && (
                             <div className="flex items-center gap-1.5 mt-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                                 <Clock size={11} className="opacity-40" />
-                                {new Date(p.updated_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                {new Date(p.updated_at).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </div>
                         )}
                     </div>

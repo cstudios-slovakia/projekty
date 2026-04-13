@@ -491,7 +491,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             {p.updated_at && (
                                 <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest flex items-center gap-1.5 ml-1">
                                     <Clock size={11} className="opacity-40" />
-                                    {new Date(p.updated_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                    {new Date(p.updated_at).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             )}
                           </div>

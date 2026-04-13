@@ -247,7 +247,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex flex-col">
                                             <span className={`text-[10px] font-black uppercase tracking-widest ${isFuture(act.activity_date) ? 'text-green-600' : 'text-gray-400'}`}>
-                                                {act.type} • {new Date(act.activity_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                                                {act.type} • {new Date(act.activity_date).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {isFuture(act.activity_date) && (
                                                 <span className="text-[9px] font-bold text-green-500 mt-0.5 flex items-center gap-1">
