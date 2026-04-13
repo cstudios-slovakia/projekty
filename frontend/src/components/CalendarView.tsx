@@ -128,6 +128,22 @@ export const CalendarView: React.FC = () => {
     };
   };
 
+  const getTodayMarker = () => {
+    const today = new Date();
+    if (today.getMonth() !== currentDate.getMonth() || today.getFullYear() !== currentDate.getFullYear()) {
+      return null;
+    }
+    const leftPercentage = ((today.getDate() - 1) / daysInMonth) * 100;
+    return (
+      <div 
+        className="absolute top-0 bottom-0 w-px bg-red-400/50 z-30 pointer-events-none"
+        style={{ left: `${leftPercentage}%` }}
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-400 shadow-sm" />
+      </div>
+    );
+  };
+
   if (isLoading) {
     return <div className="animate-pulse h-96 bg-white rounded-3xl"></div>;
   }
@@ -234,12 +250,12 @@ export const CalendarView: React.FC = () => {
         <div className="flex-1 overflow-y-auto relative z-10 custom-scrollbar pb-12">
           
           {/* Row: GLOBAL EVENTS */}
-          <div className="flex border-b border-gray-100 group hover:bg-gray-50/30 transition-colors h-20">
+          <div className="flex border-b border-gray-100 group hover:bg-gray-50/30 transition-colors min-h-[5rem]">
             <div className="w-48 flex-shrink-0 border-r border-gray-100 p-4 flex flex-col justify-center bg-white sticky left-0 z-30 shadow-[4px_0_12px_rgba(0,0,0,0.02)]">
                 <span className="font-bold text-sm text-gray-900">Milestones</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Deadlines & Meetings</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Deadlines & Meetings</span>
             </div>
-            <div className="flex-1 relative bg-white min-h-[4rem]">
+            <div className="flex-1 relative bg-white py-2">
               {/* Grid Lines */}
               <div className="absolute inset-0 flex">
                   {daysArray.map(day => (
@@ -247,42 +263,44 @@ export const CalendarView: React.FC = () => {
                   ))}
               </div>
 
-              {/* Deadlines */}
-              {data.projects.map(p => {
-                if (!p.deadline) return null;
-                const markerStyle = getMarkerStyle(p.deadline, '#ef4444');
-                if (markerStyle.display === 'none') return null;
-                
-                return (
-                  <div 
-                    key={`dl-${p.id}`} 
-                    className="absolute top-2 h-6 px-3 bg-red-50 text-red-700 border border-red-200 rounded-full shadow-sm hover:shadow-md cursor-pointer flex items-center gap-1.5 transition-all z-20 transform -translate-x-1/2 whitespace-nowrap"
-                    style={{ left: markerStyle.left }}
-                    onClick={() => setOpenProjectId(p.id)}
-                    title="Target Deadline"
-                  >
-                     <Briefcase size={12} className="text-red-500" />
-                     <span className="text-[10px] font-black">{p.name}</span>
-                  </div>
-                )
-              })}
+              {/* Today Vertical Line */}
+              {getTodayMarker()}
 
-              {/* Meetings */}
-              {data.meetings.map(m => {
-                const markerStyle = getMarkerStyle(m.activity_date, '#a855f7');
-                if (markerStyle.display === 'none') return null;
-                return (
-                  <div 
-                    key={`m-${m.id}`} 
-                    className="absolute top-10 h-6 px-3 bg-purple-50 text-purple-700 border border-purple-200 rounded-full shadow-sm hover:shadow-md cursor-pointer flex items-center gap-1.5 transition-all z-20 transform -translate-x-1/2 whitespace-nowrap"
-                    style={{ left: markerStyle.left }}
-                    onClick={() => setOpenLeadId(m.lead_id)}
-                  >
-                     <Zap size={12} className="text-purple-500" />
-                     <span className="text-[10px] font-black">{m.company_name}</span>
-                  </div>
-                )
-              })}
+              {/* Stacked Milestones */}
+              {(() => {
+                const dayOffsets: { [key: string]: number } = {};
+                
+                const allMilestones = [
+                  ...data.projects.filter(p => p.deadline).map(p => ({ type: 'deadline', date: p.deadline!, id: p.id, name: p.name })),
+                  ...data.meetings.map(m => ({ type: 'meeting', date: m.activity_date, id: m.id, name: m.company_name, lead_id: m.lead_id }))
+                ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+                return allMilestones.map((m) => {
+                  const dateKey = m.date.split('T')[0];
+                  const offsetIndex = dayOffsets[dateKey] || 0;
+                  dayOffsets[dateKey] = offsetIndex + 1;
+
+                  const markerStyle = getMarkerStyle(m.date, m.type === 'deadline' ? '#ef4444' : '#a855f7');
+                  if (markerStyle.display === 'none') return null;
+
+                  return (
+                    <div 
+                      key={`${m.type}-${m.id}`} 
+                      className={`absolute h-6 px-3 border rounded-full shadow-sm hover:shadow-md cursor-pointer flex items-center gap-1.5 transition-all z-20 transform -translate-x-1/2 whitespace-nowrap ${
+                        m.type === 'deadline' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-purple-50 text-purple-700 border-purple-200'
+                      }`}
+                      style={{ 
+                        left: markerStyle.left,
+                        top: `${0.5 + offsetIndex * 1.75}rem`
+                      }}
+                      onClick={() => m.type === 'deadline' ? setOpenProjectId(m.id) : setOpenLeadId((m as any).lead_id)}
+                    >
+                       {m.type === 'deadline' ? <Briefcase size={12} className="text-red-500" /> : <Zap size={12} className="text-purple-500" />}
+                       <span className="text-[10px] font-black">{m.name}</span>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
 
@@ -303,6 +321,7 @@ export const CalendarView: React.FC = () => {
                  <div className="absolute inset-0 flex">
                     {daysArray.map(day => (<div key={day} className="flex-1 border-r border-gray-50 pointer-events-none"></div>))}
                  </div>
+                 {getTodayMarker()}
                  {/* Blocks */}
                  {data.projects.filter(p => p.designer_id === designer.id && p.design_start && p.design_end).map(p => (
                     <div 
@@ -338,6 +357,7 @@ export const CalendarView: React.FC = () => {
                  <div className="absolute inset-0 flex">
                     {daysArray.map(day => (<div key={day} className="flex-1 border-r border-gray-50 pointer-events-none"></div>))}
                  </div>
+                 {getTodayMarker()}
                  {/* Blocks */}
                  {data.projects.filter(p => p.dev_id === dev.id && p.dev_start && p.dev_end).map(p => (
                     <div 
