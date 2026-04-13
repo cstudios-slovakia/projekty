@@ -56,30 +56,18 @@ if ($is_installed) {
     }
 
     define('IS_MYSQL', (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
-    define('LEAD_API_KEY', $env_data['LEAD_API_KEY'] ?? 'sk_live_lead_tracker_123456');
-
-    $host   = DB_HOST;
-    $db     = DB_NAME;
-    $user   = DB_USER;
-    $pass   = DB_PASS;
-    $port   = DB_PORT;
-    $type   = DB_TYPE;
-    $prefix = defined('DB_PREFIX') ? DB_PREFIX : '';
-
-    if ($type === 'pgsql') {
-        $dsn = "pgsql:host=$host;port=$port;dbname=$db;";
-    } else {
-        $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
-    }
-
-    $options = [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES   => false,
-    ];
-
     try {
         $pdo = new PDO($dsn, $user, $pass, $options);
+        
+        // Dynamic overide for LEAD_API_KEY from database
+        $sTableName = (defined('DB_PREFIX') ? DB_PREFIX : '') . 'system_settings';
+        $quote = IS_MYSQL ? '`' : '"';
+        $sStmt = $pdo->prepare("SELECT {$quote}value{$quote} FROM $sTableName WHERE {$quote}key{$quote} = 'lead_api_key'");
+        $sStmt->execute();
+        $dbApiKey = $sStmt->fetchColumn();
+        
+        define('LEAD_API_KEY', $dbApiKey ?: ($env_data['LEAD_API_KEY'] ?? 'sk_live_lead_tracker_123456'));
+
     } catch (\PDOException $e) {
         if (!defined('ALLOW_NO_DB')) {
             http_response_code(500);

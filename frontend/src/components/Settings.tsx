@@ -22,7 +22,12 @@ export const Settings: React.FC = () => {
   const [newUser, setNewUser] = useState({ username: '', password: '' });
   
   // System Settings
-  const [sysSettings, setSysSettings] = useState({ system_title: '', accent_color_primary: '', accent_color_secondary: '' });
+  const [sysSettings, setSysSettings] = useState({ 
+    system_title: 'Lead Tracker', 
+    accent_color_primary: '#e78b01', 
+    accent_color_secondary: '#00b800',
+    lead_api_key: ''
+  });
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -44,9 +49,28 @@ export const Settings: React.FC = () => {
   }, []);
 
   const fetchSysSettings = () => {
-    fetch('/api/system_settings.php').then(r => r.json()).then(res => {
-      if(res.status === 'success') setSysSettings(res.data);
-    });
+    fetch('/api/system_settings.php')
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          const d = res.data;
+          setSysSettings({
+            system_title: d.system_title || 'Lead Tracker',
+            accent_color_primary: d.accent_color_primary || '#e78b01',
+            accent_color_secondary: d.accent_color_secondary || '#00b800',
+            lead_api_key: d.lead_api_key || ''
+          });
+        }
+      });
+  };
+
+  const generateApiKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'sk_live_';
+    for (let i = 0; i < 24; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setSysSettings({ ...sysSettings, lead_api_key: result });
   };
 
   const saveSysSettings = () => {
@@ -311,7 +335,7 @@ export const Settings: React.FC = () => {
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Secondary Accent Color</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Secondary Accent</label>
                     <div className="flex gap-3">
                         <input 
                             type="color" 
@@ -323,8 +347,27 @@ export const Settings: React.FC = () => {
                             type="text" 
                             value={sysSettings.accent_color_secondary}
                             onChange={e => setSysSettings({...sysSettings, accent_color_secondary: e.target.value})}
-                            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-xs font-bold"
+                            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-sm uppercase"
                         />
+                    </div>
+                </div>
+
+                <div className="space-y-2 md:col-span-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Lead API Security Key</label>
+                    <div className="flex gap-3">
+                        <input 
+                            type="text" 
+                            value={sysSettings.lead_api_key}
+                            onChange={e => setSysSettings({...sysSettings, lead_api_key: e.target.value})}
+                            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-sm"
+                            placeholder="sk_live_..."
+                        />
+                        <button 
+                            onClick={generateApiKey}
+                            className="px-6 py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all active:scale-95 whitespace-nowrap"
+                        >
+                            Generate New
+                        </button>
                     </div>
                 </div>
             </div>
@@ -353,7 +396,7 @@ export const Settings: React.FC = () => {
             <pre className="text-gray-300 font-mono text-xs whitespace-pre-wrap">
 {`curl -X POST https://yourdomain.com/api/pipeline.php \\
   -H "Content-Type: application/json" \\
-  -H "X-API-KEY: sk_live_lead_tracker_123456" \\
+  -H "X-API-KEY: ${sysSettings.lead_api_key || 'sk_live_lead_tracker_123456'}" \\
   -d '{
     "company_name": "Acme Corp",
     "contact_name": "John Doe",
@@ -364,7 +407,7 @@ export const Settings: React.FC = () => {
   }'`}
             </pre>
             <button 
-                onClick={() => navigator.clipboard.writeText(`curl -X POST https://yourdomain.com/api/pipeline.php \\\n  -H "Content-Type: application/json" \\\n  -H "X-API-KEY: sk_live_lead_tracker_123456" \\\n  -d '{\n    "company_name": "Acme Corp",\n    "contact_name": "John Doe",\n    "email": "john@acme.com",\n    "phone": "+421900111222",\n    "message": "We need a new ecommerce website.",\n    "source_id": 1\n  }'`)}
+                onClick={() => navigator.clipboard.writeText(`curl -X POST https://yourdomain.com/api/pipeline.php \\\n  -H "Content-Type: application/json" \\\n  -H "X-API-KEY: ${sysSettings.lead_api_key || 'sk_live_lead_tracker_123456'}" \\\n  -d '{\n    "company_name": "Acme Corp",\n    "contact_name": "John Doe",\n    "email": "john@acme.com",\n    "phone": "+421900111222",\n    "message": "We need a new ecommerce website.",\n    "source_id": 1\n  }'`)}
                 className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-lg p-2 transition-all opacity-0 group-hover:opacity-100"
                 title="Copy to clipboard"
             >
