@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, Filler } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-import { Briefcase, Save, Calendar, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 ChartJS.register(
@@ -222,53 +222,35 @@ export const DashboardKPIs: React.FC = () => {
           {t('common.refresh')}
         </button>
       </div>
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.active_leads')}</p>
-            <h4 className="text-xl md:text-3xl font-black text-gray-900">{data.funnel.reduce((acc, curr) => acc + Number(curr.count), 0)}</h4>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
-             <Briefcase size={20} />
-          </div>
-        </div>
-        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.pipeline_vol')}</p>
-            <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.funnel.reduce((acc, curr) => acc + Number(curr.total_value), 0) / 1000).toFixed(1)}k</h4>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-             <Save size={20} />
-          </div>
-        </div>
-        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.expected_income')}</p>
-            <h4 className="text-xl md:text-3xl font-black text-gray-900">€{(data.income.reduce((acc, curr) => acc + Number(curr.expected_income), 0) / 1000).toFixed(1)}k</h4>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500">
-             <Calendar size={20} />
-          </div>
-        </div>
-        <div className="bg-white rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.kpis.success_rate')}</p>
-            <h4 className="text-xl md:text-3xl font-black text-gray-900">18%</h4>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500">
-             <Briefcase size={20} />
-          </div>
-        </div>
-      </div>
-
+      {/* KPI Cards Row REMOVED as requested */}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Project Funnel */}
-        <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[350px] md:min-h-[400px]">
+        <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[500px]">
           <h3 className="text-xl font-bold text-gray-900 mb-1">{t('dashboard.funnel.title')}</h3>
           <p className="text-[10px] text-gray-400 mb-6 md:mb-8 uppercase tracking-[0.2em] font-black">{t('dashboard.funnel.subtitle')}</p>
+          
           <div className="flex-1 flex flex-col justify-center overflow-x-hidden">
             <FunnelChart data={data.funnel} />
+          </div>
+
+          {/* Funnel KPI Summaries */}
+          <div className="mt-8 grid grid-cols-1 gap-4 pt-8 border-t border-gray-50">
+            <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.funnel.sent_sum')}</p>
+              <h4 className="text-xl font-black text-gray-900">€{Math.round(data.funnel.find(d => d.status === 'Price Offer Sent')?.total_sum || 0).toLocaleString()}</h4>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100/50">
+                <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">{t('dashboard.funnel.accepted_sum')}</p>
+                <h4 className="text-lg font-black text-emerald-700">€{Math.round(data.funnel.find(d => d.status === 'Price Offer Accepted')?.total_sum || 0).toLocaleString()}</h4>
+              </div>
+              <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100/50">
+                <p className="text-[9px] font-black text-blue-600/60 uppercase tracking-widest mb-1">{t('dashboard.funnel.accepted_remaining')}</p>
+                <h4 className="text-lg font-black text-blue-700">€{Math.round(data.funnel.find(d => d.status === 'Price Offer Accepted')?.total_value || 0).toLocaleString()}</h4>
+              </div>
+            </div>
           </div>
         </div>
 

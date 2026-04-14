@@ -72,7 +72,10 @@
     },
     "funnel": {
       "title": "Értékesítési tölcsér",
-      "subtitle": "Lead átalakítási ciklus"
+      "subtitle": "Lead átalakítási ciklus",
+      "sent_sum": "Elküldött, de el nem fogadott",
+      "accepted_sum": "Elfogadott összeg",
+      "accepted_remaining": "Elfogadott (fennmaradó)"
     },
     "workload": {
       "title": "Munkaterhelés",
