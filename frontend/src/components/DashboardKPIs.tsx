@@ -37,22 +37,26 @@ const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
       label: status, 
       displayLabel: t(`leads.status_${labelKey}`) || status,
       value: item ? Number(item.count) : 0,
-      amount: item ? Number(item.total_value) : 0 
+      amount: item ? Number(item.total_value) : 0,
+      total_sum: item ? Number(item.total_sum) : 0
     };
   });
 
   // Calculate widths: top is 100%, others are proportional to the first
-  const maxAmount = Math.max(...funnelData.map(d => d.amount), 1);
+  const maxAmount = Math.max(...funnelData.map(d => d.total_sum), 1);
   
   return (
     <div className="flex flex-col items-center w-full py-4">
       <div className="w-full flex">
         {/* Labels Column */}
-        <div className="w-36 flex flex-col justify-between py-2 text-[13px] font-black text-gray-800 uppercase tracking-tighter">
+        <div className="w-40 flex flex-col justify-between py-2 text-[12px] font-black text-gray-800 uppercase tracking-tighter">
           {funnelData.map(d => (
             <div key={d.label} className="h-10 flex flex-col justify-center">
               <div className="leading-tight">{d.displayLabel}</div>
-              <div className="text-[#e28c00] text-[12px] font-black">€{Math.round(d.amount).toLocaleString()}</div>
+              <div className="text-[#e28c00] text-[11px] font-black">€{Math.round(d.label === 'Price Offer Accepted' ? d.total_sum : d.amount).toLocaleString()}</div>
+              {d.label === 'Price Offer Accepted' && (
+                <div className="text-blue-500 text-[10px] font-bold">NET: €{Math.round(d.amount).toLocaleString()}</div>
+              )}
             </div>
           ))}
         </div>
@@ -65,10 +69,10 @@ const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
               const height = 180 / funnelData.length;
               const y = i * height;
               
-              // Trapezoid calculation with min-width for zero values, scaling by AMOUNT
-              const topVal = i === 0 ? d.amount : funnelData[i-1].amount;
+              // Trapezoid calculation with min-width for zero values, scaling by TOTAL AMOUNT per stage
+              const topVal = i === 0 ? d.total_sum : funnelData[i-1].total_sum;
               const topWidth = Math.max((topVal / maxAmount) * 380, 40);
-              const bottomWidth = Math.max((d.amount / maxAmount) * 380, 40);
+              const bottomWidth = Math.max((d.total_sum / maxAmount) * 380, 40);
               
               const x1 = (400 - topWidth) / 2;
               const x2 = x1 + topWidth;
@@ -84,23 +88,35 @@ const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
                     className="transition-all duration-700 hover:brightness-110 cursor-pointer"
                   />
                   <text 
-                    x="200" y={y + height/2 + 2} 
+                    x="200" y={y + height/2 - 2} 
                     textAnchor="middle" 
                     fill="white" 
-                    className="text-[22px] font-black pointer-events-none drop-shadow-md"
+                    className="text-[20px] font-black pointer-events-none drop-shadow-md"
                     style={{ opacity: d.value === 0 ? 0.3 : 1 }}
                   >
                     {d.value}
                   </text>
                   {d.value > 0 && (
-                    <text 
-                      x="200" y={y + height/2 + 18} 
-                      textAnchor="middle" 
-                      fill="rgba(255,255,255,0.9)" 
-                      className="text-[12px] font-black pointer-events-none"
-                    >
-                      €{Number(d.amount).toLocaleString()}
-                    </text>
+                    <g className="pointer-events-none">
+                      <text 
+                        x="200" y={y + height/2 + 14} 
+                        textAnchor="middle" 
+                        fill="rgba(255,255,255,0.9)" 
+                        className="text-[12px] font-black"
+                      >
+                        €{Math.round(d.label === 'Price Offer Accepted' ? d.total_sum : d.amount).toLocaleString()}
+                      </text>
+                      {d.label === 'Price Offer Accepted' && (
+                        <text 
+                          x="200" y={y + height/2 + 26} 
+                          textAnchor="middle" 
+                          fill="rgba(255,255,255,0.7)" 
+                          className="text-[10px] font-bold"
+                        >
+                          Net: €{Math.round(d.amount).toLocaleString()}
+                        </text>
+                      )}
+                    </g>
                   )}
                 </g>
               );
@@ -232,25 +248,6 @@ export const DashboardKPIs: React.FC = () => {
           
           <div className="flex-1 flex flex-col justify-center overflow-x-hidden">
             <FunnelChart data={data.funnel} />
-          </div>
-
-          {/* Funnel KPI Summaries */}
-          <div className="mt-8 grid grid-cols-1 gap-4 pt-8 border-t border-gray-50">
-            <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.funnel.sent_sum')}</p>
-              <h4 className="text-xl font-black text-gray-900">€{Math.round(data.funnel.find(d => d.status === 'Price Offer Sent')?.total_sum || 0).toLocaleString()}</h4>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100/50">
-                <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">{t('dashboard.funnel.accepted_sum')}</p>
-                <h4 className="text-lg font-black text-emerald-700">€{Math.round(data.funnel.find(d => d.status === 'Price Offer Accepted')?.total_sum || 0).toLocaleString()}</h4>
-              </div>
-              <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100/50">
-                <p className="text-[9px] font-black text-blue-600/60 uppercase tracking-widest mb-1">{t('dashboard.funnel.accepted_remaining')}</p>
-                <h4 className="text-lg font-black text-blue-700">€{Math.round(data.funnel.find(d => d.status === 'Price Offer Accepted')?.total_value || 0).toLocaleString()}</h4>
-              </div>
-            </div>
           </div>
         </div>
 
