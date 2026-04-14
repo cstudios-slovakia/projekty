@@ -116,13 +116,13 @@ export const ExpensesView: React.FC = () => {
       <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-visible">
         <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr className="italic uppercase text-[10px] font-black text-gray-400 tracking-[0.2em]">
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.title')}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.pm')}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.value')}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.profit') || 'Profit'}</th>
+            <tr className="italic uppercase text-[10px] font-black text-gray-400 tracking-[0.2em] sticky top-[-32px] z-30">
+              <th className="p-6 bg-[#f8fafc] border-b border-gray-100 first:rounded-tl-[32px]">{t('projects.title')}</th>
+              <th className="p-6 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
+              <th className="p-6 bg-[#f8fafc] border-b border-gray-100">{t('projects.pm')}</th>
+              <th className="p-6 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
+              <th className="p-6 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.value')}</th>
+              <th className="p-6 bg-[#f8fafc] border-b border-gray-100 text-right last:rounded-tr-[32px]">{t('projects.profit') || 'Profit'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">

@@ -320,7 +320,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
       <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden overflow-x-auto md:overflow-visible">
         <table className="w-full text-left text-sm text-gray-600 border-collapse table-auto md:table-fixed">
-          <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[11px] tracking-[0.1em] font-bold text-gray-400">
+          <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[11px] tracking-[0.1em] font-bold text-gray-400 sticky top-[-32px] z-30 shadow-sm">
             <tr>
               <th className="p-5 w-12 text-center"></th>
               <th className="p-5 md:w-1/4 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('name')}>
