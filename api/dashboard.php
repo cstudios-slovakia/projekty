@@ -17,7 +17,7 @@ try {
     if ($method === 'GET') {
         // 1. Funnel: Group by status
         $funnelStmt = $pdo->query("
-            SELECT status, COUNT(*) as count, SUM(total_value - already_paid) as total_value 
+            SELECT status, COUNT(*) as count, SUM(total_value) as total_sum, SUM(already_paid) as paid_sum, SUM(total_value - already_paid) as total_value 
             FROM projects 
             WHERE is_archived = FALSE
             GROUP BY status
