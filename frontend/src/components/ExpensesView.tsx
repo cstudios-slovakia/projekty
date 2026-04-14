@@ -118,11 +118,11 @@ export const ExpensesView: React.FC = () => {
           <thead>
             <tr className="italic uppercase text-[10px] font-black text-gray-400 tracking-[0.2em]">
               <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.title')}</th>
+              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
               <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.pm')}</th>
               <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
               <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.value')}</th>
               <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.profit') || 'Profit'}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -153,6 +153,16 @@ export const ExpensesView: React.FC = () => {
                         )}
                     </div>
                   </td>
+                  <td className="p-6 text-right">
+                    <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${
+                      profit < 0 ? 'bg-red-50 text-red-600 border border-red-100' :
+                      isLowMargin ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                      'bg-green-50 text-green-600 border border-green-100'
+                    }`}>
+                      {profit >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                      {margin.toFixed(1)}%
+                    </div>
+                  </td>
                   <td className="p-6">
                     {p.pm_name ? (
                       <div className="flex items-center gap-2">
@@ -174,16 +184,6 @@ export const ExpensesView: React.FC = () => {
                   </td>
                   <td className={`p-6 text-right font-black text-base ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     €{profit.toLocaleString()}
-                  </td>
-                  <td className="p-6 text-right">
-                    <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${
-                      profit < 0 ? 'bg-red-50 text-red-600 border border-red-100' :
-                      isLowMargin ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                      'bg-green-50 text-green-600 border border-green-100'
-                    }`}>
-                      {profit >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                      {margin.toFixed(1)}%
-                    </div>
                   </td>
                 </tr>
               );

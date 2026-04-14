@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "5b2d22bd5f"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "26799"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd cstudios.sk/sub/projektyerik && sed -i 's/\"cstudios-slovakia\\/projekty\": \".*\"/\"cstudios-slovakia\\/projekty\": \"v1.6.13\"/' composer.json && rm -rf vendor/cstudios-slovakia/projekty && composer clear-cache && composer update cstudios-slovakia/projekty --no-interaction && cp -r vendor/cstudios-slovakia/projekty/api/* api/ || true"
+expect "password:"
+send "$password\r"
+expect eof
