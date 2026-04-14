@@ -53,7 +53,7 @@ const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
           {funnelData.map(d => (
             <div key={d.label} className="h-10 flex flex-col justify-center">
               <div className="leading-tight">{d.displayLabel}</div>
-              <div className="text-[#e28c00] text-[11px] font-black">€{Math.round(d.label === 'Price Offer Accepted' ? d.total_sum : d.amount).toLocaleString()}</div>
+              <div className="text-[#e28c00] text-[11px] font-black">€{Math.round(d.total_sum).toLocaleString()}</div>
               {d.label === 'Price Offer Accepted' && (
                 <div className="text-blue-500 text-[10px] font-bold">NET: €{Math.round(d.amount).toLocaleString()}</div>
               )}
@@ -104,7 +104,7 @@ const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
                         fill="rgba(255,255,255,0.9)" 
                         className="text-[12px] font-black"
                       >
-                        €{Math.round(d.label === 'Price Offer Accepted' ? d.total_sum : d.amount).toLocaleString()}
+                        €{Math.round(d.total_sum).toLocaleString()}
                       </text>
                       {d.label === 'Price Offer Accepted' && (
                         <text 
