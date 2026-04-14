@@ -217,7 +217,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-medium">
                   <Globe size={14} className="text-gray-300" />
-                  <span>{lead.country || t('common.unknown_location') || 'Unknown Location'}</span>
+                  <span>{lead.source_name ? (t(`leads.source_${lead.source_name.toLowerCase().replace(/ /g, '_')}`) || lead.source_name) : (t('common.unknown_source') || 'Unknown Source')}</span>
                 </div>
                 {lead.email && (
                   <div className="flex items-center gap-2 text-gray-500 text-xs font-medium">
