@@ -75,45 +75,45 @@ const FunnelChart: React.FC<{ data: any }> = ({ data }) => {
               <polygon 
                 points={`${x1},${y} ${x2},${y} ${x3},${y + stageHeight - 4} ${x4},${y + stageHeight - 4}`} 
                 fill={`url(#grad-${stage.key})`}
-                className="transition-all duration-500 hover:brightness-110 cursor-pointer outline-none shadow-xl"
+                className="transition-all duration-500 hover:brightness-110 cursor-pointer outline-none"
               />
               
+              {/* Stage label (Top small text) */}
+              <text 
+                x={250} y={y + 20} 
+                textAnchor="middle" 
+                fill={i >= 3 ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.8)"} 
+                className="text-[11px] font-black uppercase tracking-[0.2em] select-none pointer-events-none"
+              >
+                {stage.label}
+              </text>
+
               {/* Count Text (Center-Top) */}
               <text 
-                x={250} y={y + stageHeight / 2 - 8} 
+                x={250} y={y + stageHeight / 2 + 5} 
                 textAnchor="middle" 
-                fill="white" 
-                className="text-[28px] font-black drop-shadow-md select-none pointer-events-none"
+                fill={i >= 3 ? "#000" : "#fff"} 
+                className="text-[32px] font-black select-none pointer-events-none drop-shadow-lg"
               >
                 {stage.count}
               </text>
 
               {/* Stage Amount (Center-Middle) */}
               <text 
-                x={250} y={y + stageHeight / 2 + 12} 
+                x={250} y={y + stageHeight / 2 + 30} 
                 textAnchor="middle" 
-                fill="rgba(255,255,255,0.9)" 
-                className="text-[14px] font-black select-none pointer-events-none tracking-tight"
+                fill={i >= 3 ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,1)"} 
+                className="text-[16px] font-black select-none pointer-events-none tracking-tight drop-shadow-sm"
               >
                 €{Math.round(stage.amount).toLocaleString()}
               </text>
 
-              {/* Stage label (Side Label integrated) */}
+              {/* Side label (visible on hover) */}
               <text 
-                x={x1 - 10} y={y + stageHeight / 2} 
+                x={x1 - 15} y={y + stageHeight / 2} 
                 textAnchor="end" 
-                fill="rgba(0,0,0,0.4)" 
-                className="text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                {stage.label}
-              </text>
-
-              {/* Persistent label (always visible, outside to not clutter center) */}
-              <text 
-                x={250} y={y + 16} 
-                textAnchor="middle" 
-                fill="rgba(255,255,255,0.5)" 
-                className="text-[9px] font-black uppercase tracking-[0.2em] select-none pointer-events-none"
+                fill="#374151" 
+                className="text-[12px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
               >
                 {stage.label}
               </text>
