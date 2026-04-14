@@ -15,14 +15,14 @@ if ($method === 'OPTIONS') {
 
 try {
     if ($method === 'GET') {
-        // 1. Funnel: Group by status
-        $funnelStmt = $pdo->query("
-            SELECT status, COUNT(*) as count, SUM(total_value) as total_sum, SUM(already_paid) as paid_sum, SUM(total_value - already_paid) as total_value 
-            FROM projects 
-            WHERE is_archived = FALSE
-            GROUP BY status
-        ");
-        $funnel = $funnelStmt->fetchAll();
+        // 1. Funnel: 4-Stage Cumulative Data
+        // Leads: Any active project that isn't failed/lost
+        $funnel = [
+            "leads" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = 0 AND status NOT IN ('Lost', 'Price Offer Rejected')")->fetch(),
+            "sent" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = 0 AND status IN ('Price Offer Sent', 'Price Offer Accepted', 'Price Offer Closed')")->fetch(),
+            "accepted" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = 0 AND status IN ('Price Offer Accepted', 'Price Offer Closed')")->fetch(),
+            "net" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0) - COALESCE(already_paid, 0)) as amount FROM projects WHERE is_archived = 0 AND status IN ('Price Offer Accepted', 'Price Offer Closed')")->fetch()
+        ];
 
         // 2. Expected Income: Group by Month of Deadline
         $incomeStmt = $pdo->query("

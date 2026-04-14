@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "5b2d22bd5f"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "26799"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd cstudios.sk/sub/projektyerik && php -r \"require 'api/db.php'; \\\$funnel = [
+            'leads' => \\\$pdo->query(\\\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status NOT IN ('Lost', 'Price Offer Rejected')\\\")->fetch(),
+            'sent' => \\\$pdo->query(\\\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status IN ('Price Offer Sent', 'Price Offer Accepted')\\\")->fetch(),
+            'accepted' => \\\$pdo->query(\\\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status = 'Price Offer Accepted'\\\")->fetch(),
+            'net' => \\\$pdo->query(\\\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0) - COALESCE(already_paid, 0)) as amount FROM projects WHERE is_archived = FALSE AND status = 'Price Offer Accepted'\\\")->fetch()
+        ]; print_r(\\\$funnel);\""
+expect "password:"
+send "$password\r"
+expect eof
