@@ -45,7 +45,8 @@ try {
                 SUM(CASE WHEN p.dev_status = 'In Progress' THEN p.complexity ELSE 0 END) as active_complexity
             FROM projects p
             JOIN settings_entities d ON p.dev_id = d.id
-            WHERE p.is_archived = FALSE
+            WHERE p.is_archived = FALSE 
+              AND p.status NOT IN ('Price Offer Closed', 'Price Offer Rejected', 'Closed', 'Rejected', 'Lost')
             GROUP BY d.name, d.color
         ");
         $workload = $workloadStmt->fetchAll();
@@ -61,23 +62,25 @@ try {
                 SUM(CASE WHEN p.design_status = 'In Progress' THEN p.complexity ELSE 0 END) as active_complexity
             FROM projects p
             JOIN settings_entities ds ON p.designer_id = ds.id
-            WHERE p.is_archived = FALSE
+            WHERE p.is_archived = FALSE 
+              AND p.status NOT IN ('Price Offer Closed', 'Price Offer Rejected', 'Closed', 'Rejected', 'Lost')
             GROUP BY ds.name, ds.color
         ");
         $designWorkload = $designWorkloadStmt->fetchAll();
-
+ 
         // 5. Workload (PM): Breakdown with Complexity
         $pmWorkloadStmt = $pdo->query("
             SELECT 
                 pm.name, 
                 pm.color,
                 COUNT(*) as total_count, 
-                SUM(CASE WHEN p.status NOT IN ('Price Offer Sent', 'New Lead', 'Price Offer Rejected') AND p.status != 'Closed' THEN 1 ELSE 0 END) as active_count,
+                SUM(CASE WHEN p.status NOT IN ('Price Offer Sent', 'New Lead', 'Price Offer Rejected', 'Price Offer Closed', 'Closed', 'Rejected', 'Lost') THEN 1 ELSE 0 END) as active_count,
                 SUM(p.complexity) as total_complexity,
-                SUM(CASE WHEN p.status NOT IN ('Price Offer Sent', 'New Lead', 'Price Offer Rejected') AND p.status != 'Closed' THEN p.complexity ELSE 0 END) as active_complexity
+                SUM(CASE WHEN p.status NOT IN ('Price Offer Sent', 'New Lead', 'Price Offer Rejected', 'Price Offer Closed', 'Closed', 'Rejected', 'Lost') THEN p.complexity ELSE 0 END) as active_complexity
             FROM projects p
             JOIN settings_entities pm ON p.pm_id = pm.id
-            WHERE p.is_archived = FALSE
+            WHERE p.is_archived = FALSE 
+              AND p.status NOT IN ('Price Offer Closed', 'Price Offer Rejected', 'Closed', 'Rejected', 'Lost')
             GROUP BY pm.name, pm.color
         ");
         $pmWorkload = $pmWorkloadStmt->fetchAll();
