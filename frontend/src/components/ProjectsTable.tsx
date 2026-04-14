@@ -224,7 +224,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
     const isFinished = p.dev_status === 'Finished' && p.design_status === 'Finished';
     const isInactive = p.status === 'Price Offer Rejected' || p.status === 'Price Offer Closed';
 
-    if (isInactive) return 'bg-white opacity-80';
+    if (isInactive) return 'bg-white opacity-60 border-l-4 border-l-gray-300 grayscale-[0.3] hover:opacity-100 hover:grayscale-0';
 
     // RED HIGHLIGHT: Overdue and not finished
     if (currentDate > deadlineDate && !isFinished) {
