@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+set timeout 60
+set password "5b2d22bd5f"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "26799"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+# Create a test script
+send "cat << 'EOF' > cstudios.sk/sub/projektyerik/api/test_db.php\n"
+send "<?php\n"
+send "require 'db.php';\n"
+send "try {\n"
+send "    \$funnel = [\n"
+send "        'leads' => \$pdo->query(\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = 0 AND status NOT IN ('Lost', 'Price Offer Rejected')\")->fetch(),\n"
+send "        'sent' => \$pdo->query(\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = 0 AND status IN ('Price Offer Sent', 'Price Offer Accepted', 'Price Offer Closed')\")->fetch(),\n"
+send "        'accepted' => \$pdo->query(\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = 0 AND status IN ('Price Offer Accepted', 'Price Offer Closed')\")->fetch(),\n"
+send "        'net' => \$pdo->query(\"SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0) - COALESCE(already_paid, 0)) as amount FROM projects WHERE is_archived = 0 AND status IN ('Price Offer Accepted', 'Price Offer Closed')\")->fetch()\n"
+send "    ];\n"
+send "    echo json_encode(\$funnel);\n"
+send "} catch (Exception \$e) {\n"
+send "    echo 'SQL Error: ' . \$e->getMessage();\n"
+send "}\n"
+send "EOF\n"
+expect "$ "
+
+# Run the script
+send "php cstudios.sk/sub/projektyerik/api/test_db.php\n"
+expect "$ "
+
+send "rm cstudios.sk/sub/projektyerik/api/test_db.php\n"
+expect "$ "
+
+send "exit\n"
+expect eof

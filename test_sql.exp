@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "5b2d22bd5f"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "26799"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd cstudios.sk/sub/projektyerik && php -r \"require 'api/db.php'; try { \\\$funnel = ['leads' => \\\$pdo->query('SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE')->fetch()]; print_r(\\\$funnel); } catch (Exception \\\$e) { echo \\\$e->getMessage(); }\""
+expect "password:"
+send "$password\r"
+expect eof
