@@ -30,10 +30,9 @@ const FunnelChart: React.FC<{ data: any }> = ({ data }) => {
   const { t } = useTranslation();
   
   const funnelStages = [
-    { key: 'leads', color: '#6366f1', label: t('dashboard.funnel.stage_leads') },
-    { key: 'sent', color: '#3b82f6', label: t('dashboard.funnel.stage_sent') },
-    { key: 'accepted', color: '#10b981', label: t('dashboard.funnel.stage_accepted') },
-    { key: 'net', color: '#f59e0b', label: t('dashboard.funnel.stage_net') }
+    { key: 'leads', color: '#6366f1', label: t('dashboard.funnel.stage_leads') || 'New Leads' },
+    { key: 'accepted', color: '#10b981', label: t('dashboard.funnel.stage_accepted') || 'Accepted Total' },
+    { key: 'net', color: '#f59e0b', label: t('dashboard.funnel.stage_net') || 'Accepted Unpaid' }
   ].map(stage => ({
     ...stage,
     count: Number(data[stage.key]?.count || 0),

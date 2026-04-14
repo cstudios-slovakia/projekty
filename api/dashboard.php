@@ -15,13 +15,12 @@ if ($method === 'OPTIONS') {
 
 try {
     if ($method === 'GET') {
-        // 1. Funnel: 4-Stage Cumulative Data
-        // Leads: Any active project that isn't failed/lost
+        // 1. Funnel: Exact Status Values (Not cumulative)
         $funnel = [
-            "leads" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status NOT IN ('Lost', 'Price Offer Rejected')")->fetch(),
-            "sent" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status IN ('Price Offer Sent', 'Price Offer Accepted', 'Price Offer Closed')")->fetch(),
-            "accepted" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status IN ('Price Offer Accepted', 'Price Offer Closed')")->fetch(),
-            "net" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0) - COALESCE(already_paid, 0)) as amount FROM projects WHERE is_archived = FALSE AND status IN ('Price Offer Accepted', 'Price Offer Closed')")->fetch()
+            "leads" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status = 'New Lead'")->fetch(),
+            "sent" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status = 'Price Offer Sent'")->fetch(),
+            "accepted" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status = 'Price Offer Accepted'")->fetch(),
+            "net" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0) - COALESCE(already_paid, 0)) as amount FROM projects WHERE is_archived = FALSE AND status = 'Price Offer Accepted'")->fetch()
         ];
 
         // 2. Expected Income: Group by Month of Deadline
