@@ -73,9 +73,10 @@
     "funnel": {
       "title": "Sales Funnel",
       "subtitle": "Lead Transformation Cycle",
-      "sent_sum": "Sent but not accepted",
-      "accepted_sum": "Accepted sum",
-      "accepted_remaining": "Accepted (remaining)"
+      "stage_leads": "Active Leads",
+      "stage_sent": "Offers Sent",
+      "stage_accepted": "Signed Projects",
+      "stage_net": "Net Potential"
     },
     "workload": {
       "title": "Workload",

@@ -73,9 +73,10 @@
     "funnel": {
       "title": "Predajný lievik",
       "subtitle": "Cyklus transformácie lead-ov",
-      "sent_sum": "Odoslané ale neprijaté",
-      "accepted_sum": "Suma prijatých",
-      "accepted_remaining": "Prijaté (zostatok)"
+      "stage_leads": "Aktívne dopyty",
+      "stage_sent": "Zaslané ponuky",
+      "stage_accepted": "Podpísané",
+      "stage_net": "Čistý potenciál"
     },
     "workload": {
       "title": "Pracovné zaťaženie",

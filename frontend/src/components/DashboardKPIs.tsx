@@ -26,104 +26,101 @@ interface DashboardData {
   leads?: any[];
 }
 
-const FunnelChart: React.FC<{ data: any[] }> = ({ data }) => {
-  // Sort data into logical pipeline order
+const FunnelChart: React.FC<{ data: any }> = ({ data }) => {
   const { t } = useTranslation();
-  const order = ['New Lead', 'Price Offer Sent', 'Price Offer Accepted'];
-  const funnelData = order.map(status => {
-    const item = data.find(d => d.status === status);
-    const labelKey = status.toLowerCase().replace(/ /g, '_');
-    return { 
-      label: status, 
-      displayLabel: t(`leads.status_${labelKey}`) || status,
-      value: item ? Number(item.count) : 0,
-      amount: item ? Number(item.total_value) : 0,
-      total_sum: item ? Number(item.total_sum) : 0
-    };
-  });
-
-  // Calculate widths: top is 100%, others are proportional to the first
-  const maxAmount = Math.max(...funnelData.map(d => d.total_sum), 1);
   
-  return (
-    <div className="flex flex-col items-center w-full py-4">
-      <div className="w-full flex">
-        {/* Labels Column */}
-        <div className="w-40 flex flex-col justify-between py-2 text-[12px] font-black text-gray-800 uppercase tracking-tighter">
-          {funnelData.map(d => (
-            <div key={d.label} className="h-10 flex flex-col justify-center">
-              <div className="leading-tight">{d.displayLabel}</div>
-              <div className="text-[#e28c00] text-[11px] font-black">€{Math.round(d.total_sum).toLocaleString()}</div>
-              {d.label === 'Price Offer Accepted' && (
-                <div className="text-blue-500 text-[10px] font-bold">NET: €{Math.round(d.amount).toLocaleString()}</div>
-              )}
-            </div>
-          ))}
-        </div>
-        
-        {/* SVG Funnel Column */}
-        <div className="flex-1 px-4">
-          <svg viewBox="0 0 400 200" className="w-full h-full drop-shadow-2xl overflow-visible">
-            {funnelData.map((d, i) => {
-              const colors = ['#f59e0b', '#3b82f6', '#10b981', '#ec4899'];
-              const height = 180 / funnelData.length;
-              const y = i * height;
-              
-              // Trapezoid calculation with min-width for zero values, scaling by TOTAL AMOUNT per stage
-              const topVal = i === 0 ? d.total_sum : funnelData[i-1].total_sum;
-              const topWidth = Math.max((topVal / maxAmount) * 380, 40);
-              const bottomWidth = Math.max((d.total_sum / maxAmount) * 380, 40);
-              
-              const x1 = (400 - topWidth) / 2;
-              const x2 = x1 + topWidth;
-              const x3 = (400 - bottomWidth) / 2;
-              const x4 = x3 + bottomWidth;
+  const funnelStages = [
+    { key: 'leads', color: '#6366f1', label: t('dashboard.funnel.stage_leads') },
+    { key: 'sent', color: '#3b82f6', label: t('dashboard.funnel.stage_sent') },
+    { key: 'accepted', color: '#10b981', label: t('dashboard.funnel.stage_accepted') },
+    { key: 'net', color: '#f59e0b', label: t('dashboard.funnel.stage_net') }
+  ].map(stage => ({
+    ...stage,
+    count: Number(data[stage.key]?.count || 0),
+    amount: Number(data[stage.key]?.amount || 0)
+  }));
 
-              return (
-                <g key={d.label}>
-                  <polygon 
-                    points={`${x1},${y} ${x2},${y} ${x4},${y + height - 2} ${x3},${y + height - 2}`} 
-                    fill={colors[i % colors.length]}
-                    fillOpacity={d.value === 0 ? 0.2 : 1}
-                    className="transition-all duration-700 hover:brightness-110 cursor-pointer"
-                  />
-                  <text 
-                    x="200" y={y + height/2 - 2} 
-                    textAnchor="middle" 
-                    fill="white" 
-                    className="text-[20px] font-black pointer-events-none drop-shadow-md"
-                    style={{ opacity: d.value === 0 ? 0.3 : 1 }}
-                  >
-                    {d.value}
-                  </text>
-                  {d.value > 0 && (
-                    <g className="pointer-events-none">
-                      <text 
-                        x="200" y={y + height/2 + 14} 
-                        textAnchor="middle" 
-                        fill="rgba(255,255,255,0.9)" 
-                        className="text-[12px] font-black"
-                      >
-                        €{Math.round(d.total_sum).toLocaleString()}
-                      </text>
-                      {d.label === 'Price Offer Accepted' && (
-                        <text 
-                          x="200" y={y + height/2 + 26} 
-                          textAnchor="middle" 
-                          fill="rgba(255,255,255,0.7)" 
-                          className="text-[10px] font-bold"
-                        >
-                          Net: €{Math.round(d.amount).toLocaleString()}
-                        </text>
-                      )}
-                    </g>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-      </div>
+  const maxAmount = Math.max(...funnelStages.map(s => s.amount), 1);
+  const totalHeight = 350;
+  const stageHeight = totalHeight / funnelStages.length;
+
+  return (
+    <div className="w-full flex items-center justify-center py-6 px-4">
+      <svg viewBox={`0 0 500 ${totalHeight + 40}`} className="w-full max-w-2xl drop-shadow-2xl overflow-visible">
+        <defs>
+          {funnelStages.map(stage => (
+            <linearGradient key={`grad-${stage.key}`} id={`grad-${stage.key}`} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={stage.color} stopOpacity="0.8" />
+              <stop offset="100%" stopColor={stage.color} />
+            </linearGradient>
+          ))}
+        </defs>
+
+        {funnelStages.map((stage, i) => {
+          const y = i * stageHeight;
+          const nextStageAmount = funnelStages[i+1] ? funnelStages[i+1].amount : stage.amount * 0.4;
+          
+          // Width based on volume (amount)
+          const topWidth = Math.max((stage.amount / maxAmount) * 460, 100);
+          const bottomWidth = Math.max((nextStageAmount / maxAmount) * 460, 60);
+
+          const x1 = (500 - topWidth) / 2;
+          const x2 = (500 + topWidth) / 2;
+          const x3 = (500 + bottomWidth) / 2;
+          const x4 = (500 - bottomWidth) / 2;
+
+          return (
+            <g key={stage.key} className="group transition-all duration-300">
+              {/* Trapezoid Base */}
+              <polygon 
+                points={`${x1},${y} ${x2},${y} ${x3},${y + stageHeight - 4} ${x4},${y + stageHeight - 4}`} 
+                fill={`url(#grad-${stage.key})`}
+                className="transition-all duration-500 hover:brightness-110 cursor-pointer outline-none shadow-xl"
+              />
+              
+              {/* Count Text (Center-Top) */}
+              <text 
+                x={250} y={y + stageHeight / 2 - 8} 
+                textAnchor="middle" 
+                fill="white" 
+                className="text-[28px] font-black drop-shadow-md select-none pointer-events-none"
+              >
+                {stage.count}
+              </text>
+
+              {/* Stage Amount (Center-Middle) */}
+              <text 
+                x={250} y={y + stageHeight / 2 + 12} 
+                textAnchor="middle" 
+                fill="rgba(255,255,255,0.9)" 
+                className="text-[14px] font-black select-none pointer-events-none tracking-tight"
+              >
+                €{Math.round(stage.amount).toLocaleString()}
+              </text>
+
+              {/* Stage label (Side Label integrated) */}
+              <text 
+                x={x1 - 10} y={y + stageHeight / 2} 
+                textAnchor="end" 
+                fill="rgba(0,0,0,0.4)" 
+                className="text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                {stage.label}
+              </text>
+
+              {/* Persistent label (always visible, outside to not clutter center) */}
+              <text 
+                x={250} y={y + 16} 
+                textAnchor="middle" 
+                fill="rgba(255,255,255,0.5)" 
+                className="text-[9px] font-black uppercase tracking-[0.2em] select-none pointer-events-none"
+              >
+                {stage.label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 };
