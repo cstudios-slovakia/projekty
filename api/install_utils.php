@@ -10,6 +10,8 @@ function get_schema_sql($db_type, $prefix = '') {
     $timestamp = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP";
 
     $sql = "
+        DROP TABLE IF EXISTS {$prefix}user_custom_roles CASCADE;
+        DROP TABLE IF EXISTS {$prefix}project_team_members CASCADE;
         DROP TABLE IF EXISTS {$prefix}lead_activities CASCADE;
         DROP TABLE IF EXISTS {$prefix}leads CASCADE;
         DROP TABLE IF EXISTS {$prefix}comments CASCADE;
@@ -47,13 +49,6 @@ function get_schema_sql($db_type, $prefix = '') {
             user_id INTEGER REFERENCES {$prefix}users(id) ON DELETE CASCADE,
             role_entity_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE,
             PRIMARY KEY (user_id, role_entity_id)
-        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
-
-        CREATE TABLE {$prefix}project_team_members (
-            project_id INTEGER REFERENCES {$prefix}projects(id) ON DELETE CASCADE,
-            role_entity_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE,
-            user_id INTEGER REFERENCES {$prefix}users(id) ON DELETE CASCADE,
-            PRIMARY KEY (project_id, role_entity_id, user_id)
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
 
         CREATE TABLE {$prefix}leads (
@@ -111,6 +106,13 @@ function get_schema_sql($db_type, $prefix = '') {
             project_id INTEGER REFERENCES {$prefix}projects(id) ON DELETE CASCADE,
             tag_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE,
             PRIMARY KEY (project_id, tag_id)
+        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
+
+        CREATE TABLE {$prefix}project_team_members (
+            project_id INTEGER REFERENCES {$prefix}projects(id) ON DELETE CASCADE,
+            role_entity_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE,
+            user_id INTEGER REFERENCES {$prefix}users(id) ON DELETE CASCADE,
+            PRIMARY KEY (project_id, role_entity_id, user_id)
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
 
         CREATE TABLE {$prefix}audit_logs (
