@@ -23,19 +23,19 @@ if (!$username || !$password) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id, username, password_hash, role, language FROM users WHERE username = :username");
+    $stmt = $pdo->prepare("SELECT id, username, password_hash, system_role, language FROM users WHERE username = :username");
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password_hash'])) {
         // Return a simple token or user details (In production use JWT)
-        $token = base64_encode(json_encode(['id' => $user['id'], 'username' => $user['username'], 'role' => $user['role']]));
+        $token = base64_encode(json_encode(['id' => $user['id'], 'username' => $user['username'], 'role' => $user['system_role']]));
         echo json_encode([
             "status" => "success",
             "user" => [
                 "id" => $user['id'],
                 "username" => $user['username'],
-                "role" => $user['role'],
+                "role" => $user['system_role'],
                 "language" => $user['language'] ?? 'en',
                 "token" => $token
             ]
