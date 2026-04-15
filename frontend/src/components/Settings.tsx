@@ -19,9 +19,9 @@ interface User {
 export const Settings: React.FC = () => {
   const { t, changeLanguage, availableLocales } = useTranslation();
   const [entities, setEntities] = useState<Entity[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
-  const [newUser, setNewUser] = useState({ username: '', password: '' });
+  const [users, setUsers] = useState<any[]>([]);
+  const [newEntity, setNewEntity] = useState({ type: 'project_role', name: '', color: '#3b82f6' });
+  const [newUser, setNewUser] = useState<any>({ username: '', password: '', name: '', email: '', system_role: 'end_user', custom_roles: [], notify: false });
   const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'system'>('project');
   
   // System Settings
@@ -145,7 +145,7 @@ export const Settings: React.FC = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newUser)
     }).then(() => {
-      setNewUser({ username: '', password: '' });
+      setNewUser({ username: '', password: '', name: '', email: '', system_role: 'end_user', custom_roles: [], notify: false });
       fetchUsers();
     });
   };
@@ -274,9 +274,7 @@ export const Settings: React.FC = () => {
         {/* TAB: Project Settings */}
         {activeTab === 'project' && (
           <div className="flex flex-col lg:flex-row flex-wrap gap-6">
-            {renderEntityColumn(t('projects.developers'), 'developer')}
-            {renderEntityColumn(t('projects.designers'), 'designer')}
-            {renderEntityColumn(t('projects.pms') || 'Project Managers', 'pm')}
+            {renderEntityColumn(t('projects.roles') || 'Project Team Roles', 'project_role')}
             {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type')}
           </div>
         )}
@@ -299,23 +297,82 @@ export const Settings: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
               <form onSubmit={handleCreateUser} className="space-y-4">
                 <h4 className="font-bold text-gray-700 mb-4">{t('settings.users.add_new')}</h4>
-                <input 
-                  type="text" 
-                  placeholder={t('login.username')} 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
-                  value={newUser.username}
-                  onChange={e => setNewUser({...newUser, username: e.target.value})}
-                  required
-                />
-                <input 
-                  type="password" 
-                  placeholder={t('login.password')} 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
-                  value={newUser.password}
-                  onChange={e => setNewUser({...newUser, password: e.target.value})}
-                  required
-                />
-                <button type="submit" className="w-full md:w-auto bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <div className="grid grid-cols-2 gap-4">
+                  <input 
+                    type="text" 
+                    placeholder={t('settings.users.name') || 'Full Name'} 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+                    value={newUser.name}
+                    onChange={e => setNewUser({...newUser, name: e.target.value})}
+                  />
+                  <input 
+                    type="email" 
+                    placeholder={t('settings.users.email') || 'Email'} 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+                    value={newUser.email}
+                    onChange={e => setNewUser({...newUser, email: e.target.value})}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <input 
+                    type="text" 
+                    placeholder={t('login.username')} 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+                    value={newUser.username}
+                    onChange={e => setNewUser({...newUser, username: e.target.value})}
+                    required
+                  />
+                  <input 
+                    type="password" 
+                    placeholder={t('login.password')} 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+                    value={newUser.password}
+                    onChange={e => setNewUser({...newUser, password: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div className="flex gap-4 items-center">
+                  <select 
+                    value={newUser.system_role} 
+                    onChange={e => setNewUser({...newUser, system_role: e.target.value})} 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all"
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="end_user">End User</option>
+                  </select>
+                  <label className="flex items-center gap-2 px-4 whitespace-nowrap text-sm font-bold text-gray-700">
+                    <input 
+                      type="checkbox" 
+                      className="w-5 h-5 accent-[var(--color-primary)]"
+                      checked={newUser.notify} 
+                      onChange={e => setNewUser({...newUser, notify: e.target.checked})} 
+                    /> 
+                    Notify User
+                  </label>
+                </div>
+
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                  <h5 className="font-bold text-sm text-gray-700 mb-3">Assign Project Roles</h5>
+                  <div className="flex flex-wrap gap-3">
+                    {entities.filter(e => e.type === 'project_role').map(role => (
+                       <label key={role.id} className="flex items-center gap-2 text-sm bg-white border border-gray-200 px-3 py-2 rounded-xl cursor-pointer hover:border-[var(--color-primary)]">
+                         <input type="checkbox" className="accent-[var(--color-primary)]" checked={newUser.custom_roles.includes(role.id)} onChange={e => {
+                            const newRoles = e.target.checked ? [...newUser.custom_roles, role.id] : newUser.custom_roles.filter((id: number) => id !== role.id);
+                            setNewUser({...newUser, custom_roles: newRoles});
+                         }} /> 
+                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color }}></div>
+                         {role.name}
+                       </label>
+                    ))}
+                    {entities.filter(e => e.type === 'project_role').length === 0 && (
+                      <span className="text-xs text-gray-400 italic">No roles defined. Add some in the Project tab.</span>
+                    )}
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.01] active:scale-[0.99] transition-all">
                   {t('settings.users.create_button')}
                 </button>
               </form>
@@ -323,21 +380,44 @@ export const Settings: React.FC = () => {
               <div>
                 <h4 className="font-bold text-gray-700 mb-6 font-mono tracking-wider uppercase text-xs">{t('settings.users.active_users')}</h4>
                 <div className="space-y-3">
-                  {users.map((u: User) => (
-                    <div key={u.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all">
-                          {u.username[0].toUpperCase()}
+                  {users.map((u: any) => (
+                    <div key={u.id} className="flex flex-col p-4 bg-gray-50 rounded-2xl border border-gray-100 group gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all text-xl">
+                            {(u.name || u.username)[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-bold text-gray-900 leading-tight">{u.name || u.username}</div>
+                            <div className="text-xs text-gray-400">{u.email || '@' + u.username}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-bold text-gray-900">{u.username}</div>
-                          <div className="text-xs text-gray-400 uppercase tracking-widest">{u.role}</div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-white border border-gray-200 rounded-lg text-gray-500">
+                            {u.system_role}
+                          </span>
+                          {u.username !== 'admin' && (
+                            <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors bg-white rounded-lg border border-transparent hover:border-red-100">
+                              <UserX size={16} />
+                            </button>
+                          )}
                         </div>
                       </div>
-                      {u.username !== 'admin' && (
-                        <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors">
-                          <UserX size={18} />
-                        </button>
+                      
+                      {/* Enumerate custom roles assigned to this user */}
+                      {u.custom_roles && u.custom_roles.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 mt-1">
+                          {u.custom_roles.map((roleId: number) => {
+                            const r = entities.find(e => e.id === roleId);
+                            if (!r) return null;
+                            return (
+                              <span key={roleId} className="flex items-center gap-1.5 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-full">
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: r.color }}></span>
+                                {r.name}
+                              </span>
+                            );
+                          })}
+                        </div>
                       )}
                     </div>
                   ))}

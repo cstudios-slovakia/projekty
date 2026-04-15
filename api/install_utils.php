@@ -24,8 +24,11 @@ function get_schema_sql($db_type, $prefix = '') {
         CREATE TABLE {$prefix}users (
             id $pk,
             username VARCHAR(50) UNIQUE NOT NULL,
+            name VARCHAR(255) NULL,
+            email VARCHAR(255) NULL,
             password_hash VARCHAR(255) NOT NULL,
-            role VARCHAR(20) DEFAULT 'user',
+            system_role VARCHAR(20) DEFAULT 'end_user',
+            notify BOOLEAN DEFAULT FALSE,
             language VARCHAR(5) DEFAULT 'en',
             reset_token VARCHAR(255) NULL
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
@@ -40,6 +43,19 @@ function get_schema_sql($db_type, $prefix = '') {
             hourly_rate $numeric DEFAULT 0
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
 
+        CREATE TABLE {$prefix}user_custom_roles (
+            user_id INTEGER REFERENCES {$prefix}users(id) ON DELETE CASCADE,
+            role_entity_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE,
+            PRIMARY KEY (user_id, role_entity_id)
+        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
+
+        CREATE TABLE {$prefix}project_team_members (
+            project_id INTEGER REFERENCES {$prefix}projects(id) ON DELETE CASCADE,
+            role_entity_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE CASCADE,
+            user_id INTEGER REFERENCES {$prefix}users(id) ON DELETE CASCADE,
+            PRIMARY KEY (project_id, role_entity_id, user_id)
+        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
+
         CREATE TABLE {$prefix}leads (
             id $pk,
             company_name VARCHAR(255) NULL,
@@ -50,7 +66,7 @@ function get_schema_sql($db_type, $prefix = '') {
             message $text NULL,
             status_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
             source_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
-            pm_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
+            pm_id INTEGER REFERENCES {$prefix}users(id) ON DELETE SET NULL,
             is_archived BOOLEAN DEFAULT FALSE,
             created_at $timestamp,
             updated_at $timestamp
@@ -73,9 +89,6 @@ function get_schema_sql($db_type, $prefix = '') {
             accepted_date DATE NULL,
             design_status VARCHAR(50) DEFAULT 'Not Started',
             dev_status VARCHAR(50) DEFAULT 'Not Started',
-            pm_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
-            dev_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
-            designer_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
             project_type_id INTEGER REFERENCES {$prefix}settings_entities(id) ON DELETE SET NULL,
             deadline DATE NULL,
             est_dev_time INTEGER DEFAULT 0,
@@ -166,10 +179,24 @@ function run_schema($pdo, $db_type, $prefix = '', $admin_password = null, $defau
             $insert->execute($row);
         }
 
+        // Seed default custom project roles
+        $default_roles = [
+            ['project_role', 'Project Manager', '#f59e0b'],
+            ['project_role', 'Developer', '#3b82f6'],
+            ['project_role', 'Designer', '#eab308']
+        ];
+        $insert_role = $pdo->prepare("INSERT INTO {$prefix}settings_entities (type, name, color) VALUES (?, ?, ?)");
+        if ($db_type === 'pgsql') {
+            $insert_role = $pdo->prepare("INSERT INTO {$prefix}settings_entities (type, name, color) VALUES (?, ?, ?)");
+        }
+        foreach ($default_roles as $role) {
+            $insert_role->execute($role);
+        }
+
         // Create admin user
         if ($admin_password) {
             $hash = password_hash($admin_password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO {$prefix}users (username, password_hash, role, language) VALUES ('admin', ?, 'admin', ?)");
+            $stmt = $pdo->prepare("INSERT INTO {$prefix}users (username, name, email, password_hash, system_role, language) VALUES ('admin', 'System Admin', 'admin@example.com', ?, 'admin', ?)");
             $stmt->execute([$hash, $default_language]);
         }
 

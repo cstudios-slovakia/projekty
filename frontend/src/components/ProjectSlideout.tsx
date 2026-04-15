@@ -43,13 +43,21 @@ interface Props {
 
 export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate }) => {
   const { t } = useTranslation();
-  const [project, setProject] = useState<Project | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Project>>({});
+  const [project, setProject] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProject();
+    fetchUsers();
   }, [id]);
+
+  const fetchUsers = () => {
+    fetch('/api/users.php').then(r => r.json()).then(res => {
+      if(res.status === 'success') setUsers(res.data);
+    });
+  };
 
   const fetchProject = () => {
     fetch(`/api/projects.php?id=${id}`)
@@ -80,9 +88,7 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
   };
 
   const progressOptions = ['Not Started', 'In Progress', 'Finished', 'Paused'];
-  const designers = entities.filter(e => e.type === 'designer');
-  const developers = entities.filter(e => e.type === 'developer');
-  const pms = entities.filter(e => e.type === 'pm');
+  const projectRoles = entities.filter(e => e.type === 'project_role');
 
   if (!project) return null;
 
@@ -101,7 +107,7 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
              </div>
              <div>
                 <h2 className="text-xl font-black text-gray-900 leading-none mb-1">{project.name}</h2>
-                <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">{t('projects.slideout.details')}</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">{t('projects.slideout.details') || 'slideout.details'}</div>
              </div>
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all active:scale-95">
@@ -152,57 +158,80 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
 
               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
                  <h3 className="text-sm font-black text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-                    <Users size={16} className="text-blue-500"/> {t('projects.team')} & {t('calendar.milestones')}
+                    <Users size={16} className="text-blue-500"/> {t('projects.team') || 'Team'}
                  </h3>
-                 
-                 <div className="space-y-4">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('projects.pm')}</label>
-                            <select className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-gray-700" value={editForm.pm_id || ''} onChange={e => setEditForm({...editForm, pm_id: Number(e.target.value) || null})}>
-                                <option value="">Select PM...</option>
-                                {pms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            </select>
-                         </div>
-                     </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {projectRoles.map(role => {
+                          const teamMember = editForm.team?.find((t: any) => t.role_entity_id === role.id);
+                          const availableUsers = users.filter(u => u.custom_roles?.includes(role.id));
+                          
+                          return (
+                              <div key={role.id} className="space-y-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{color: role.color}}>
+                                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: role.color }}></span>
+                                  {role.name}
+                                </label>
+                                <select 
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-gray-700 focus:outline-none focus:border-gray-400" 
+                                    value={teamMember?.user_id || ''} 
+                                    onChange={e => {
+                                        const newUserId = Number(e.target.value);
+                                        const newTeamStr = editForm.team ? [...editForm.team] : [];
+                                        const existingIndex = newTeamStr.findIndex(t => t.role_entity_id === role.id);
+                                        
+                                        if (newUserId) {
+                                            if (existingIndex >= 0) {
+                                                newTeamStr[existingIndex].user_id = newUserId;
+                                            } else {
+                                                newTeamStr.push({ role_entity_id: role.id, user_id: newUserId });
+                                            }
+                                        } else {
+                                            if (existingIndex >= 0) newTeamStr.splice(existingIndex, 1);
+                                        }
+                                        
+                                        setEditForm({...editForm, team: newTeamStr});
+                                    }}
+                                >
+                                    <option value="">Select...</option>
+                                    {availableUsers.map(u => <option key={u.id} value={u.id}>{u.name || u.username}</option>)}
+                                </select>
+                              </div>
+                          );
+                      })}
+                      {projectRoles.length === 0 && (
+                        <div className="col-span-2 text-xs text-gray-400 italic">No project roles defined in settings.</div>
+                      )}
+                 </div>
 
-                     <div className="bg-purple-50/50 border border-purple-100 rounded-2xl p-4 space-y-4">
-                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-purple-700 flex items-center gap-2"><Palette size={14}/> {t('projects.design_status') || 'Design Phase'}</span>
+                 <h3 className="text-sm font-black text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2 mt-8">
+                    <Palette size={16} className="text-purple-500"/> {t('calendar.milestones') || 'Milestones'}
+                 </h3>
+                 <div className="space-y-4">
+                     <div className="bg-purple-50/50 border border-purple-100 rounded-2xl p-4 space-y-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                         <div className="flex flex-col gap-1.5">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-purple-700">{t('projects.design_status') || 'Design Phase'}</span>
                             <select className="bg-white border border-purple-200 rounded-xl px-3 py-1 text-xs font-bold text-purple-700" value={editForm.design_status || ''} onChange={e => setEditForm({...editForm, design_status: e.target.value})}>
                                 {progressOptions.map(o => <option key={o}>{o}</option>)}
                             </select>
                          </div>
-                         <div className="grid grid-cols-1 gap-3">
-                             <select className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700" value={editForm.designer_id || ''} onChange={e => setEditForm({...editForm, designer_id: Number(e.target.value) || null})}>
-                                <option value="">Assign Designer...</option>
-                                {designers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                             </select>
-                             <div className="flex items-center gap-2">
-                                <input type="date" className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-xs text-gray-600" value={editForm.design_start ? editForm.design_start.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, design_start: e.target.value})} title="Start" />
-                                <span className="text-purple-300">-</span>
-                                <input type="date" className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-xs text-gray-600" value={editForm.design_end ? editForm.design_end.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, design_end: e.target.value})} title="End" />
-                             </div>
+                         <div className="flex items-center gap-2">
+                            <input type="date" className="w-32 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-xs text-gray-600 outline-none" value={editForm.design_start ? editForm.design_start.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, design_start: e.target.value})} title="Start" />
+                            <span className="text-purple-300">-</span>
+                            <input type="date" className="w-32 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-xs text-gray-600 outline-none" value={editForm.design_end ? editForm.design_end.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, design_end: e.target.value})} title="End" />
                          </div>
                      </div>
 
-                     <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4 space-y-4">
-                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-emerald-700 flex items-center gap-2"><Monitor size={14}/> {t('projects.dev_status') || 'Development Phase'}</span>
+                     <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4 space-y-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                         <div className="flex flex-col gap-1.5">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700"><Monitor size={14} className="inline mr-1 -mt-0.5"/>{t('projects.dev_status') || 'Development Phase'}</span>
                             <select className="bg-white border border-emerald-200 rounded-xl px-3 py-1 text-xs font-bold text-emerald-700" value={editForm.dev_status || ''} onChange={e => setEditForm({...editForm, dev_status: e.target.value})}>
                                 {progressOptions.map(o => <option key={o}>{o}</option>)}
                             </select>
                          </div>
-                         <div className="grid grid-cols-1 gap-3">
-                             <select className="w-full bg-white border border-emerald-100 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700" value={editForm.dev_id || ''} onChange={e => setEditForm({...editForm, dev_id: Number(e.target.value) || null})}>
-                                <option value="">Assign Developer...</option>
-                                {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                             </select>
-                             <div className="flex items-center gap-2">
-                                <input type="date" className="w-full bg-white border border-emerald-100 rounded-xl px-4 py-2.5 text-xs text-gray-600" value={editForm.dev_start ? editForm.dev_start.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, dev_start: e.target.value})} title="Start" />
-                                <span className="text-emerald-300">-</span>
-                                <input type="date" className="w-full bg-white border border-emerald-100 rounded-xl px-4 py-2.5 text-xs text-gray-600" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, dev_end: e.target.value})} title="End" />
-                             </div>
+                         <div className="flex items-center gap-2">
+                            <input type="date" className="w-32 bg-white border border-emerald-100 rounded-xl px-4 py-2.5 text-xs text-gray-600 outline-none" value={editForm.dev_start ? editForm.dev_start.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, dev_start: e.target.value})} title="Start" />
+                            <span className="text-emerald-300">-</span>
+                            <input type="date" className="w-32 bg-white border border-emerald-100 rounded-xl px-4 py-2.5 text-xs text-gray-600 outline-none" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={e => setEditForm({...editForm, dev_end: e.target.value})} title="End" />
                          </div>
                      </div>
                  </div>

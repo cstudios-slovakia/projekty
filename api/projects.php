@@ -42,9 +42,6 @@ try {
         $stmt = $pdo->prepare("
             SELECT p.*, 
                    c.name as client_name, c.color as client_color,
-                   d.name as dev_name, d.color as dev_color,
-                   ds.name as designer_name, ds.color as designer_color,
-                   pm.name as pm_name, pm.color as pm_color,
                    pt.name as project_type_name, pt.color as project_type_color,
                    (
                        SELECT COALESCE(SUM(
@@ -66,19 +63,47 @@ try {
                    ) as expenses_breakdown
             FROM projects p
             LEFT JOIN settings_entities c ON p.client_id = c.id
-            LEFT JOIN settings_entities d ON p.dev_id = d.id
-            LEFT JOIN settings_entities ds ON p.designer_id = ds.id
-            LEFT JOIN settings_entities pm ON p.pm_id = pm.id
             LEFT JOIN settings_entities pt ON p.project_type_id = pt.id
             $whereClause
             ORDER BY p.$sortBy $sortOrder, p.id DESC
         ");
         $stmt->execute($params);
+        $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Fetch team members
+        if (!empty($projects)) {
+            $projIds = array_column($projects, 'id');
+            $inClause = implode(',', array_fill(0, count($projIds), '?'));
+            $teamStmt = $pdo->prepare("
+                SELECT ptm.project_id, ptm.role_entity_id, ptm.user_id, u.name as user_name, se.name as role_name, se.color as role_color
+                FROM project_team_members ptm
+                JOIN users u ON ptm.user_id = u.id
+                JOIN settings_entities se ON ptm.role_entity_id = se.id
+                WHERE ptm.project_id IN ($inClause)
+            ");
+            $teamStmt->execute($projIds);
+            $teams = $teamStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $teamMap = [];
+            foreach ($teams as $t) {
+                $teamMap[$t['project_id']][] = [
+                    'role_entity_id' => $t['role_entity_id'],
+                    'user_id' => $t['user_id'],
+                    'user_name' => $t['user_name'],
+                    'role_name' => $t['role_name'],
+                    'role_color' => $t['role_color']
+                ];
+            }
+
+            foreach ($projects as &$p) {
+                $p['team'] = $teamMap[$p['id']] ?? [];
+            }
+        }
         
         if ($projectId) {
-            echo json_encode(["status" => "success", "data" => $stmt->fetch()]);
+            echo json_encode(["status" => "success", "data" => $projects[0] ?? null]);
         } else {
-            echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
+            echo json_encode(["status" => "success", "data" => $projects]);
         }
     } elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -91,6 +116,15 @@ try {
         ]);
         $newId = IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('projects_id_seq');
         
+        if (isset($input['team']) && is_array($input['team'])) {
+            $insertTeam = $pdo->prepare("INSERT INTO project_team_members (project_id, role_entity_id, user_id) VALUES (?, ?, ?)");
+            foreach ($input['team'] as $t) {
+                if (!empty($t['role_entity_id']) && !empty($t['user_id'])) {
+                    $insertTeam->execute([$newId, $t['role_entity_id'], $t['user_id']]);
+                }
+            }
+        }
+
         $logStmt = $pdo->prepare("INSERT INTO audit_logs (project_id, action, details) VALUES (?, ?, ?)");
         $logStmt->execute([$newId, 'Created', 'Project created via POST']);
         
@@ -124,7 +158,7 @@ try {
         $fields = [];
         $values = [];
         $allowedFields = ['name', 'client_id', 'status', 'accepted_date', 'design_status', 'dev_status', 
-                          'pm_id', 'dev_id', 'designer_id', 'project_type_id', 'deadline', 'est_dev_time', 
+                          'project_type_id', 'deadline', 'est_dev_time', 
                           'design_start', 'design_end', 'dev_start', 'dev_end', 'complexity', 'total_value', 'already_paid', 'dev_budget', 'is_archived', 'notes', 'sort_order'];
 
         foreach ($allowedFields as $field) {
@@ -141,16 +175,22 @@ try {
             }
         }
 
-        if (empty($fields)) {
-            echo json_encode(["status" => "success", "message" => "No fields to update"]);
-            exit;
+        if (!empty($fields)) {
+            $values[] = $projectId;
+            $sql = "UPDATE projects SET " . implode(", ", $fields) . ", updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($values);
         }
 
-        $values[] = $projectId;
-        $sql = "UPDATE projects SET " . implode(", ", $fields) . ", updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($values);
+        if (isset($input['team']) && is_array($input['team'])) {
+            $pdo->prepare("DELETE FROM project_team_members WHERE project_id = ?")->execute([$projectId]);
+            $insertTeam = $pdo->prepare("INSERT INTO project_team_members (project_id, role_entity_id, user_id) VALUES (?, ?, ?)");
+            foreach ($input['team'] as $t) {
+                if (!empty($t['role_entity_id']) && !empty($t['user_id'])) {
+                    $insertTeam->execute([$projectId, $t['role_entity_id'], $t['user_id']]);
+                }
+            }
+        }
 
         $logStmt = $pdo->prepare("INSERT INTO audit_logs (project_id, action, details) VALUES (?, ?, ?)");
         $logStmt->execute([$projectId, 'Updated', "Updated fields: " . implode(", ", array_keys($input))]);

@@ -32,17 +32,14 @@ interface Project {
   notes: string | null;
   created_at?: string;
   updated_at?: string;
+  created_at?: string;
+  updated_at?: string;
   // joined fields
   client_name?: string;
   client_color?: string;
-  dev_name?: string;
-  dev_color?: string;
-  designer_name?: string;
-  designer_color?: string;
-  pm_name?: string;
-  pm_color?: string;
   project_type_name?: string;
   project_type_color?: string;
+  team?: any[];
 }
 
 interface SettingsEntity {
@@ -63,6 +60,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [entities, setEntities] = useState<SettingsEntity[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortColumn, setSortColumn] = useState('sort_order');
@@ -72,14 +70,13 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   // Filters
   const [filterName, setFilterName] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filterPM, setFilterPM] = useState('');
-  const [filterDev, setFilterDev] = useState('');
+  const [filterUser, setFilterUser] = useState('');
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
   
   // New Project Form
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectForm, setNewProjectForm] = useState<Partial<Project>>({
-    name: '', status: 'New Lead', design_status: 'Not Started', dev_status: 'Not Started', complexity: 3
+    name: '', status: 'New Lead', design_status: 'Not Started', dev_status: 'Not Started', complexity: 3, team: []
   });
 
   // Confirm Modal state
@@ -97,6 +94,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   useEffect(() => {
     fetchData();
     fetchEntities();
+    fetchUsers();
     const handleUpdate = () => fetchData();
     window.addEventListener('projectsUpdated', handleUpdate);
     return () => window.removeEventListener('projectsUpdated', handleUpdate);
@@ -136,9 +134,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
       });
   };
 
-  const designers = entities.filter(e => e.type === 'designer');
-  const developers = entities.filter(e => e.type === 'developer');
-  const pms = entities.filter(e => e.type === 'pm');
+  const fetchUsers = () => {
+    fetch('/api/users.php')
+      .then(r => r.json())
+      .then(res => {
+        if(res.status === 'success') setUsers(res.data || []);
+      });
+  };
+
+  const projectRoles = entities.filter(e => e.type === 'project_role');
   const projectTypes = entities.filter(e => e.type === 'project_type');
 
   const startEdit = (p: Project) => {
@@ -258,10 +262,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   };
 
   const filteredProjects = projects.filter(p => {
+    const hasUser = filterUser === '' || (p.team && p.team.some((t: any) => String(t.user_id) === filterUser));
     return p.name.toLowerCase().includes(filterName.toLowerCase()) &&
-           (filterStatus === '' || p.status === filterStatus) &&
-           (filterPM === '' || String(p.pm_id) === filterPM) &&
-           (filterDev === '' || String(p.dev_id) === filterDev);
+           (filterStatus === '' || p.status === filterStatus) && hasUser;
   });
 
   const toggleExpand = (id: number) => {
@@ -290,19 +293,11 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         </select>
         <select 
           className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
-          value={filterPM}
-          onChange={e => setFilterPM(e.target.value)}
+          value={filterUser}
+          onChange={e => setFilterUser(e.target.value)}
         >
-          <option value="">{t('projects.all_pms') || 'All PMs'}</option>
-          {pms.map(pm => <option key={pm.id} value={pm.id}>{pm.name}</option>)}
-        </select>
-        <select 
-          className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
-          value={filterDev}
-          onChange={e => setFilterDev(e.target.value)}
-        >
-          <option value="">{t('projects.all_devs') || 'All Devs'}</option>
-          {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          <option value="">All Assignees</option>
+          {users.map(u => <option key={u.id} value={u.id}>{u.name || u.username}</option>)}
         </select>
         <button 
           onClick={fetchData}
@@ -371,18 +366,38 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                 </td>
                 <td className="p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none">
                   <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.team')}</div>
-                  <select name="pm_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.pm_id || ''} onChange={e => handleChange(e, true)}>
-                    <option value="">{t('projects.pm')}</option>
-                    {pms.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                  </select>
-                  <select name="designer_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.designer_id || ''} onChange={e => handleChange(e, true)}>
-                    <option value="">{t('projects.designer')}</option>
-                    {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                  </select>
-                  <select name="dev_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.dev_id || ''} onChange={e => handleChange(e, true)}>
-                    <option value="">{t('projects.developer')}</option>
-                    {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                  </select>
+                  {projectRoles.map(role => {
+                    const teamMember = newProjectForm.team?.find((t: any) => t.role_entity_id === role.id);
+                    const availableUsers = users.filter(u => u.custom_roles?.includes(role.id));
+                    return (
+                        <div key={role.id} className="flex flex-col gap-1 w-full lg:w-48 mb-2">
+                           <span className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 opacity-70" style={{color: role.color}}>
+                             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: role.color }}></span>
+                             {role.name}
+                           </span>
+                           <select 
+                               className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" 
+                               value={teamMember?.user_id || ''} 
+                               onChange={e => {
+                                   const newUserId = Number(e.target.value);
+                                   const newTeamStr = newProjectForm.team ? [...newProjectForm.team] : [];
+                                   const existingIndex = newTeamStr.findIndex(t => t.role_entity_id === role.id);
+                                   if (newUserId) {
+                                       if (existingIndex >= 0) newTeamStr[existingIndex].user_id = newUserId;
+                                       else newTeamStr.push({ role_entity_id: role.id, user_id: newUserId });
+                                   } else {
+                                       if (existingIndex >= 0) newTeamStr.splice(existingIndex, 1);
+                                   }
+                                   setNewProjectForm({...newProjectForm, team: newTeamStr});
+                               }}
+                           >
+                              <option value="">Assign {role.name}...</option>
+                              {availableUsers.map(u => <option key={u.id} value={u.id}>{u.name || u.username}</option>)}
+                           </select>
+                        </div>
+                    );
+                  })}
+                  {projectRoles.length === 0 && <span className="text-xs text-gray-400 italic">No roles defined.</span>}
                 </td>
                 <td className="p-4 md:p-5 space-y-4 block md:table-cell border-t md:border-none">
                   <div className="space-y-1">
@@ -447,13 +462,6 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           >
                             <span className="font-bold text-gray-900 text-lg tracking-tight group-hover/name:text-[#e78b01] transition-colors">{p.name}</span>
                             <Info size={14} className="text-gray-300 opacity-0 group-hover/name:opacity-100 transition-all transform group-hover/name:translate-x-1" />
-                            {p.pm_color && (
-                              <div 
-                                className="w-2 h-2 rounded-full flex-shrink-0 shadow-sm" 
-                                style={{ backgroundColor: p.pm_color }}
-                                title={`PM: ${p.pm_name}`}
-                              />
-                            )}
                           </div>
                           <div className="flex items-center gap-2">
                             {(() => {
@@ -551,57 +559,69 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                     <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.team')}</div>
                       {isEditing ? (
-                        <div className="flex flex-col gap-1">
-                          <select name="pm_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.pm_id || ''} onChange={handleChange}>
-                            <option value="">{t('projects.pm') || 'PM'}</option>
-                            {pms.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                          </select>
-                          <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
-                            <select name="designer_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.designer_id || ''} onChange={handleChange}>
-                              <option value="">{t('projects.designer') || 'Designer'}</option>
-                              {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                            </select>
-                            {editForm.designer_id && (
-                              <div className="flex items-center gap-1">
-                                <input type="date" name="design_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_start ? editForm.design_start.split(' ')[0] : ''} onChange={handleChange} title="Design Start" />
-                                <span className="text-[10px] text-gray-300">-</span>
-                                <input type="date" name="design_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_end ? editForm.design_end.split(' ')[0] : ''} onChange={handleChange} title="Design End" />
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
-                            <select name="dev_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.dev_id || ''} onChange={handleChange}>
-                              <option value="">{t('projects.developer') || 'Dev'}</option>
-                              {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                            </select>
-                            {editForm.dev_id && (
-                              <div className="flex items-center gap-1">
-                                <input type="date" name="dev_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_start ? editForm.dev_start.split(' ')[0] : ''} onChange={handleChange} title="Dev Start" />
-                                <span className="text-[10px] text-gray-300">-</span>
-                                <input type="date" name="dev_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={handleChange} title="Dev End" />
-                              </div>
-                            )}
-                          </div>
+                        <div className="flex flex-col gap-3">
+                           {projectRoles.map(role => {
+                               const teamMember = editForm.team?.find((t: any) => t.role_entity_id === role.id);
+                               const availableUsers = users.filter(u => u.custom_roles?.includes(role.id));
+                               return (
+                                   <div key={role.id} className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1 shadow-sm">
+                                      <span className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 opacity-70 ml-1" style={{color: role.color}}>
+                                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: role.color }}></span>
+                                        {role.name}
+                                      </span>
+                                      <select 
+                                          className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5 w-full outline-none" 
+                                          value={teamMember?.user_id || ''} 
+                                          onChange={e => {
+                                              const newUserId = Number(e.target.value);
+                                              const newTeamStr = editForm.team ? [...editForm.team] : [];
+                                              const existingIndex = newTeamStr.findIndex(t => t.role_entity_id === role.id);
+                                              if (newUserId) {
+                                                  if (existingIndex >= 0) newTeamStr[existingIndex].user_id = newUserId;
+                                                  else newTeamStr.push({ role_entity_id: role.id, user_id: newUserId });
+                                              } else {
+                                                  if (existingIndex >= 0) newTeamStr.splice(existingIndex, 1);
+                                              }
+                                              setEditForm({...editForm, team: newTeamStr});
+                                          }}
+                                      >
+                                         <option value="">Assign {role.name}...</option>
+                                         {availableUsers.map(u => <option key={u.id} value={u.id}>{u.name || u.username}</option>)}
+                                      </select>
+                                      
+                                      {/* Legacy support: if this role is for design/dev dates, they still show. 
+                                          Ideally dates shouldn't be tied to a hardcoded designer/dev. 
+                                          We leave dates in editForm separately but they are on the project level anyway. 
+                                          For retrofitting, we can just render date inputs independently below.
+                                      */}
+                                   </div>
+                               );
+                           })}
+                           <div className="bg-white rounded-lg p-3 border border-gray-100 space-y-2">
+                             <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Phase Dates</span>
+                             <div className="flex flex-col gap-2">
+                               <div className="flex items-center gap-2">
+                                 <span className="text-[10px] font-bold w-12">Design</span>
+                                 <input type="date" name="design_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 flex-1" value={editForm.design_start ? editForm.design_start.split(' ')[0] : ''} onChange={handleChange} title="Design Start" />
+                                 <input type="date" name="design_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 flex-1" value={editForm.design_end ? editForm.design_end.split(' ')[0] : ''} onChange={handleChange} title="Design End" />
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 <span className="text-[10px] font-bold w-12">Dev</span>
+                                 <input type="date" name="dev_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 flex-1" value={editForm.dev_start ? editForm.dev_start.split(' ')[0] : ''} onChange={handleChange} title="Dev Start" />
+                                 <input type="date" name="dev_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 flex-1" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={handleChange} title="Dev End" />
+                               </div>
+                             </div>
+                           </div>
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
-                          {p.pm_name && (
-                            <span className="bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5" title={t('projects.pm')}>
-                              <User size={12} /> {p.pm_name}
-                            </span>
-                          )}
-                          {p.designer_name && (
-                            <span className="bg-purple-50 text-purple-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-purple-100 flex items-center gap-1.5" title={t('projects.designer')}>
-                              <Palette size={12} /> {p.designer_name}
-                            </span>
-                          )}
-                          {p.dev_name && (
-                            <span className="bg-emerald-50 text-emerald-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5" title={t('projects.developer')}>
-                              <Monitor size={12} /> {p.dev_name}
-                            </span>
-                          )}
-                          {!p.pm_name && !p.designer_name && !p.dev_name && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
+                           {p.team && p.team.map((t: any) => (
+                             <span key={t.user_id + '_' + t.role_entity_id} className="text-[11px] font-bold px-2.5 py-1 rounded-lg border bg-white flex items-center gap-1.5 whitespace-nowrap shadow-sm hover:scale-105 transition-all" style={{borderColor: t.role_color + '40', color: t.role_color}}>
+                               <div className="w-1.5 h-1.5 rounded-full" style={{backgroundColor: t.role_color}}></div>
+                               {t.user_name}
+                             </span>
+                           ))}
+                           {(!p.team || p.team.length === 0) && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
                         </div>
                       )}
                     </td>

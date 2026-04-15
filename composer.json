@@ -15,9 +15,6 @@
         "ext-json": "*"
     },
     "scripts": {
-        "post-create-project-cmd": [
-            "php -r \"copy('api/config.php.example', 'api/config.php');\" || true"
-        ],
         "post-install-cmd": [
             "php api/migrate.php"
         ],
