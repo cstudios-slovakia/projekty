@@ -6,7 +6,8 @@
         "php": ">=8.0",
         "ext-pdo": "*",
         "ext-json": "*",
-        "cstudios-slovakia/projekty": "v1.8.1"
+        "erusev/parsedown": "^1.7",
+        "cstudios-slovakia/projekty": "v1.8.2"
     },
     "scripts": {
         "post-create-project-cmd": [

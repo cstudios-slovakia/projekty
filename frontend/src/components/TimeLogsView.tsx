@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { Clock, Plus, Trash2, Calendar as CalendarIcon, ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import MDEditor from '@uiw/react-md-editor';
 
 interface TimeLog {
   id: number;
@@ -226,8 +227,14 @@ export const TimeLogsView: React.FC = () => {
                   <div className="font-bold text-gray-900 truncate">{log.project_name || `Project #${log.project_id}`}</div>
                 </div>
                 <div className="w-full md:w-1/2">
-                  <div className="text-xs font-bold text-gray-400 uppercase">Notes</div>
-                  <div className="text-sm text-gray-600 truncate">{log.notes || '-'}</div>
+                  <div className="text-xs font-bold text-gray-400 uppercase mb-2">Notes</div>
+                  <div className="text-sm text-gray-600 markdown-body-override" data-color-mode="light">
+                    {log.notes ? (
+                      <MDEditor.Markdown source={log.notes} style={{ backgroundColor: 'transparent' }} />
+                    ) : (
+                      <em className="text-gray-300">No notes provided</em>
+                    )}
+                  </div>
                 </div>
                 <div className="w-full md:w-auto flex items-center justify-between gap-4">
                   <div>
@@ -271,17 +278,19 @@ export const TimeLogsView: React.FC = () => {
                  
                  <div className="w-full lg:flex-[2]">
                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Daily Notes</label>
-                   <input
-                     type="text"
-                     placeholder="What did you do today?"
-                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all"
-                     value={row.notes}
-                     onChange={e => {
-                       const nr = [...draftRows];
-                       nr[index].notes = e.target.value;
-                       setDraftRows(nr);
-                     }}
-                   />
+                   <div data-color-mode="light" className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
+                     <MDEditor
+                       value={row.notes}
+                       onChange={(val) => {
+                         const nr = [...draftRows];
+                         nr[index].notes = val || '';
+                         setDraftRows(nr);
+                       }}
+                       height={250}
+                       preview="edit"
+                       hideToolbar={false}
+                     />
+                   </div>
                  </div>
 
                  <div className="w-full lg:w-32">
