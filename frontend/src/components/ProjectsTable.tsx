@@ -400,15 +400,21 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                   </div>
                 </td>
                 <td className="p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none">
-                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.team')}</div>
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.pm') || 'Project Manager'}</div>
                   <select name="pm_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.pm_id || ''} onChange={e => handleChange(e, true)}>
                     <option value="">{t('projects.pm')}</option>
                     {pms.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                   </select>
+                </td>
+                <td className="p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none">
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.designer') || 'Designer'}</div>
                   <select name="designer_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.designer_id || ''} onChange={e => handleChange(e, true)}>
                     <option value="">{t('projects.designer')}</option>
                     {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                   </select>
+                </td>
+                <td className="p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none">
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.developer') || 'Developer'}</div>
                   <select name="dev_id" className="bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full" value={newProjectForm.dev_id || ''} onChange={e => handleChange(e, true)}>
                     <option value="">{t('projects.developer')}</option>
                     {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
@@ -579,42 +585,69 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       </div>
                     </td>
                     <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
-                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.team')}</div>
+                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.pm') || 'Project Manager'}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
                           <select name="pm_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.pm_id || ''} onChange={handleChange}>
                             <option value="">{t('projects.pm') || 'PM'}</option>
                             {pms.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                           </select>
-                          <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
-                            <select name="designer_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.designer_id || ''} onChange={handleChange}>
-                              <option value="">{t('projects.designer') || 'Designer'}</option>
-                              {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                            </select>
-                            {editForm.designer_id && (
-                              <div className="flex items-center gap-1">
-                                <input type="date" name="design_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_start ? editForm.design_start.split(' ')[0] : ''} onChange={handleChange} title="Design Start" />
-                                <span className="text-[10px] text-gray-300">-</span>
-                                <input type="date" name="design_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_end ? editForm.design_end.split(' ')[0] : ''} onChange={handleChange} title="Design End" />
-                              </div>
-                            )}
-                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
+                          {p.pm_name ? (
+                            <span className="bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5" title={t('projects.pm')}>
+                              <User size={12} /> {p.pm_name}
+                            </span>
+                          ) : <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
+                        </div>
+                      )}
+                    </td>
+
+                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300">
+                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.designer') || 'Designer'}</div>
+                      {isEditing ? (
+                        <div className="flex flex-col gap-1">
+                          <select name="designer_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.designer_id || ''} onChange={handleChange}>
+                            <option value="">{t('projects.designer') || 'Designer'}</option>
+                            {designers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                          </select>
+                          {editForm.designer_id && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <input type="date" name="design_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_start ? editForm.design_start.split(' ')[0] : ''} onChange={handleChange} title="Design Start" />
+                              <span className="text-[10px] text-gray-300">-</span>
+                              <input type="date" name="design_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.design_end ? editForm.design_end.split(' ')[0] : ''} onChange={handleChange} title="Design End" />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
+                          {p.designer_name ? (
+                            <span className="bg-purple-50 text-purple-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-purple-100 flex items-center gap-1.5" title={t('projects.designer')}>
+                              <Palette size={12} /> {p.designer_name}
+                            </span>
+                          ) : <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
+                        </div>
+                      )}
+                    </td>
+
+                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300">
+                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.developer') || 'Developer'}</div>
+                      {isEditing ? (
+                        <div className="flex flex-col gap-1">
+                          <select name="dev_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.dev_id || ''} onChange={handleChange}>
+                            <option value="">{t('projects.developer') || 'Dev'}</option>
+                            {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                          </select>
+                          {editForm.dev_id && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <input type="date" name="dev_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_start ? editForm.dev_start.split(' ')[0] : ''} onChange={handleChange} title="Dev Start" />
+                              <span className="text-[10px] text-gray-300">-</span>
+                              <input type="date" name="dev_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={handleChange} title="Dev End" />
+                            </div>
+                          )}
                           
-                          <div className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1">
-                            <select name="dev_id" className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5" value={editForm.dev_id || ''} onChange={handleChange}>
-                              <option value="">{t('projects.developer') || 'Dev'}</option>
-                              {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                            </select>
-                            {editForm.dev_id && (
-                              <div className="flex items-center gap-1">
-                                <input type="date" name="dev_start" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_start ? editForm.dev_start.split(' ')[0] : ''} onChange={handleChange} title="Dev Start" />
-                                <span className="text-[10px] text-gray-300">-</span>
-                                <input type="date" name="dev_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={handleChange} title="Dev End" />
-                              </div>
-                            )}
-                          </div>
                           {roles.map(role => {
-                            // Find current assignment for this role
                             const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
                             const assign = customArr.find((ca: any) => ca.role_id === role.id) || { member_id: '', start_date: '', end_date: '' };
                             const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
@@ -646,16 +679,6 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
-                          {p.pm_name && (
-                            <span className="bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5" title={t('projects.pm')}>
-                              <User size={12} /> {p.pm_name}
-                            </span>
-                          )}
-                          {p.designer_name && (
-                            <span className="bg-purple-50 text-purple-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-purple-100 flex items-center gap-1.5" title={t('projects.designer')}>
-                              <Palette size={12} /> {p.designer_name}
-                            </span>
-                          )}
                           {p.dev_name && (
                             <span className="bg-emerald-50 text-emerald-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5" title={t('projects.developer')}>
                               <Monitor size={12} /> {p.dev_name}
@@ -670,7 +693,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               </span>
                             ));
                           })()}
-                          {!p.pm_name && !p.designer_name && !p.dev_name && (!p.custom_assignments || p.custom_assignments === 'null') && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
+                          {!p.dev_name && (!p.custom_assignments || p.custom_assignments === 'null') && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
                         </div>
                       )}
                     </td>

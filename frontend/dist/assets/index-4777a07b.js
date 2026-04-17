@@ -44791,15 +44791,21 @@ const ProjectsTable = ({ archivedView = false }) => {
             ] })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1", children: t2("projects.team") }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1", children: t2("projects.pm") || "Project Manager" }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "pm_id", className: "bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full", value: newProjectForm.pm_id || "", onChange: (e) => handleChange(e, true), children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.pm") }),
               pms.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
-            ] }),
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1", children: t2("projects.designer") || "Designer" }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "designer_id", className: "bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full", value: newProjectForm.designer_id || "", onChange: (e) => handleChange(e, true), children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.designer") }),
               designers.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
-            ] }),
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1", children: t2("projects.developer") || "Developer" }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "dev_id", className: "bg-white border-gray-200 text-gray-700 text-xs rounded-xl px-4 py-2 border w-full", value: newProjectForm.dev_id || "", onChange: (e) => handleChange(e, true), children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.developer") }),
               developers.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
@@ -44944,33 +44950,45 @@ const ProjectsTable = ({ archivedView = false }) => {
                 ] })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "p-4 md:p-5 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3", children: t2("projects.team") }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3", children: t2("projects.pm") || "Project Manager" }),
+                isEditing ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col gap-1", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "pm_id", className: "bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5", value: editForm.pm_id || "", onChange: handleChange, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.pm") || "PM" }),
+                  pms.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
+                ] }) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-wrap gap-2 cursor-pointer", onClick: () => startEdit(p2), children: p2.pm_name ? /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5", title: t2("projects.pm"), children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 12 }),
+                  " ",
+                  p2.pm_name
+                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300 italic text-xs", children: t2("leads.unassigned") }) })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "p-4 md:p-5 block md:table-cell border-b border-gray-300", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3", children: t2("projects.designer") || "Designer" }),
                 isEditing ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "pm_id", className: "bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5", value: editForm.pm_id || "", onChange: handleChange, children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.pm") || "PM" }),
-                    pms.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "designer_id", className: "bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5", value: editForm.designer_id || "", onChange: handleChange, children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.designer") || "Designer" }),
+                    designers.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
                   ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "designer_id", className: "bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5", value: editForm.designer_id || "", onChange: handleChange, children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.designer") || "Designer" }),
-                      designers.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
-                    ] }),
-                    editForm.designer_id && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "design_start", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.design_start ? editForm.design_start.split(" ")[0] : "", onChange: handleChange, title: "Design Start" }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] text-gray-300", children: "-" }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "design_end", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.design_end ? editForm.design_end.split(" ")[0] : "", onChange: handleChange, title: "Design End" })
-                    ] })
+                  editForm.designer_id && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 mt-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "design_start", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.design_start ? editForm.design_start.split(" ")[0] : "", onChange: handleChange, title: "Design Start" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] text-gray-300", children: "-" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "design_end", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.design_end ? editForm.design_end.split(" ")[0] : "", onChange: handleChange, title: "Design End" })
+                  ] })
+                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-wrap gap-2 cursor-pointer", onClick: () => startEdit(p2), children: p2.designer_name ? /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-purple-50 text-purple-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-purple-100 flex items-center gap-1.5", title: t2("projects.designer"), children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { size: 12 }),
+                  " ",
+                  p2.designer_name
+                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300 italic text-xs", children: t2("leads.unassigned") }) })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "p-4 md:p-5 block md:table-cell border-b border-gray-300", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3", children: t2("projects.developer") || "Developer" }),
+                isEditing ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-1", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "dev_id", className: "bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5", value: editForm.dev_id || "", onChange: handleChange, children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.developer") || "Dev" }),
+                    developers.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
                   ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "dev_id", className: "bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5", value: editForm.dev_id || "", onChange: handleChange, children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.developer") || "Dev" }),
-                      developers.map((e) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: e.id, children: e.name }, e.id))
-                    ] }),
-                    editForm.dev_id && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "dev_start", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.dev_start ? editForm.dev_start.split(" ")[0] : "", onChange: handleChange, title: "Dev Start" }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] text-gray-300", children: "-" }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "dev_end", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.dev_end ? editForm.dev_end.split(" ")[0] : "", onChange: handleChange, title: "Dev End" })
-                    ] })
+                  editForm.dev_id && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 mt-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "dev_start", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.dev_start ? editForm.dev_start.split(" ")[0] : "", onChange: handleChange, title: "Dev Start" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] text-gray-300", children: "-" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", name: "dev_end", className: "bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full", value: editForm.dev_end ? editForm.dev_end.split(" ")[0] : "", onChange: handleChange, title: "Dev End" })
                   ] }),
                   roles.map((role) => {
                     const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
@@ -45003,16 +45021,6 @@ const ProjectsTable = ({ archivedView = false }) => {
                     ) }, role.id);
                   })
                 ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-2 cursor-pointer", onClick: () => startEdit(p2), children: [
-                  p2.pm_name && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-blue-50 text-blue-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1.5", title: t2("projects.pm"), children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(User, { size: 12 }),
-                    " ",
-                    p2.pm_name
-                  ] }),
-                  p2.designer_name && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-purple-50 text-purple-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-purple-100 flex items-center gap-1.5", title: t2("projects.designer"), children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { size: 12 }),
-                    " ",
-                    p2.designer_name
-                  ] }),
                   p2.dev_name && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-emerald-50 text-emerald-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5", title: t2("projects.developer"), children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsx(Monitor, { size: 12 }),
                     " ",
@@ -45031,7 +45039,7 @@ const ProjectsTable = ({ archivedView = false }) => {
                       ca2.member_name
                     ] }, i));
                   })(),
-                  !p2.pm_name && !p2.designer_name && !p2.dev_name && (!p2.custom_assignments || p2.custom_assignments === "null") && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300 italic text-xs", children: t2("leads.unassigned") })
+                  !p2.dev_name && (!p2.custom_assignments || p2.custom_assignments === "null") && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300 italic text-xs", children: t2("leads.unassigned") })
                 ] })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "p-4 md:p-5 text-left md:text-right block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between md:flex-col md:items-end", children: [
@@ -60592,6 +60600,20 @@ const Settings = () => {
       return;
     fetch(`/api/settings.php?id=${id2}`, { method: "DELETE" }).then(() => fetchEntities());
   };
+  const handleDeleteRole = (id2) => {
+    if (!confirm(t2("common.confirm_delete")))
+      return;
+    fetch(`/api/roles.php?id=${id2}`, { method: "DELETE" }).then(() => fetchRoles());
+  };
+  const handleRenameRole = (id2, newLabel) => {
+    if (!newLabel.trim())
+      return;
+    fetch(`/api/roles.php?id=${id2}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label: newLabel.trim() })
+    }).then(() => fetchRoles());
+  };
   const handleUpdateRate = (entity, rate) => {
     fetch(`/api/settings.php?id=${entity.id}`, {
       method: "PUT",
@@ -60642,12 +60664,39 @@ const Settings = () => {
     "#8b5cf6"
     // Violet
   ];
-  const renderEntityColumn = (title, type) => {
+  const renderEntityColumn = (title, type, roleId) => {
     const list = entities.filter((e) => e.type === type);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-[350px] bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col h-full", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center mb-6", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xl font-bold text-gray-900", children: title }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-full font-bold", children: list.length })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex w-full items-center justify-between gap-3 mr-3 border-b pb-2", children: [
+          roleId ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "text",
+              className: "text-xl font-bold text-gray-900 bg-transparent border-none outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 rounded px-1 -ml-1 flex-1",
+              defaultValue: title,
+              onBlur: (e) => {
+                if (e.target.value !== title)
+                  handleRenameRole(roleId, e.target.value);
+              },
+              onKeyDown: (e) => {
+                if (e.key === "Enter")
+                  e.currentTarget.blur();
+              },
+              title: "Click to rename role"
+            }
+          ) : /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xl font-bold text-gray-900 flex-1", children: title }),
+          roleId && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: () => handleDeleteRole(roleId),
+              className: "text-gray-300 hover:text-red-500 transition-colors p-1",
+              title: "Delete this dynamic role",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 18 })
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-full font-bold ml-2", children: list.length })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4 mb-6", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
@@ -60734,6 +60783,14 @@ const Settings = () => {
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
+          onClick: () => setActiveTab("roles"),
+          className: `px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === "roles" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600 hover:bg-white/50"}`,
+          children: "Team & Roles"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
           onClick: () => setActiveTab("users"),
           className: `px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === "users" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600 hover:bg-white/50"}`,
           children: t2("settings.tabs.users")
@@ -60749,7 +60806,8 @@ const Settings = () => {
       )
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "pt-2", children: [
-      activeTab === "project" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: [
+      activeTab === "project" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: renderEntityColumn(t2("projects.types") || "Project Types", "project_type") }),
+      activeTab === "roles" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xl font-bold text-gray-900 ml-4", children: t2("settings.roles.title") || "Dynamic Roles" }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
@@ -60759,7 +60817,22 @@ const Settings = () => {
                 type: "text",
                 placeholder: t2("settings.roles.add_new") || "Add New Role...",
                 className: "bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]",
-                id: "new_role_input"
+                id: "new_role_input",
+                onKeyDown: (e) => {
+                  if (e.key === "Enter") {
+                    const el2 = e.target;
+                    if (el2.value) {
+                      fetch("/api/roles.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ label: el2.value, is_timeline_group: true, sort_order: (roles.length + 1) * 10 })
+                      }).then(() => {
+                        el2.value = "";
+                        fetchRoles();
+                      });
+                    }
+                  }
+                }
               }
             ),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -60784,9 +60857,8 @@ const Settings = () => {
             )
           ] })
         ] }),
-        roles.map((r2) => renderEntityColumn(r2.label, r2.label.toLowerCase())),
-        renderEntityColumn(t2("projects.pms") || "Project Managers", "pm"),
-        renderEntityColumn(t2("projects.types") || "Project Types", "project_type")
+        roles.map((r2) => renderEntityColumn(r2.label, r2.label.toLowerCase(), r2.id)),
+        renderEntityColumn(t2("projects.pms") || "Project Managers", "pm")
       ] }),
       activeTab === "lead" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: [
         renderEntityColumn(t2("leads.statuses") || "Lead Statuses", "lead_status"),

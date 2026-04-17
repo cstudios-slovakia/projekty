@@ -23,7 +23,7 @@ export const Settings: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
   const [newUser, setNewUser] = useState<{username: string, password: string, role?: string}>({ username: '', password: '', role: 'viewer' });
-  const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'system'>('project');
+  const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'roles' | 'system'>('project');
   
   // System Settings
   const [sysSettings, setSysSettings] = useState({ 
@@ -320,6 +320,12 @@ export const Settings: React.FC = () => {
               {t('settings.tabs.lead')}
           </button>
           <button 
+              onClick={() => setActiveTab('roles')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'roles' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
+          >
+              Team & Roles
+          </button>
+          <button 
               onClick={() => setActiveTab('users')}
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
@@ -336,6 +342,13 @@ export const Settings: React.FC = () => {
       <div className="pt-2">
         {/* TAB: Project Settings */}
         {activeTab === 'project' && (
+          <div className="flex flex-col lg:flex-row flex-wrap gap-6">
+            {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type')}
+          </div>
+        )}
+
+        {/* TAB: Team & Roles */}
+        {activeTab === 'roles' && (
           <div className="flex flex-col lg:flex-row flex-wrap gap-6">
             <div className="w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200">
               <h3 className="text-xl font-bold text-gray-900 ml-4">{t('settings.roles.title') || 'Dynamic Roles'}</h3>
@@ -383,7 +396,6 @@ export const Settings: React.FC = () => {
             </div>
             {roles.map((r: any) => renderEntityColumn(r.label, r.label.toLowerCase(), r.id))}
             {renderEntityColumn(t('projects.pms') || 'Project Managers', 'pm')}
-            {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type')}
           </div>
         )}
 
