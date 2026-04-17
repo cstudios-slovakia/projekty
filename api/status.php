@@ -8,7 +8,7 @@ require_once 'db.php';
 
 $response = [
     "installed" => $is_installed,
-    "version" => "1.7.0"
+    "version" => "1.7.1"
 ];
 
 if ($is_installed) {
