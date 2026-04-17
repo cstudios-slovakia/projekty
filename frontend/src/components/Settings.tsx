@@ -36,11 +36,25 @@ export const Settings: React.FC = () => {
   const [userSettings, setUserSettings] = useState({
     language: localStorage.getItem('lang') || 'en'
   });
+  
+  const [roles, setRoles] = useState<any[]>([]);
+
   useEffect(() => {
     fetchEntities();
     fetchUsers();
     fetchSysSettings();
+    fetchRoles();
   }, []);
+
+  const fetchRoles = () => {
+    fetch('/api/roles.php')
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          setRoles(res.data || []);
+        }
+      });
+  };
 
   const fetchSysSettings = () => {
     fetch('/api/system_settings.php')
@@ -274,8 +288,36 @@ export const Settings: React.FC = () => {
         {/* TAB: Project Settings */}
         {activeTab === 'project' && (
           <div className="flex flex-col lg:flex-row flex-wrap gap-6">
-            {renderEntityColumn(t('projects.developers'), 'developer')}
-            {renderEntityColumn(t('projects.designers'), 'designer')}
+            <div className="w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 ml-4">{t('settings.roles.title') || 'Dynamic Roles'}</h3>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  placeholder={t('settings.roles.add_new') || 'Add New Role...'} 
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]"
+                  id="new_role_input"
+                />
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('new_role_input') as HTMLInputElement;
+                    if(el && el.value) {
+                      fetch('/api/roles.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ label: el.value, is_timeline_group: true, sort_order: (roles.length + 1) * 10 })
+                      }).then(() => {
+                        el.value = '';
+                        fetchRoles();
+                      });
+                    }
+                  }}
+                  className="p-2.5 bg-[var(--color-primary)] text-white rounded-xl shadow-lg shadow-[var(--color-primary)]/10 hover:scale-105 transition-all"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+            </div>
+            {roles.map((r: any) => renderEntityColumn(r.label, r.label.toLowerCase()))}
             {renderEntityColumn(t('projects.pms') || 'Project Managers', 'pm')}
             {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type')}
           </div>

@@ -180,6 +180,79 @@ try {
         }
     }
 
+    // 9. v1.7.0 Features: Dynamic Roles & Permissions
+    if (!table_exists($pdo, 'role_definitions')) {
+        echo "Creating role_definitions table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE role_definitions (
+            id $pk,
+            label VARCHAR(255) NOT NULL,
+            is_timeline_group BOOLEAN DEFAULT TRUE,
+            sort_order INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        
+        // Seed default roles to ensure system operates seamlessly initially
+        $seed_roles = [
+            ['Developer', 1, 10],
+            ['Designer', 1, 20],
+            ['QA', 1, 30]
+        ];
+        $insert_role = $pdo->prepare("INSERT INTO role_definitions (label, is_timeline_group, sort_order) VALUES (?, ?, ?)");
+        foreach ($seed_roles as $role) {
+            $insert_role->execute($role);
+        }
+    }
+
+    // 10. Multi-assignment storage
+    if (!table_exists($pdo, 'project_assignments')) {
+        echo "Creating project_assignments table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE project_assignments (
+            id $pk,
+            project_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            role_id INTEGER,
+            member_id INTEGER,
+            start_date TIMESTAMP,
+            end_date TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        // role_id references role_definitions
+        // member_id references settings_entities (legacy support)
+    }
+
+    // 11. Time tracking with markdown
+    if (!table_exists($pdo, 'time_logs')) {
+        echo "Creating time_logs table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE time_logs (
+            id $pk,
+            project_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            hours NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+            notes TEXT,
+            log_date DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    }
+
+    // 12. Update Users table for RBAC
+    if (!column_exists($pdo, 'users', 'role')) {
+        echo "Adding role to users...\n";
+        $pdo->exec("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'viewer'");
+    }
+    if (!column_exists($pdo, 'users', 'member_id')) {
+        echo "Adding member_id to users (link to entity)...\n";
+        $pdo->exec("ALTER TABLE users ADD COLUMN member_id INTEGER NULL");
+    }
+
+    // Ensure default admin user has admin role
+    $pdo->exec("UPDATE users SET role = 'admin' WHERE id = 1 AND (role IS NULL OR role = 'user')");
+
     echo "Migration completed successfully.\n";
 
 } catch (Exception $e) {

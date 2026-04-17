@@ -17,7 +17,7 @@ if ($method === 'OPTIONS') {
 
 try {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT id, username, role, language FROM users ORDER BY id ASC");
+        $stmt = $pdo->query("SELECT id, username, role, member_id, language FROM users ORDER BY id ASC");
         echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
         
     } elseif ($method === 'POST') {
@@ -36,18 +36,19 @@ try {
         } else {
             // Register new user
             $hash = password_hash($input['password'], PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, member_id) VALUES (?, ?, ?, ?)");
             $stmt->execute([
                 $input['username'],
                 $hash,
-                $input['role'] ?? 'user'
+                $input['role'] ?? 'viewer',
+                $input['member_id'] ?? null
             ]);
             $is_mysql = (defined('DB_TYPE') && (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
             $newId = $is_mysql ? $pdo->lastInsertId() : $pdo->lastInsertId('users_id_seq');
             echo json_encode(["status" => "success", "id" => $newId]);
         }
     } elseif ($method === 'PUT') {
-        // Update user (e.g. language)
+        // Update user
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$userId) {
             http_response_code(400);
@@ -55,10 +56,28 @@ try {
             exit;
         }
 
+        $fields = [];
+        $values = [];
         if (isset($input['language'])) {
-            $stmt = $pdo->prepare("UPDATE users SET language = ? WHERE id = ?");
-            $stmt->execute([$input['language'], $userId]);
-            echo json_encode(["status" => "success", "message" => "Language updated"]);
+            $fields[] = "language = ?";
+            $values[] = $input['language'];
+        }
+        if (isset($input['role'])) {
+            $fields[] = "role = ?";
+            $values[] = $input['role'];
+        }
+        if (array_key_exists('member_id', $input)) {
+            $fields[] = "member_id = ?";
+            $values[] = $input['member_id'] === '' ? null : $input['member_id'];
+        }
+
+        if (!empty($fields)) {
+            $values[] = $userId;
+            $stmt = $pdo->prepare("UPDATE users SET " . implode(", ", $fields) . " WHERE id = ?");
+            $stmt->execute($values);
+            echo json_encode(["status" => "success", "message" => "User updated"]);
+        } else {
+             echo json_encode(["status" => "success", "message" => "No changes"]);
         }
     } elseif ($method === 'DELETE') {
         if (!$userId) {

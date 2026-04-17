@@ -8,9 +8,18 @@ header('Access-Control-Allow-Methods: GET');
 try {
     // 1. Fetch active projects with dates
     $projectsStmt = $pdo->prepare("
-        SELECT id, name, status, deadline, designer_id, design_start, design_end, dev_id, dev_start, dev_end 
-        FROM projects 
-        WHERE is_archived = FALSE
+        SELECT p.id, p.name, p.status, p.deadline, p.designer_id, p.design_start, p.design_end, p.dev_id, p.dev_start, p.dev_end,
+               (
+                   " . (IS_MYSQL ? "
+                   SELECT JSON_ARRAYAGG(JSON_OBJECT('role_id', pa.role_id, 'member_id', pa.member_id, 'start_date', pa.start_date, 'end_date', pa.end_date))
+                   " : "
+                   SELECT json_agg(json_build_object('role_id', pa.role_id, 'member_id', pa.member_id, 'start_date', pa.start_date, 'end_date', pa.end_date))
+                   ") . "
+                   FROM project_assignments pa
+                   WHERE pa.project_id = p.id AND pa.start_date IS NOT NULL
+               ) as custom_assignments
+        FROM projects p
+        WHERE p.is_archived = FALSE
     ");
     $projectsStmt->execute();
     $projects = $projectsStmt->fetchAll();
@@ -45,13 +54,23 @@ try {
     $entitiesStmt->execute();
     $entities = $entitiesStmt->fetchAll();
 
+    // 5. Fetch dynamic role definitions
+    $rolesStmt = $pdo->prepare("
+        SELECT id, label, is_timeline_group, sort_order 
+        FROM role_definitions 
+        ORDER BY sort_order ASC
+    ");
+    $rolesStmt->execute();
+    $roles = $rolesStmt->fetchAll();
+
     echo json_encode([
         "status" => "success", 
         "data" => [
             "projects" => $projects,
             "meetings" => $meetings,
             "leads" => $leads,
-            "entities" => $entities
+            "entities" => $entities,
+            "roles" => $roles
         ]
     ]);
 } catch (\PDOException $e) {

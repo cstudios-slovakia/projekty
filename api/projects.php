@@ -63,7 +63,18 @@ try {
                        FROM project_expenses pe
                        LEFT JOIN settings_entities se ON pe.entity_id = se.id
                        WHERE pe.project_id = p.id AND (pe.hours > 0 OR pe.custom_cost > 0)
-                   ) as expenses_breakdown
+                   ) as expenses_breakdown,
+                   (
+                       " . (IS_MYSQL ? "
+                       SELECT JSON_ARRAYAGG(JSON_OBJECT('role_id', pa.role_id, 'member_id', pa.member_id, 'member_name', se.name, 'member_color', se.color, 'role_label', rd.label))
+                       " : "
+                       SELECT json_agg(json_build_object('role_id', pa.role_id, 'member_id', pa.member_id, 'member_name', se.name, 'member_color', se.color, 'role_label', rd.label))
+                       ") . "
+                       FROM project_assignments pa
+                       LEFT JOIN settings_entities se ON pa.member_id = se.id
+                       LEFT JOIN role_definitions rd ON pa.role_id = rd.id
+                       WHERE pa.project_id = p.id
+                   ) as custom_assignments
             FROM projects p
             LEFT JOIN settings_entities c ON p.client_id = c.id
             LEFT JOIN settings_entities d ON p.dev_id = d.id
@@ -142,15 +153,45 @@ try {
         }
 
         if (empty($fields)) {
-            echo json_encode(["status" => "success", "message" => "No fields to update"]);
-            exit;
+            // Check if there are only custom_assignments
+            if (!isset($input['custom_assignments'])) {
+                echo json_encode(["status" => "success", "message" => "No fields to update"]);
+                exit;
+            }
+        } else {
+            $values[] = $projectId;
+            $sql = "UPDATE projects SET " . implode(", ", $fields) . ", updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($values);
         }
 
-        $values[] = $projectId;
-        $sql = "UPDATE projects SET " . implode(", ", $fields) . ", updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($values);
+        // Handle dynamic assignments if provided
+        if (isset($input['custom_assignments']) && is_array($input['custom_assignments'])) {
+            $pdo->beginTransaction();
+            try {
+                // Clear existing assignments for this project
+                $delStmt = $pdo->prepare("DELETE FROM project_assignments WHERE project_id = ?");
+                $delStmt->execute([$projectId]);
+                
+                $insStmt = $pdo->prepare("INSERT INTO project_assignments (project_id, role_id, member_id, start_date, end_date) VALUES (?, ?, ?, ?, ?)");
+                foreach ($input['custom_assignments'] as $assign) {
+                    if (!empty($assign['member_id'])) {
+                        $insStmt->execute([
+                            $projectId,
+                            $assign['role_id'],
+                            $assign['member_id'],
+                            $assign['start_date'] ?? null,
+                            $assign['end_date'] ?? null
+                        ]);
+                    }
+                }
+                $pdo->commit();
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
+        }
 
         $logStmt = $pdo->prepare("INSERT INTO audit_logs (project_id, action, details) VALUES (?, ?, ?)");
         $logStmt->execute([$projectId, 'Updated', "Updated fields: " . implode(", ", array_keys($input))]);

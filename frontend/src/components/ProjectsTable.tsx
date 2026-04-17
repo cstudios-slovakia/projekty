@@ -3,6 +3,7 @@ import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase,
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ConfirmModal } from './ConfirmModal';
+import { TimeLogModal } from './TimeLogModal';
 
 interface Project {
   id: number;
@@ -75,6 +76,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [filterPM, setFilterPM] = useState('');
   const [filterDev, setFilterDev] = useState('');
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
+  const [timeLogProjectId, setTimeLogProjectId] = useState<number | null>(null);
   
   // New Project Form
   const [isCreating, setIsCreating] = useState(false);
@@ -94,9 +96,12 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
     isOpen: false, title: '', message: '', onConfirm: () => {}
   });
 
+  const [roles, setRoles] = useState<any[]>([]);
+
   useEffect(() => {
     fetchData();
     fetchEntities();
+    fetchRoles();
     const handleUpdate = () => fetchData();
     window.addEventListener('projectsUpdated', handleUpdate);
     return () => window.removeEventListener('projectsUpdated', handleUpdate);
@@ -111,6 +116,14 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
       .then(r => r.json())
       .then(res => {
         if(res.status === 'success') setProjects(res.data || []);
+      });
+  };
+
+  const fetchRoles = () => {
+    fetch('/api/roles.php')
+      .then(r => r.json())
+      .then(res => {
+        if(res.status === 'success') setRoles(res.data || []);
       });
   };
 
@@ -143,7 +156,11 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
   const startEdit = (p: Project) => {
     setEditingId(p.id);
-    setEditForm(p);
+    let customArray = [];
+    try {
+      if (p.custom_assignments) customArray = typeof p.custom_assignments === 'string' ? JSON.parse(p.custom_assignments) : p.custom_assignments;
+    } catch(e) {}
+    setEditForm({...p, custom_assignments: customArray} as any);
     setExpandedId(p.id);
   };
 
@@ -583,6 +600,36 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               </div>
                             )}
                           </div>
+                          {roles.map(role => {
+                            // Find current assignment for this role
+                            const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
+                            const assign = customArr.find((ca: any) => ca.role_id === role.id) || { member_id: '', start_date: '', end_date: '' };
+                            const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
+
+                            return (
+                              <div key={role.id} className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1 mt-1">
+                                <select 
+                                  className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5"
+                                  value={assign.member_id || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const newCustomArr = [...customArr];
+                                    const exIdx = newCustomArr.findIndex((ca: any) => ca.role_id === role.id);
+                                    if (exIdx >= 0) {
+                                      if (!val) newCustomArr.splice(exIdx, 1);
+                                      else newCustomArr[exIdx].member_id = Number(val);
+                                    } else if (val) {
+                                      newCustomArr.push({ role_id: role.id, member_id: Number(val), start_date: null, end_date: null });
+                                    }
+                                    setEditForm({ ...editForm, custom_assignments: newCustomArr } as any);
+                                  }}
+                                >
+                                  <option value="">{role.label}</option>
+                                  {roleMembers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                                </select>
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
@@ -601,7 +648,16 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               <Monitor size={12} /> {p.dev_name}
                             </span>
                           )}
-                          {!p.pm_name && !p.designer_name && !p.dev_name && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
+                          {(() => {
+                            let custom = [];
+                            try { if (p.custom_assignments) custom = JSON.parse(p.custom_assignments); } catch (e) {}
+                            return custom.map((ca: any, i: number) => (
+                              <span key={i} className="text-[12px] font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 opacity-90 shadow-sm" style={{ backgroundColor: ca.member_color ? ca.member_color + '20' : '#f8fafc', color: ca.member_color || '#475569', borderColor: ca.member_color ? ca.member_color + '40' : '#e2e8f0' }} title={ca.role_label}>
+                                <User size={12} /> {ca.member_name}
+                              </span>
+                            ));
+                          })()}
+                          {!p.pm_name && !p.designer_name && !p.dev_name && (!p.custom_assignments || p.custom_assignments === 'null') && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
                         </div>
                       )}
                     </td>
@@ -653,6 +709,17 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           </button>
                         ) : (
                           <>
+                            <button 
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTimeLogProjectId(p.id);
+                              }} 
+                              className="p-3 bg-white border border-[#e78b01]/20 text-[#e78b01] hover:bg-[#e78b01] hover:text-white hover:border-[#e78b01] rounded-xl transition-all shadow-sm" 
+                              title="Log Time"
+                            >
+                               <Play size={18} className="ml-0.5" />
+                            </button>
                             <button 
                               type="button"
                               onClick={() => startEdit(p)} 
@@ -890,6 +957,23 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
             }} 
           />
         );
+      })()}
+
+      {/* Time Log Modal */}
+      {timeLogProjectId && (() => {
+          const proj = projects.find(p => p.id === timeLogProjectId);
+          if (!proj) return null;
+          return (
+              <TimeLogModal
+                  projectId={proj.id}
+                  projectName={proj.name}
+                  onClose={() => setTimeLogProjectId(null)}
+                  onSave={() => {
+                      fetchData();
+                      notifyUpdate();
+                  }}
+              />
+          );
       })()}
       
       <ConfirmModal 
