@@ -16,9 +16,10 @@ import { Clock } from 'lucide-react';
 interface LayoutProps {
   systemTitle: string;
   version: string;
+  user: any;
 }
 
-function Layout({ systemTitle, version }: LayoutProps) {
+function Layout({ systemTitle, version, user }: LayoutProps) {
   const { t } = useTranslation();
   const location = useLocation();
 
@@ -26,6 +27,14 @@ function Layout({ systemTitle, version }: LayoutProps) {
     localStorage.removeItem('token');
     window.location.href = '/';
   };
+
+  const hasFullAccess = user?.role === 'admin' || user?.role === 'manager';
+
+  useEffect(() => {
+    if (!hasFullAccess && location.pathname !== '/timelogs') {
+      window.location.hash = '#/timelogs';
+    }
+  }, [hasFullAccess, location.pathname]);
 
   const isProjectRoute = location.pathname === '/' || location.pathname === '/archive' || location.pathname === '/reorder';
   const isLeadRoute = location.pathname === '/leads' || location.pathname === '/leads-archive';
@@ -55,30 +64,38 @@ function Layout({ systemTitle, version }: LayoutProps) {
         </div>
 
         <div className="flex-1 flex flex-col gap-4">
-          <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title={t('nav.projects')}>
-            <Briefcase size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.projects')}</span>
-          </Link>
-          <Link to="/leads" className={sidebarLinkClass(['/leads', '/leads-archive'])} title={t('nav.leads')}>
-            <Users size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.leads')}</span>
-          </Link>
-          <Link to="/expenses" className={sidebarLinkClass(['/expenses'])} title={t('nav.expenses')}>
-            <Euro size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.expenses')}</span>
-          </Link>
-          <Link to="/calendar" className={sidebarLinkClass(['/calendar'])} title={t('nav.calendar')}>
-            <CalendarIcon size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.calendar')}</span>
-          </Link>
+          {hasFullAccess && (
+            <>
+              <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title={t('nav.projects')}>
+                <Briefcase size={24} />
+                <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.projects')}</span>
+              </Link>
+              <Link to="/leads" className={sidebarLinkClass(['/leads', '/leads-archive'])} title={t('nav.leads')}>
+                <Users size={24} />
+                <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.leads')}</span>
+              </Link>
+              <Link to="/expenses" className={sidebarLinkClass(['/expenses'])} title={t('nav.expenses')}>
+                <Euro size={24} />
+                <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.expenses')}</span>
+              </Link>
+              <Link to="/calendar" className={sidebarLinkClass(['/calendar'])} title={t('nav.calendar')}>
+                <CalendarIcon size={24} />
+                <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.calendar')}</span>
+              </Link>
+            </>
+          )}
+          
           <Link to="/timelogs" className={sidebarLinkClass(['/timelogs'])} title={t('nav.timelogs') || 'Time Logging'}>
             <Clock size={24} />
             <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.timelogs') || 'Time Logging'}</span>
           </Link>
-          <Link to="/settings" className={sidebarLinkClass(['/settings'])} title={t('nav.settings')}>
-            <SettingsIcon size={24} />
-            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.settings')}</span>
-          </Link>
+          
+          {hasFullAccess && (
+            <Link to="/settings" className={sidebarLinkClass(['/settings'])} title={t('nav.settings')}>
+              <SettingsIcon size={24} />
+              <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.settings')}</span>
+            </Link>
+          )}
         </div>
 
         <button 
@@ -129,15 +146,21 @@ function Layout({ systemTitle, version }: LayoutProps) {
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-[1600px] mx-auto">
             <Routes>
-              <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
-              <Route path="/expenses" element={<ExpensesView />} />
-              <Route path="/reorder" element={<LeadReorder />} />
-              <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.projects')}</h2><ProjectsTable archivedView={true} /></>} />
-              <Route path="/leads" element={<LeadsView archivedView={false} />} />
-              <Route path="/leads-archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.leads')}</h2><LeadsView archivedView={true} /></>} />
-              <Route path="/calendar" element={<CalendarView />} />
+              {hasFullAccess ? (
+                <>
+                  <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
+                  <Route path="/expenses" element={<ExpensesView />} />
+                  <Route path="/reorder" element={<LeadReorder />} />
+                  <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.projects')}</h2><ProjectsTable archivedView={true} /></>} />
+                  <Route path="/leads" element={<LeadsView archivedView={false} />} />
+                  <Route path="/leads-archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.leads')}</h2><LeadsView archivedView={true} /></>} />
+                  <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/settings" element={<Settings />} />
+                </>
+              ) : null}
               <Route path="/timelogs" element={<TimeLogsView />} />
-              <Route path="/settings" element={<Settings />} />
+              {/* Fallback route */}
+              <Route path="*" element={<TimeLogsView />} />
             </Routes>
           </div>
         </main>
@@ -160,6 +183,14 @@ interface AppContentProps {
 function AppContent({ systemSettings, version, token, loginForm, setLoginForm, handleLogin, error }: AppContentProps) {
   const { t } = useTranslation();
   
+  const user = React.useMemo(() => {
+    try {
+      return token ? JSON.parse(atob(token)) : null;
+    } catch {
+      return null;
+    }
+  }, [token]);
+
   if (!token) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 font-sans relative overflow-hidden">
@@ -194,7 +225,7 @@ function AppContent({ systemSettings, version, token, loginForm, setLoginForm, h
     );
   }
 
-  return <Layout systemTitle={systemSettings.title} version={version} />;
+  return <Layout systemTitle={systemSettings.title} version={version} user={user} />;
 }
 
 function App() {
