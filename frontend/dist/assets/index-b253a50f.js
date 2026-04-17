@@ -60980,23 +60980,33 @@ const Settings = () => {
                     onChange: (e) => handleUpdateUser(u2.id, "member_id", e.target.value ? Number(e.target.value) : null),
                     children: [
                       /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "-- Link to Person --" }),
-                      [...entities.filter((e) => !["project_type", "lead_status", "lead_source"].includes(e.type))].sort((a, b) => {
+                      (() => {
+                        const linkedEntities = entities.filter((e) => !["project_type", "lead_status", "lead_source"].includes(e.type));
+                        const grouped = linkedEntities.reduce((acc, curr) => {
+                          if (!acc[curr.type])
+                            acc[curr.type] = [];
+                          acc[curr.type].push(curr);
+                          return acc;
+                        }, {});
                         const order = ["pm", "designer", "developer"];
-                        const aIdx = order.indexOf(a.type);
-                        const bIdx = order.indexOf(b.type);
-                        if (aIdx !== -1 && bIdx !== -1)
-                          return aIdx - bIdx;
-                        if (aIdx !== -1)
-                          return -1;
-                        if (bIdx !== -1)
-                          return 1;
-                        return a.type.localeCompare(b.type);
-                      }).map((e) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: e.id, children: [
-                        e.name,
-                        " (",
-                        e.type,
-                        ")"
-                      ] }, e.id))
+                        const keys = Object.keys(grouped).sort((a, b) => {
+                          const aIdx = order.indexOf(a);
+                          const bIdx = order.indexOf(b);
+                          if (aIdx !== -1 && bIdx !== -1)
+                            return aIdx - bIdx;
+                          if (aIdx !== -1)
+                            return -1;
+                          if (bIdx !== -1)
+                            return 1;
+                          return a.localeCompare(b);
+                        });
+                        return keys.map((type) => /* @__PURE__ */ jsxRuntimeExports.jsx("optgroup", { label: type.toUpperCase(), children: grouped[type].map((e) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: e.id, children: [
+                          e.name,
+                          " (",
+                          e.type,
+                          ")"
+                        ] }, e.id)) }, type));
+                      })()
                     ]
                   }
                 )

@@ -517,17 +517,32 @@ export const Settings: React.FC = () => {
                             onChange={(e) => handleUpdateUser(u.id, 'member_id', e.target.value ? Number(e.target.value) : null)}
                           >
                             <option value="">-- Link to Person --</option>
-                            {[...entities.filter(e => !['project_type', 'lead_status', 'lead_source'].includes(e.type))].sort((a, b) => {
-                               const order = ['pm', 'designer', 'developer'];
-                               const aIdx = order.indexOf(a.type);
-                               const bIdx = order.indexOf(b.type);
-                               if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-                               if (aIdx !== -1) return -1;
-                               if (bIdx !== -1) return 1;
-                               return a.type.localeCompare(b.type);
-                            }).map((e) => (
-                              <option key={e.id} value={e.id}>{e.name} ({e.type})</option>
-                            ))}
+                            {(() => {
+                              const linkedEntities = entities.filter(e => !['project_type', 'lead_status', 'lead_source'].includes(e.type));
+                              const grouped = linkedEntities.reduce((acc, curr) => {
+                                if(!acc[curr.type]) acc[curr.type] = [];
+                                acc[curr.type].push(curr);
+                                return acc;
+                              }, {} as any);
+                              
+                              const order = ['pm', 'designer', 'developer'];
+                              const keys = Object.keys(grouped).sort((a, b) => {
+                                const aIdx = order.indexOf(a);
+                                const bIdx = order.indexOf(b);
+                                if(aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                                if(aIdx !== -1) return -1;
+                                if(bIdx !== -1) return 1;
+                                return a.localeCompare(b);
+                              });
+
+                              return keys.map(type => (
+                                <optgroup key={type} label={type.toUpperCase()}>
+                                  {grouped[type].map((e: any) => (
+                                    <option key={e.id} value={e.id}>{e.name} ({e.type})</option>
+                                  ))}
+                                </optgroup>
+                              ));
+                            })()}
                           </select>
                         )}
                       </div>
