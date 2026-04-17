@@ -214,15 +214,18 @@ export const TimeLogsView: React.FC = () => {
             {t('timelogs.title') || 'Time Logging'}
           </h2>
           {(user?.role === 'admin' || user?.role === 'manager') && allUsers.length > 0 && (
-            <select
-              className="ml-4 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all text-sm shadow-sm"
-              value={targetUserId}
-              onChange={e => setTargetUserId(Number(e.target.value))}
-            >
-              {allUsers.map(u => (
-                <option key={u.id} value={u.id}>{u.username} ({u.role})</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2 ml-auto lg:ml-4 bg-white border-2 border-[var(--color-primary)] ring-4 ring-[var(--color-primary)]/10 px-4 py-2 rounded-2xl shadow-sm transition-all hover:scale-[1.02]">
+              <span className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest whitespace-nowrap">Logging as:</span>
+              <select
+                className="bg-transparent text-gray-900 focus:outline-none font-black transition-all text-sm cursor-pointer"
+                value={targetUserId}
+                onChange={e => setTargetUserId(Number(e.target.value))}
+              >
+                {allUsers.map(u => (
+                  <option key={u.id} value={u.id}>{u.username} ({u.role})</option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
       </div>
