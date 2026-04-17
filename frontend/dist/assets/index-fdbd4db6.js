@@ -44483,9 +44483,10 @@ const ProjectsTable = ({ archivedView = false }) => {
   const [sortOrder, setSortOrder] = reactExports.useState("ASC");
   const [editForm, setEditForm] = reactExports.useState({});
   const [filterName, setFilterName] = reactExports.useState("");
-  const [filterStatus, setFilterStatus] = reactExports.useState("");
   const [filterPM, setFilterPM] = reactExports.useState("");
   const [filterDev, setFilterDev] = reactExports.useState("");
+  const [filterDesigner, setFilterDesigner] = reactExports.useState("");
+  const [filterStatus, setFilterStatus] = reactExports.useState("");
   const [expenseProjectId, setExpenseProjectId] = reactExports.useState(null);
   const [timeLogProjectId, setTimeLogProjectId] = reactExports.useState(null);
   const [isCreating, setIsCreating] = reactExports.useState(false);
@@ -44659,7 +44660,7 @@ const ProjectsTable = ({ archivedView = false }) => {
       setEditForm(updater);
   };
   const filteredProjects = projects2.filter((p2) => {
-    return p2.name.toLowerCase().includes(filterName.toLowerCase()) && (filterStatus === "" || p2.status === filterStatus) && (filterPM === "" || String(p2.pm_id) === filterPM) && (filterDev === "" || String(p2.dev_id) === filterDev);
+    return p2.name.toLowerCase().includes(filterName.toLowerCase()) && (filterStatus === "" || p2.status === filterStatus) && (filterPM === "" || String(p2.pm_id) === filterPM) && (filterDev === "" || String(p2.dev_id) === filterDev) && (filterDesigner === "" || String(p2.designer_id) === filterDesigner);
   });
   const toggleExpand = (id2) => {
     setExpandedId(expandedId === id2 ? null : id2);
@@ -44711,6 +44712,18 @@ const ProjectsTable = ({ archivedView = false }) => {
           ]
         }
       ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "select",
+        {
+          className: "bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium",
+          value: filterDesigner,
+          onChange: (e) => setFilterDesigner(e.target.value),
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: t2("projects.all_designers") || "All Designers" }),
+            designers.map((d) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: d.id, children: d.name }, d.id))
+          ]
+        }
+      ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
@@ -44744,7 +44757,9 @@ const ProjectsTable = ({ archivedView = false }) => {
           " ",
           /* @__PURE__ */ jsxRuntimeExports.jsx(SortIcon, { col: "status" })
         ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "p-5 w-48", children: t2("projects.team") || "Team" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "p-5 w-32", children: t2("projects.pm") || "PM" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "p-5 w-44", children: t2("projects.designer") || "Designer" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "p-5 w-44", children: t2("projects.developer") || "Developer" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "p-5 w-40 text-right cursor-pointer group hover:text-gray-900 transition-colors", onClick: () => handleSort("total_value"), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-end", children: [
           t2("projects.financials") || "Financials",
           " ",
@@ -60470,7 +60485,7 @@ const Settings = () => {
   const [entities, setEntities] = reactExports.useState([]);
   const [users, setUsers] = reactExports.useState([]);
   const [newEntity, setNewEntity] = reactExports.useState({ type: "developer", name: "", color: "#3b82f6" });
-  const [newUser, setNewUser] = reactExports.useState({ username: "", password: "" });
+  const [newUser, setNewUser] = reactExports.useState({ username: "", password: "", role: "viewer" });
   const [activeTab, setActiveTab] = reactExports.useState("project");
   const [sysSettings, setSysSettings] = reactExports.useState({
     system_title: "Lead Tracker",
@@ -60599,6 +60614,13 @@ const Settings = () => {
     if (!confirm(t2("common.confirm_delete")))
       return;
     fetch(`/api/users.php?id=${id2}`, { method: "DELETE" }).then(() => fetchUsers());
+  };
+  const handleUpdateUser = (id2, field, value) => {
+    fetch(`/api/users.php?id=${id2}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: value })
+    }).then(() => fetchUsers());
   };
   const predefinedColors = [
     "#3b82f6",
@@ -60790,30 +60812,86 @@ const Settings = () => {
                 required: true
               }
             ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                type: "password",
-                placeholder: t2("login.password"),
-                className: "w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all",
-                value: newUser.password,
-                onChange: (e) => setNewUser({ ...newUser, password: e.target.value }),
-                required: true
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "submit", className: "w-full md:w-auto bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all", children: t2("settings.users.create_button") })
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-4", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "input",
+                {
+                  type: "password",
+                  placeholder: t2("login.password"),
+                  className: "flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all",
+                  value: newUser.password,
+                  onChange: (e) => setNewUser({ ...newUser, password: e.target.value }),
+                  required: true
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "select",
+                {
+                  className: "flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all",
+                  value: newUser.role || "viewer",
+                  onChange: (e) => setNewUser({ ...newUser, role: e.target.value }),
+                  required: true,
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "admin", children: "Admin" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "manager", children: "Manager" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "employee", children: "Employee" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "viewer", children: "Viewer" })
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "submit", className: "w-full bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all", children: t2("settings.users.create_button") })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: "font-bold text-gray-700 mb-6 font-mono tracking-wider uppercase text-xs", children: t2("settings.users.active_users") }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3", children: users.map((u2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all", children: u2.username[0].toUpperCase() }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-bold text-gray-900", children: u2.username }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-400 uppercase tracking-widest", children: u2.role })
-                ] })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3", children: users.map((u2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-3 p-5 bg-gray-50 rounded-2xl border border-gray-100 group", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all", children: u2.username[0].toUpperCase() }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-bold text-gray-900", children: u2.username }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-gray-400 uppercase tracking-widest leading-none mt-1", children: [
+                      "ID #",
+                      u2.id
+                    ] })
+                  ] })
+                ] }),
+                u2.username !== "admin" && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleDeleteUser(u2.id), className: "p-2 text-gray-300 hover:text-red-500 transition-colors", children: /* @__PURE__ */ jsxRuntimeExports.jsx(UserX, { size: 18 }) })
               ] }),
-              u2.username !== "admin" && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleDeleteUser(u2.id), className: "p-2 text-gray-300 hover:text-red-500 transition-colors", children: /* @__PURE__ */ jsxRuntimeExports.jsx(UserX, { size: 18 }) })
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-2 pt-2 border-t border-gray-200/60 mt-1", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "select",
+                  {
+                    className: `bg-white border rounded-lg px-3 py-1.5 text-xs font-bold ${u2.username === "admin" ? "opacity-50 cursor-not-allowed border-gray-200 text-gray-400" : "border-gray-200 text-gray-700"}`,
+                    value: u2.role,
+                    onChange: (e) => handleUpdateUser(u2.id, "role", e.target.value),
+                    disabled: u2.username === "admin",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "admin", children: "Admin Role" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "manager", children: "Manager Role" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "employee", children: "Employee Role" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "viewer", children: "Viewer Role" })
+                    ]
+                  }
+                ),
+                (u2.role === "employee" || u2.role === "manager" || u2.role === "admin") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "select",
+                  {
+                    className: "bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700",
+                    value: u2.member_id || "",
+                    onChange: (e) => handleUpdateUser(u2.id, "member_id", e.target.value ? Number(e.target.value) : null),
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "-- Link to Person --" }),
+                      entities.filter((e) => !["project_type", "lead_status", "lead_source"].includes(e.type)).map((e) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: e.id, children: [
+                        e.name,
+                        " (",
+                        e.type,
+                        ")"
+                      ] }, e.id))
+                    ]
+                  }
+                )
+              ] })
             ] }, u2.id)) })
           ] })
         ] })

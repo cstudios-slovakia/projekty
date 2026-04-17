@@ -1216,6 +1216,10 @@ video {
   cursor: grab;
 }
 
+.cursor-not-allowed{
+  cursor: not-allowed;
+}
+
 .cursor-pointer{
   cursor: pointer;
 }
@@ -1581,6 +1585,10 @@ video {
 
 .border-gray-200\/50{
   border-color: rgb(229 231 235 / 0.5);
+}
+
+.border-gray-200\/60{
+  border-color: rgb(229 231 235 / 0.6);
 }
 
 .border-gray-300{

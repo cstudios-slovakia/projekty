@@ -73,9 +73,10 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   
   // Filters
   const [filterName, setFilterName] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
   const [filterPM, setFilterPM] = useState('');
   const [filterDev, setFilterDev] = useState('');
+  const [filterDesigner, setFilterDesigner] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
   const [timeLogProjectId, setTimeLogProjectId] = useState<number | null>(null);
   
@@ -279,7 +280,8 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
     return p.name.toLowerCase().includes(filterName.toLowerCase()) &&
            (filterStatus === '' || p.status === filterStatus) &&
            (filterPM === '' || String(p.pm_id) === filterPM) &&
-           (filterDev === '' || String(p.dev_id) === filterDev);
+           (filterDev === '' || String(p.dev_id) === filterDev) &&
+           (filterDesigner === '' || String(p.designer_id) === filterDesigner);
   });
 
   const toggleExpand = (id: number) => {
@@ -322,6 +324,14 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
           <option value="">{t('projects.all_devs') || 'All Devs'}</option>
           {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
+        <select 
+          className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
+          value={filterDesigner}
+          onChange={e => setFilterDesigner(e.target.value)}
+        >
+          <option value="">{t('projects.all_designers') || 'All Designers'}</option>
+          {designers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
         <button 
           onClick={fetchData}
           className="p-3 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 hover:text-[var(--color-primary)] transition-all hover:bg-white active:scale-90"
@@ -350,7 +360,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
               <th className="p-5 w-44 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('status')}>
                 <div className="flex items-center">{t('projects.workflow') || 'Workflow'} <SortIcon col="status" /></div>
               </th>
-              <th className="p-5 w-48">{t('projects.team') || 'Team'}</th>
+              <th className="p-5 w-32">{t('projects.pm') || 'PM'}</th>
+              <th className="p-5 w-44">{t('projects.designer') || 'Designer'}</th>
+              <th className="p-5 w-44">{t('projects.developer') || 'Developer'}</th>
               <th className="p-5 w-40 text-right cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('total_value')}>
                 <div className="flex items-center justify-end">{t('projects.financials') || 'Financials'} <SortIcon col="total_value" /></div>
               </th>

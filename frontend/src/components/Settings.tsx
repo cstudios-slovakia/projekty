@@ -14,6 +14,7 @@ interface User {
   id: number;
   username: string;
   role: string;
+  member_id?: number | null;
 }
 
 export const Settings: React.FC = () => {
@@ -21,7 +22,7 @@ export const Settings: React.FC = () => {
   const [entities, setEntities] = useState<Entity[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
-  const [newUser, setNewUser] = useState({ username: '', password: '' });
+  const [newUser, setNewUser] = useState<{username: string, password: string, role?: string}>({ username: '', password: '', role: 'viewer' });
   const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'system'>('project');
   
   // System Settings
@@ -167,6 +168,14 @@ export const Settings: React.FC = () => {
   const handleDeleteUser = (id: number) => {
     if(!confirm(t('common.confirm_delete'))) return;
     fetch(`/api/users.php?id=${id}`, { method: 'DELETE' }).then(() => fetchUsers());
+  };
+
+  const handleUpdateUser = (id: number, field: string, value: any) => {
+    fetch(`/api/users.php?id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [field]: value })
+    }).then(() => fetchUsers());
   };
 
   const predefinedColors = [
@@ -349,15 +358,28 @@ export const Settings: React.FC = () => {
                   onChange={e => setNewUser({...newUser, username: e.target.value})}
                   required
                 />
-                <input 
-                  type="password" 
-                  placeholder={t('login.password')} 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
-                  value={newUser.password}
-                  onChange={e => setNewUser({...newUser, password: e.target.value})}
-                  required
-                />
-                <button type="submit" className="w-full md:w-auto bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <div className="flex gap-4">
+                  <input 
+                    type="password" 
+                    placeholder={t('login.password')} 
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+                    value={newUser.password}
+                    onChange={e => setNewUser({...newUser, password: e.target.value})}
+                    required
+                  />
+                  <select
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all"
+                    value={newUser.role || 'viewer'}
+                    onChange={e => setNewUser({...newUser, role: e.target.value as User['role']})}
+                    required
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="employee">Employee</option>
+                    <option value="viewer">Viewer</option>
+                  </select>
+                </div>
+                <button type="submit" className="w-full bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-[var(--color-primary)]/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
                   {t('settings.users.create_button')}
                 </button>
               </form>
@@ -366,21 +388,49 @@ export const Settings: React.FC = () => {
                 <h4 className="font-bold text-gray-700 mb-6 font-mono tracking-wider uppercase text-xs">{t('settings.users.active_users')}</h4>
                 <div className="space-y-3">
                   {users.map((u: User) => (
-                    <div key={u.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all">
-                          {u.username[0].toUpperCase()}
+                    <div key={u.id} className="flex flex-col gap-3 p-5 bg-gray-50 rounded-2xl border border-gray-100 group">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all">
+                            {u.username[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-bold text-gray-900">{u.username}</div>
+                            <div className="text-xs text-gray-400 uppercase tracking-widest leading-none mt-1">ID #{u.id}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-bold text-gray-900">{u.username}</div>
-                          <div className="text-xs text-gray-400 uppercase tracking-widest">{u.role}</div>
-                        </div>
+                        {u.username !== 'admin' && (
+                          <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors">
+                            <UserX size={18} />
+                          </button>
+                        )}
                       </div>
-                      {u.username !== 'admin' && (
-                        <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors">
-                          <UserX size={18} />
-                        </button>
-                      )}
+                      
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200/60 mt-1">
+                        <select
+                          className={`bg-white border rounded-lg px-3 py-1.5 text-xs font-bold ${u.username === 'admin' ? 'opacity-50 cursor-not-allowed border-gray-200 text-gray-400' : 'border-gray-200 text-gray-700'}`}
+                          value={u.role}
+                          onChange={(e) => handleUpdateUser(u.id, 'role', e.target.value)}
+                          disabled={u.username === 'admin'}
+                        >
+                          <option value="admin">Admin Role</option>
+                          <option value="manager">Manager Role</option>
+                          <option value="employee">Employee Role</option>
+                          <option value="viewer">Viewer Role</option>
+                        </select>
+                        {(u.role === 'employee' || u.role === 'manager' || u.role === 'admin') && (
+                          <select
+                            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700"
+                            value={u.member_id || ''}
+                            onChange={(e) => handleUpdateUser(u.id, 'member_id', e.target.value ? Number(e.target.value) : null)}
+                          >
+                            <option value="">-- Link to Person --</option>
+                            {entities.filter(e => !['project_type', 'lead_status', 'lead_source'].includes(e.type)).map((e) => (
+                              <option key={e.id} value={e.id}>{e.name} ({e.type})</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
