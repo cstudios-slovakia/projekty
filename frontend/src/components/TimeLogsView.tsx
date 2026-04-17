@@ -173,17 +173,21 @@ export const TimeLogsView: React.FC = () => {
       <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 overflow-hidden">
         <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Select Day to Log</h3>
         <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x">
-          {timelineDays.map(day => (
+          {timelineDays.map(day => {
+            const isToday = day.dateStr === new Date().toISOString().split('T')[0];
+            return (
             <button
               key={day.dateStr}
               onClick={() => setActiveDate(day.dateStr)}
               className={`snap-center flex-shrink-0 w-16 h-20 rounded-2xl flex flex-col items-center justify-center transition-all relative ${
                 activeDate === day.dateStr 
-                  ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20 scale-105' 
-                  : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-100'
+                  ? `bg-[var(--color-primary)] text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-105 ${isToday ? 'ring-4 ring-[var(--color-primary)]/30' : ''}` 
+                  : `bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900 ${isToday ? 'border-2 border-[var(--color-primary)]/70' : 'border border-gray-100'}`
               }`}
             >
-              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-80">{day.label}</div>
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-80">
+                {isToday ? t('common.today') || 'Today' : day.label}
+              </div>
               <div className="text-xl font-black">{day.dayNum}</div>
               
               {/* Dot indicator if logs exist on this day */}
@@ -191,7 +195,7 @@ export const TimeLogsView: React.FC = () => {
                 <div className={`absolute bottom-2 w-1.5 h-1.5 rounded-full ${activeDate === day.dateStr ? 'bg-white' : 'bg-[var(--color-secondary)]'}`}></div>
               )}
             </button>
-          ))}
+          )})}
         </div>
       </div>
 
