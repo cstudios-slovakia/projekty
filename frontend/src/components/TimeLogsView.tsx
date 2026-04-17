@@ -61,8 +61,9 @@ export const TimeLogsView: React.FC = () => {
       const projRes = await fetch('/api/projects.php');
       const projData = await projRes.json();
       if (projData.status === 'success') {
-        // Filter strictly accepted
-        setProjects(projData.data.filter((p: Project) => p.status === 'accepted'));
+        // Filter strictly accepted / active timeline projects
+        const activeStatuses = ['In Progress', 'Price Offer Accepted', 'Signed', 'Invoiced', 'Paid', 'Price Offer Closed'];
+        setProjects(projData.data.filter((p: Project) => activeStatuses.includes(p.status)));
       }
     } catch (e) {
       console.error(e);

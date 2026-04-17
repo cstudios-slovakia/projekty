@@ -7,7 +7,7 @@
         "ext-pdo": "*",
         "ext-json": "*",
         "erusev/parsedown": "^1.7",
-        "cstudios-slovakia/projekty": "v1.8.2"
+        "cstudios-slovakia/projekty": "v1.8.3"
     },
     "scripts": {
         "post-create-project-cmd": [
