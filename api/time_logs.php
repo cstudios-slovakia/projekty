@@ -46,43 +46,52 @@ try {
     } elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         
-        if (empty($input['project_id']) || empty($input['user_id']) || !isset($input['hours'])) {
-            http_response_code(400);
-            echo json_encode(["status" => "error", "message" => "Missing required fields (project_id, user_id, hours)"]);
-            exit;
+        $logsToProcess = [];
+        if (isset($input['logs']) && is_array($input['logs'])) {
+            $logsToProcess = $input['logs'];
+        } else {
+            $logsToProcess = [$input];
         }
         
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare("INSERT INTO time_logs (project_id, user_id, hours, notes, log_date) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $input['project_id'],
-                $input['user_id'],
-                $input['hours'],
-                $input['notes'] ?? null,
-                $input['log_date'] ?? date('Y-m-d')
-            ]);
-            
-            $newId = IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('time_logs_id_seq');
-            
-            // Link to project_expenses
-            // Get user's member_id to link properly
+            $expenseStmt = $pdo->prepare("INSERT INTO project_expenses (project_id, entity_id, type, name, hours, custom_cost) VALUES (?, ?, 'dev', ?, ?, 0)");
             $userStmt = $pdo->prepare("SELECT member_id FROM users WHERE id = ?");
-            $userStmt->execute([$input['user_id']]);
-            $user = $userStmt->fetch();
             
-            if ($user && $user['member_id']) {
-                $expenseStmt = $pdo->prepare("INSERT INTO project_expenses (project_id, entity_id, type, name, hours, custom_cost) VALUES (?, ?, 'dev', ?, ?, 0)");
-                $expenseStmt->execute([
-                    $input['project_id'],
-                    $user['member_id'],
-                    'Time Log: ' . ($input['notes'] ?? 'Work'),
-                    $input['hours']
+            $insertedIds = [];
+            
+            foreach ($logsToProcess as $log) {
+                if (empty($log['project_id']) || empty($log['user_id']) || !isset($log['hours'])) {
+                   continue;
+                }
+                
+                $stmt->execute([
+                    $log['project_id'],
+                    $log['user_id'],
+                    $log['hours'],
+                    $log['notes'] ?? null,
+                    $log['log_date'] ?? date('Y-m-d')
                 ]);
+                
+                $newId = defined('IS_MYSQL') && IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('time_logs_id_seq');
+                $insertedIds[] = $newId;
+                
+                $userStmt->execute([$log['user_id']]);
+                $user = $userStmt->fetch();
+                
+                if ($user && $user['member_id']) {
+                    $expenseStmt->execute([
+                        $log['project_id'],
+                        $user['member_id'],
+                        'Time Log: ' . ($log['notes'] ?? 'Work'),
+                        $log['hours']
+                    ]);
+                }
             }
             
             $pdo->commit();
-            echo json_encode(["status" => "success", "id" => $newId]);
+            echo json_encode(["status" => "success", "ids" => $insertedIds]);
         } catch (\Exception $ex) {
             $pdo->rollBack();
             throw $ex;

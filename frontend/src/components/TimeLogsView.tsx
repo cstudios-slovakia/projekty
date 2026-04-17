@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
-import { Clock, Plus, Trash2, Calendar, FileText, ArrowLeft, Hourglass, Save } from 'lucide-react';
+import { Clock, Plus, Trash2, Calendar as CalendarIcon, ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface TimeLog {
@@ -18,26 +18,28 @@ interface TimeLog {
 interface Project {
   id: number;
   name: string;
-  client_color?: string;
-  project_type_color?: string;
+  status: string;
+}
+
+interface NewLogRow {
+  id: string; // temporary id for react key
+  project_id: string;
+  hours: number;
+  notes: string;
 }
 
 export const TimeLogsView: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<TimeLog[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [activeDate, setActiveDate] = useState(new Date().toISOString().split('T')[0]);
   
+  // Scratchpad rows for the active day
+  const [draftRows, setDraftRows] = useState<NewLogRow[]>([]);
+
   // Current user from token
   const token = localStorage.getItem('token');
   const user = token ? JSON.parse(atob(token)) : null;
-
-  const [form, setForm] = useState({
-    project_id: '',
-    hours: 1,
-    notes: '',
-    log_date: new Date().toISOString().split('T')[0]
-  });
 
   useEffect(() => {
     if (user?.id) {
@@ -46,7 +48,6 @@ export const TimeLogsView: React.FC = () => {
   }, [user?.id]);
 
   const fetchData = async () => {
-    setIsLoading(true);
     try {
       // Fetch user's logs
       const logsRes = await fetch(`/api/time_logs.php?user_id=${user.id}`);
@@ -59,41 +60,91 @@ export const TimeLogsView: React.FC = () => {
       const projRes = await fetch('/api/projects.php');
       const projData = await projRes.json();
       if (projData.status === 'success') {
-        setProjects(projData.data);
+        // Filter strictly accepted
+        setProjects(projData.data.filter((p: Project) => p.status === 'accepted'));
       }
     } catch (e) {
       console.error(e);
     }
-    setIsLoading(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.project_id || !form.hours || !user?.id) return;
+  // Generate the last 14 days for the timeline
+  const timelineDays = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    // Start from 13 days ago up to today
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const str = d.toISOString().split('T')[0];
+      days.push({
+        dateStr: str,
+        label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNum: d.getDate(),
+        hasLogs: logs.some(l => l.log_date === str)
+      });
+    }
+    return days;
+  }, [logs]);
+
+  // Derive logs specifically for the active date
+  const activeDateLogs = useMemo(() => {
+    return logs.filter(l => l.log_date === activeDate);
+  }, [logs, activeDate]);
+
+  const addDraftRow = () => {
+    setDraftRows([...draftRows, { id: Math.random().toString(), project_id: '', hours: 1, notes: '' }]);
+  };
+
+  const removeDraftRow = (id: string) => {
+    setDraftRows(draftRows.filter(r => r.id !== id));
+  };
+
+  const currentTotalHours = useMemo(() => {
+    const historical = activeDateLogs.reduce((acc, l) => acc + Number(l.hours), 0);
+    const drafted = draftRows.reduce((acc, r) => acc + Number(r.hours), 0);
+    return historical + drafted;
+  }, [activeDateLogs, draftRows]);
+
+  const handleSaveBulk = async () => {
+    if (draftRows.length === 0) return;
+    
+    // Filter invalid rows
+    const validRows = draftRows.filter(r => r.project_id && r.hours > 0);
+    if (validRows.length === 0) {
+      alert("Please fill out the selected projects.");
+      return;
+    }
 
     try {
+      const payloadLogs = validRows.map(r => ({
+        project_id: r.project_id,
+        user_id: user.id,
+        hours: r.hours,
+        notes: r.notes,
+        log_date: activeDate
+      }));
+
       const res = await fetch('/api/time_logs.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          user_id: user.id
-        })
+        body: JSON.stringify({ logs: payloadLogs })
       });
       const data = await res.json();
       if (data.status === 'success') {
-        setForm({ ...form, hours: 1, notes: '' }); // reset some fields
+        setDraftRows([]); // clear scratchpad
         fetchData();
       } else {
-        alert(data.message || 'Failed to save log');
+        alert(data.message || 'Failed to save logs');
       }
     } catch (e) {
-      alert('Error saving log');
+      alert('Error saving logs');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm(t('common.confirm_delete') || 'Are you sure you want to delete this?')) return;
+  const handleDeleteLog = async (id: number) => {
+    if (!window.confirm(t('common.confirm_delete') || 'Are you sure you want to delete this log?')) return;
     try {
       await fetch(`/api/time_logs.php?id=${id}`, { method: 'DELETE' });
       fetchData();
@@ -105,7 +156,7 @@ export const TimeLogsView: React.FC = () => {
   if (!user) return <div className="p-8">Please log in.</div>;
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-6 pb-12">
       <div className="flex items-center gap-4 mb-4">
         <Link to="/" className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 transition-all shadow-sm">
           <ArrowLeft size={20} />
@@ -116,153 +167,170 @@ export const TimeLogsView: React.FC = () => {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Form Panel */}
-        <div className="lg:col-span-1 border border-gray-200 bg-white rounded-[32px] p-6 md:p-8 shadow-sm h-fit sticky top-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <Plus size={20} className="text-[var(--color-primary)]" />
-            {t('timelogs.add_new') || 'Log New Time'}
-          </h3>
-          
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                {t('timelogs.project') || 'Project'}
-              </label>
-              <select
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all"
-                value={form.project_id}
-                onChange={e => setForm({...form, project_id: e.target.value})}
-                required
-              >
-                <option value="">-- Select Project --</option>
-                {projects.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                  {t('timelogs.date') || 'Date'}
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                  <input
-                    type="date"
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all text-sm font-bold"
-                    value={form.log_date}
-                    onChange={e => setForm({...form, log_date: e.target.value})}
-                    required
-                  />
-                </div>
-              </div>
+      {/* TOP TIMELINE PANEL */}
+      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 overflow-hidden">
+        <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Select Day to Log</h3>
+        <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x">
+          {timelineDays.map(day => (
+            <button
+              key={day.dateStr}
+              onClick={() => setActiveDate(day.dateStr)}
+              className={`snap-center flex-shrink-0 w-16 h-20 rounded-2xl flex flex-col items-center justify-center transition-all relative ${
+                activeDate === day.dateStr 
+                  ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20 scale-105' 
+                  : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-100'
+              }`}
+            >
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-80">{day.label}</div>
+              <div className="text-xl font-black">{day.dayNum}</div>
               
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                  {t('timelogs.hours') || 'Hours'}
-                </label>
-                <div className="relative">
-                  <Hourglass className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                  <input
-                    type="number"
-                    step="0.25"
-                    min="0.25"
-                    max="24"
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-bold"
-                    value={form.hours}
-                    onChange={e => setForm({...form, hours: Number(e.target.value)})}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                {t('timelogs.notes') || 'Notes'}
-              </label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-4 text-gray-400 pointer-events-none" size={16} />
-                <textarea
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all resize-none min-h-[100px] text-sm"
-                  placeholder={t('timelogs.notes_placeholder') || 'What did you work on?'}
-                  value={form.notes}
-                  onChange={e => setForm({...form, notes: e.target.value})}
-                ></textarea>
-              </div>
-            </div>
-
-            <button type="submit" className="w-full flex items-center justify-center gap-2 bg-[var(--color-primary)] text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              <Save size={18} />
-              {t('timelogs.save_button') || 'Save Time Log'}
-            </button>
-          </form>
-        </div>
-
-        {/* History Panel */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-black text-gray-900 flex items-center gap-2">
-                {t('timelogs.history') || 'Your Log History'}
-              </h3>
-              <span className="bg-blue-50 text-blue-600 px-3 py-1 text-xs font-bold rounded-full">
-                {logs.length} {t('timelogs.logs') || 'entries'}
-              </span>
-            </div>
-            
-            <div className="divide-y divide-gray-100">
-              {isLoading ? (
-                <div className="p-8 text-center text-gray-400 animate-pulse">{t('common.loading') || 'Loading...'}</div>
-              ) : logs.length === 0 ? (
-                <div className="p-16 text-center">
-                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-                    <Clock className="text-gray-300" size={24} />
-                  </div>
-                  <p className="text-gray-400 font-medium">{t('timelogs.no_logs') || 'No time logs yet. Start logging your work!'}</p>
-                </div>
-              ) : (
-                logs.map(log => (
-                  <div key={log.id} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group hover:bg-gray-50/50 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="font-bold text-gray-900 text-lg">{log.project_name || `Project #${log.project_id}`}</span>
-                        <span className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 px-2.5 py-0.5 rounded-full text-xs font-black tracking-wide">
-                          {log.hours}h
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500 whitespace-pre-wrap">{log.notes || <em className="text-gray-300">No notes provided</em>}</div>
-                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-3 flex items-center gap-1.5">
-                        <Calendar size={12} /> {new Date(log.log_date).toLocaleDateString()}
-                      </div>
-                    </div>
-                    
-                    <button 
-                      onClick={() => handleDelete(log.id)}
-                      className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 hidden md:block"
-                      title={t('common.delete') || 'Delete'}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                    
-                    {/* Mobile Delete */}
-                    <button 
-                      onClick={() => handleDelete(log.id)}
-                      className="md:hidden text-xs text-red-500 font-bold bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 mt-2"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ))
+              {/* Dot indicator if logs exist on this day */}
+              {day.hasLogs && (
+                <div className={`absolute bottom-2 w-1.5 h-1.5 rounded-full ${activeDate === day.dateStr ? 'bg-white' : 'bg-[var(--color-secondary)]'}`}></div>
               )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ACTIVE DAY CONTEXT */}
+      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 md:p-8 min-h-[500px]">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 border-b border-gray-100 pb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center">
+              <CalendarIcon size={24} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black text-gray-900">{new Date(activeDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+              <div className="text-sm font-bold text-gray-400">
+                Total Logged: <span className="text-[var(--color-secondary)]">{currentTotalHours}h</span>
+              </div>
             </div>
           </div>
+          <button 
+            onClick={addDraftRow}
+            className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all text-sm"
+          >
+            <Plus size={16} /> Add Row
+          </button>
         </div>
 
+        {/* Existing Logs for this date */}
+        {activeDateLogs.length > 0 && (
+          <div className="mb-8 space-y-3">
+            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Saved Logs</h4>
+            {activeDateLogs.map(log => (
+              <div key={log.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-gray-50 border border-gray-100 rounded-2xl p-4 group hover:border-[var(--color-primary)]/30 transition-all">
+                <div className="w-full md:w-1/3">
+                  <div className="text-xs font-bold text-gray-400 uppercase">Project</div>
+                  <div className="font-bold text-gray-900 truncate">{log.project_name || `Project #${log.project_id}`}</div>
+                </div>
+                <div className="w-full md:w-1/2">
+                  <div className="text-xs font-bold text-gray-400 uppercase">Notes</div>
+                  <div className="text-sm text-gray-600 truncate">{log.notes || '-'}</div>
+                </div>
+                <div className="w-full md:w-auto flex items-center justify-between gap-4">
+                  <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase">Hours</div>
+                    <div className="font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1 rounded-lg">{log.hours}h</div>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteLog(log.id)}
+                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all md:opacity-0 group-hover:opacity-100"
+                    title={t('common.delete') || 'Delete Log'}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Draft Rows */}
+        {draftRows.length > 0 && (
+          <div className="space-y-4 mb-8">
+             <h4 className="text-xs font-black text-[var(--color-primary)] uppercase tracking-widest mb-2">New Entries</h4>
+             {draftRows.map((row, index) => (
+               <div key={row.id} className="flex flex-col lg:flex-row items-end gap-4 bg-white border-2 border-dashed border-[var(--color-primary)]/30 rounded-2xl p-5 relative fade-in">
+                 <div className="w-full lg:flex-1">
+                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Project</label>
+                   <select
+                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all"
+                     value={row.project_id}
+                     onChange={e => {
+                       const nr = [...draftRows];
+                       nr[index].project_id = e.target.value;
+                       setDraftRows(nr);
+                     }}
+                   >
+                     <option value="">-- Required --</option>
+                     {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                   </select>
+                 </div>
+                 
+                 <div className="w-full lg:flex-[2]">
+                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Daily Notes</label>
+                   <input
+                     type="text"
+                     placeholder="What did you do today?"
+                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all"
+                     value={row.notes}
+                     onChange={e => {
+                       const nr = [...draftRows];
+                       nr[index].notes = e.target.value;
+                       setDraftRows(nr);
+                     }}
+                   />
+                 </div>
+
+                 <div className="w-full lg:w-32">
+                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Hours</label>
+                   <input
+                     type="number"
+                     step="0.25"
+                     min="0.25"
+                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-lg text-center"
+                     value={row.hours}
+                     onChange={e => {
+                       const nr = [...draftRows];
+                       nr[index].hours = Number(e.target.value);
+                       setDraftRows(nr);
+                     }}
+                   />
+                 </div>
+
+                 <button 
+                    onClick={() => removeDraftRow(row.id)}
+                    className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-full mt-2 lg:mt-0"
+                    title="Remove Row"
+                  >
+                    <Trash2 size={20} />
+                 </button>
+               </div>
+             ))}
+          </div>
+        )}
+
+        {draftRows.length === 0 && activeDateLogs.length === 0 && (
+          <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-gray-200 rounded-[32px] bg-gray-50">
+             <CheckCircle2 size={48} className="text-gray-300 mb-4" />
+             <p className="text-gray-400 font-bold max-w-sm">You haven't tracked any time on this day. Click 'Add Row' to start logging work!</p>
+          </div>
+        )}
+
+        {draftRows.length > 0 && (
+          <div className="flex justify-end pt-6 border-t border-gray-100">
+            <button 
+              onClick={handleSaveBulk}
+              className="flex items-center gap-2 bg-[var(--color-primary)] text-white px-8 py-3.5 rounded-xl font-black tracking-wide shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              <Save size={20} /> Save Day Logs
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+

@@ -71753,22 +71753,16 @@ const TimeLogsView = () => {
   const { t: t2 } = useTranslation();
   const [logs, setLogs] = reactExports.useState([]);
   const [projects2, setProjects] = reactExports.useState([]);
-  const [isLoading, setIsLoading] = reactExports.useState(true);
+  const [activeDate, setActiveDate] = reactExports.useState((/* @__PURE__ */ new Date()).toISOString().split("T")[0]);
+  const [draftRows, setDraftRows] = reactExports.useState([]);
   const token = localStorage.getItem("token");
   const user = token ? JSON.parse(atob(token)) : null;
-  const [form, setForm] = reactExports.useState({
-    project_id: "",
-    hours: 1,
-    notes: "",
-    log_date: (/* @__PURE__ */ new Date()).toISOString().split("T")[0]
-  });
   reactExports.useEffect(() => {
     if (user == null ? void 0 : user.id) {
       fetchData();
     }
   }, [user == null ? void 0 : user.id]);
   const fetchData = async () => {
-    setIsLoading(true);
     try {
       const logsRes = await fetch(`/api/time_logs.php?user_id=${user.id}`);
       const logsData = await logsRes.json();
@@ -71778,39 +71772,77 @@ const TimeLogsView = () => {
       const projRes = await fetch("/api/projects.php");
       const projData = await projRes.json();
       if (projData.status === "success") {
-        setProjects(projData.data);
+        setProjects(projData.data.filter((p2) => p2.status === "accepted"));
       }
     } catch (e) {
       console.error(e);
     }
-    setIsLoading(false);
   };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.project_id || !form.hours || !(user == null ? void 0 : user.id))
+  const timelineDays = reactExports.useMemo(() => {
+    const days = [];
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const str = d.toISOString().split("T")[0];
+      days.push({
+        dateStr: str,
+        label: d.toLocaleDateString("en-US", { weekday: "short" }),
+        dayNum: d.getDate(),
+        hasLogs: logs.some((l2) => l2.log_date === str)
+      });
+    }
+    return days;
+  }, [logs]);
+  const activeDateLogs = reactExports.useMemo(() => {
+    return logs.filter((l2) => l2.log_date === activeDate);
+  }, [logs, activeDate]);
+  const addDraftRow = () => {
+    setDraftRows([...draftRows, { id: Math.random().toString(), project_id: "", hours: 1, notes: "" }]);
+  };
+  const removeDraftRow = (id2) => {
+    setDraftRows(draftRows.filter((r2) => r2.id !== id2));
+  };
+  const currentTotalHours = reactExports.useMemo(() => {
+    const historical = activeDateLogs.reduce((acc, l2) => acc + Number(l2.hours), 0);
+    const drafted = draftRows.reduce((acc, r2) => acc + Number(r2.hours), 0);
+    return historical + drafted;
+  }, [activeDateLogs, draftRows]);
+  const handleSaveBulk = async () => {
+    if (draftRows.length === 0)
       return;
+    const validRows = draftRows.filter((r2) => r2.project_id && r2.hours > 0);
+    if (validRows.length === 0) {
+      alert("Please fill out the selected projects.");
+      return;
+    }
     try {
+      const payloadLogs = validRows.map((r2) => ({
+        project_id: r2.project_id,
+        user_id: user.id,
+        hours: r2.hours,
+        notes: r2.notes,
+        log_date: activeDate
+      }));
       const res = await fetch("/api/time_logs.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          user_id: user.id
-        })
+        body: JSON.stringify({ logs: payloadLogs })
       });
       const data2 = await res.json();
       if (data2.status === "success") {
-        setForm({ ...form, hours: 1, notes: "" });
+        setDraftRows([]);
         fetchData();
       } else {
-        alert(data2.message || "Failed to save log");
+        alert(data2.message || "Failed to save logs");
       }
-    } catch (e2) {
-      alert("Error saving log");
+    } catch (e) {
+      alert("Error saving logs");
     }
   };
-  const handleDelete = async (id2) => {
-    if (!window.confirm(t2("common.confirm_delete") || "Are you sure you want to delete this?"))
+  const handleDeleteLog = async (id2) => {
+    if (!window.confirm(t2("common.confirm_delete") || "Are you sure you want to delete this log?"))
       return;
     try {
       await fetch(`/api/time_logs.php?id=${id2}`, { method: "DELETE" });
@@ -71821,7 +71853,7 @@ const TimeLogsView = () => {
   };
   if (!user)
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-8", children: "Please log in." });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-8 pb-12", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-6 pb-12", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4 mb-4", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Link$1, { to: "/", className: "p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 transition-all shadow-sm", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeft, { size: 20 }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3", children: [
@@ -71829,134 +71861,163 @@ const TimeLogsView = () => {
         t2("timelogs.title") || "Time Logging"
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-8", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "lg:col-span-1 border border-gray-200 bg-white rounded-[32px] p-6 md:p-8 shadow-sm h-fit sticky top-8", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "text-xl font-bold text-gray-900 mb-6 flex items-center gap-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 20, className: "text-[var(--color-primary)]" }),
-          t2("timelogs.add_new") || "Log New Time"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSubmit, className: "space-y-5", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 overflow-hidden", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-sm font-black text-gray-400 uppercase tracking-widest mb-4", children: "Select Day to Log" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x", children: timelineDays.map((day) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "button",
+        {
+          onClick: () => setActiveDate(day.dateStr),
+          className: `snap-center flex-shrink-0 w-16 h-20 rounded-2xl flex flex-col items-center justify-center transition-all relative ${activeDate === day.dateStr ? "bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20 scale-105" : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-100"}`,
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[10px] font-bold uppercase tracking-wider mb-1 opacity-80", children: day.label }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xl font-black", children: day.dayNum }),
+            day.hasLogs && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `absolute bottom-2 w-1.5 h-1.5 rounded-full ${activeDate === day.dateStr ? "bg-white" : "bg-[var(--color-secondary)]"}` })
+          ]
+        },
+        day.dateStr
+      )) })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 md:p-8 min-h-[500px]", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col md:flex-row items-center justify-between mb-8 border-b border-gray-100 pb-6 gap-4", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-12 h-12 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { size: 24 }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.project") || "Project" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-2xl font-black text-gray-900", children: new Date(activeDate).toLocaleDateString(void 0, { weekday: "long", year: "numeric", month: "long", day: "numeric" }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-sm font-bold text-gray-400", children: [
+              "Total Logged: ",
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[var(--color-secondary)]", children: [
+                currentTotalHours,
+                "h"
+              ] })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            onClick: addDraftRow,
+            className: "flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all text-sm",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 16 }),
+              " Add Row"
+            ]
+          }
+        )
+      ] }),
+      activeDateLogs.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-8 space-y-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: "text-xs font-black text-gray-400 uppercase tracking-widest mb-2", children: "Saved Logs" }),
+        activeDateLogs.map((log2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col md:flex-row items-start md:items-center gap-4 bg-gray-50 border border-gray-100 rounded-2xl p-4 group hover:border-[var(--color-primary)]/30 transition-all", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full md:w-1/3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs font-bold text-gray-400 uppercase", children: "Project" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-bold text-gray-900 truncate", children: log2.project_name || `Project #${log2.project_id}` })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full md:w-1/2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs font-bold text-gray-400 uppercase", children: "Notes" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm text-gray-600 truncate", children: log2.notes || "-" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full md:w-auto flex items-center justify-between gap-4", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs font-bold text-gray-400 uppercase", children: "Hours" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1 rounded-lg", children: [
+                log2.hours,
+                "h"
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => handleDeleteLog(log2.id),
+                className: "p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all md:opacity-0 group-hover:opacity-100",
+                title: t2("common.delete") || "Delete Log",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 18 })
+              }
+            )
+          ] })
+        ] }, log2.id))
+      ] }),
+      draftRows.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4 mb-8", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: "text-xs font-black text-[var(--color-primary)] uppercase tracking-widest mb-2", children: "New Entries" }),
+        draftRows.map((row, index2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row items-end gap-4 bg-white border-2 border-dashed border-[var(--color-primary)]/30 rounded-2xl p-5 relative fade-in", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full lg:flex-1", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: "Project" }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "select",
               {
                 className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all",
-                value: form.project_id,
-                onChange: (e) => setForm({ ...form, project_id: e.target.value }),
-                required: true,
+                value: row.project_id,
+                onChange: (e) => {
+                  const nr = [...draftRows];
+                  nr[index2].project_id = e.target.value;
+                  setDraftRows(nr);
+                },
                 children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "-- Select Project --" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "-- Required --" }),
                   projects2.map((p2) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: p2.id, children: p2.name }, p2.id))
                 ]
               }
             )
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.date") || "Date" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none", size: 16 }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "input",
-                  {
-                    type: "date",
-                    className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all text-sm font-bold",
-                    value: form.log_date,
-                    onChange: (e) => setForm({ ...form, log_date: e.target.value }),
-                    required: true
-                  }
-                )
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.hours") || "Hours" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Hourglass, { className: "absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none", size: 16 }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "input",
-                  {
-                    type: "number",
-                    step: "0.25",
-                    min: "0.25",
-                    max: "24",
-                    className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-bold",
-                    value: form.hours,
-                    onChange: (e) => setForm({ ...form, hours: Number(e.target.value) }),
-                    required: true
-                  }
-                )
-              ] })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.notes") || "Notes" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "absolute left-3 top-4 text-gray-400 pointer-events-none", size: 16 }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "textarea",
-                {
-                  className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all resize-none min-h-[100px] text-sm",
-                  placeholder: t2("timelogs.notes_placeholder") || "What did you work on?",
-                  value: form.notes,
-                  onChange: (e) => setForm({ ...form, notes: e.target.value })
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full lg:flex-[2]", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: "Daily Notes" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "text",
+                placeholder: "What did you do today?",
+                className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all",
+                value: row.notes,
+                onChange: (e) => {
+                  const nr = [...draftRows];
+                  nr[index2].notes = e.target.value;
+                  setDraftRows(nr);
                 }
-              )
-            ] })
+              }
+            )
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "submit", className: "w-full flex items-center justify-center gap-2 bg-[var(--color-primary)] text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { size: 18 }),
-            t2("timelogs.save_button") || "Save Time Log"
-          ] })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "lg:col-span-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-6 py-5 border-b border-gray-100 flex items-center justify-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-black text-gray-900 flex items-center gap-2", children: t2("timelogs.history") || "Your Log History" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-blue-50 text-blue-600 px-3 py-1 text-xs font-bold rounded-full", children: [
-            logs.length,
-            " ",
-            t2("timelogs.logs") || "entries"
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "divide-y divide-gray-100", children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-8 text-center text-gray-400 animate-pulse", children: t2("common.loading") || "Loading..." }) : logs.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-16 text-center", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "text-gray-300", size: 24 }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-gray-400 font-medium", children: t2("timelogs.no_logs") || "No time logs yet. Start logging your work!" })
-        ] }) : logs.map((log2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group hover:bg-gray-50/50 transition-colors", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3 mb-1", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-gray-900 text-lg", children: log2.project_name || `Project #${log2.project_id}` }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 px-2.5 py-0.5 rounded-full text-xs font-black tracking-wide", children: [
-                log2.hours,
-                "h"
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm text-gray-500 whitespace-pre-wrap", children: log2.notes || /* @__PURE__ */ jsxRuntimeExports.jsx("em", { className: "text-gray-300", children: "No notes provided" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[10px] font-black text-gray-400 uppercase tracking-widest mt-3 flex items-center gap-1.5", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { size: 12 }),
-              " ",
-              new Date(log2.log_date).toLocaleDateString()
-            ] })
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full lg:w-32", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: "Hours" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "number",
+                step: "0.25",
+                min: "0.25",
+                className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-lg text-center",
+                value: row.hours,
+                onChange: (e) => {
+                  const nr = [...draftRows];
+                  nr[index2].hours = Number(e.target.value);
+                  setDraftRows(nr);
+                }
+              }
+            )
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "button",
             {
-              onClick: () => handleDelete(log2.id),
-              className: "p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 hidden md:block",
-              title: t2("common.delete") || "Delete",
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 18 })
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              onClick: () => handleDelete(log2.id),
-              className: "md:hidden text-xs text-red-500 font-bold bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 mt-2",
-              children: "Delete"
+              onClick: () => removeDraftRow(row.id),
+              className: "p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-full mt-2 lg:mt-0",
+              title: "Remove Row",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 20 })
             }
           )
-        ] }, log2.id)) })
-      ] }) })
+        ] }, row.id))
+      ] }),
+      draftRows.length === 0 && activeDateLogs.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-gray-200 rounded-[32px] bg-gray-50", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { size: 48, className: "text-gray-300 mb-4" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-gray-400 font-bold max-w-sm", children: "You haven't tracked any time on this day. Click 'Add Row' to start logging work!" })
+      ] }),
+      draftRows.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-end pt-6 border-t border-gray-100", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "button",
+        {
+          onClick: handleSaveBulk,
+          className: "flex items-center gap-2 bg-[var(--color-primary)] text-white px-8 py-3.5 rounded-xl font-black tracking-wide shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { size: 20 }),
+            " Save Day Logs"
+          ]
+        }
+      ) })
     ] })
   ] });
 };
