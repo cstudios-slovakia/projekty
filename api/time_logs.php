@@ -33,9 +33,10 @@ try {
         $whereClause = !empty($filters) ? "WHERE " . implode(" AND ", $filters) : "";
         
         $stmt = $pdo->prepare("
-            SELECT tl.*, u.username, u.member_id 
+            SELECT tl.*, u.username, u.member_id, p.name as project_name
             FROM time_logs tl
             LEFT JOIN users u ON tl.user_id = u.id
+            LEFT JOIN projects p ON tl.project_id = p.id
             $whereClause
             ORDER BY tl.log_date DESC, tl.created_at DESC
         ");

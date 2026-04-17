@@ -71749,6 +71749,217 @@ const CalendarView = () => {
     ] })
   ] });
 };
+const TimeLogsView = () => {
+  const { t: t2 } = useTranslation();
+  const [logs, setLogs] = reactExports.useState([]);
+  const [projects2, setProjects] = reactExports.useState([]);
+  const [isLoading, setIsLoading] = reactExports.useState(true);
+  const token = localStorage.getItem("token");
+  const user = token ? JSON.parse(atob(token)) : null;
+  const [form, setForm] = reactExports.useState({
+    project_id: "",
+    hours: 1,
+    notes: "",
+    log_date: (/* @__PURE__ */ new Date()).toISOString().split("T")[0]
+  });
+  reactExports.useEffect(() => {
+    if (user == null ? void 0 : user.id) {
+      fetchData();
+    }
+  }, [user == null ? void 0 : user.id]);
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const logsRes = await fetch(`/api/time_logs.php?user_id=${user.id}`);
+      const logsData = await logsRes.json();
+      if (logsData.status === "success") {
+        setLogs(logsData.data);
+      }
+      const projRes = await fetch("/api/projects.php");
+      const projData = await projRes.json();
+      if (projData.status === "success") {
+        setProjects(projData.data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsLoading(false);
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.project_id || !form.hours || !(user == null ? void 0 : user.id))
+      return;
+    try {
+      const res = await fetch("/api/time_logs.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          user_id: user.id
+        })
+      });
+      const data2 = await res.json();
+      if (data2.status === "success") {
+        setForm({ ...form, hours: 1, notes: "" });
+        fetchData();
+      } else {
+        alert(data2.message || "Failed to save log");
+      }
+    } catch (e2) {
+      alert("Error saving log");
+    }
+  };
+  const handleDelete = async (id2) => {
+    if (!window.confirm(t2("common.confirm_delete") || "Are you sure you want to delete this?"))
+      return;
+    try {
+      await fetch(`/api/time_logs.php?id=${id2}`, { method: "DELETE" });
+      fetchData();
+    } catch (e) {
+      alert("Error deleting log");
+    }
+  };
+  if (!user)
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-8", children: "Please log in." });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-8 pb-12", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4 mb-4", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Link$1, { to: "/", className: "p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 transition-all shadow-sm", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeft, { size: 20 }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "text-[var(--color-primary)]", size: 32 }),
+        t2("timelogs.title") || "Time Logging"
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-8", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "lg:col-span-1 border border-gray-200 bg-white rounded-[32px] p-6 md:p-8 shadow-sm h-fit sticky top-8", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "text-xl font-bold text-gray-900 mb-6 flex items-center gap-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 20, className: "text-[var(--color-primary)]" }),
+          t2("timelogs.add_new") || "Log New Time"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSubmit, className: "space-y-5", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.project") || "Project" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "select",
+              {
+                className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all",
+                value: form.project_id,
+                onChange: (e) => setForm({ ...form, project_id: e.target.value }),
+                required: true,
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "-- Select Project --" }),
+                  projects2.map((p2) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: p2.id, children: p2.name }, p2.id))
+                ]
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.date") || "Date" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none", size: 16 }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "date",
+                    className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all text-sm font-bold",
+                    value: form.log_date,
+                    onChange: (e) => setForm({ ...form, log_date: e.target.value }),
+                    required: true
+                  }
+                )
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.hours") || "Hours" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Hourglass, { className: "absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none", size: 16 }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "number",
+                    step: "0.25",
+                    min: "0.25",
+                    max: "24",
+                    className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-bold",
+                    value: form.hours,
+                    onChange: (e) => setForm({ ...form, hours: Number(e.target.value) }),
+                    required: true
+                  }
+                )
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1", children: t2("timelogs.notes") || "Notes" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "absolute left-3 top-4 text-gray-400 pointer-events-none", size: 16 }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "textarea",
+                {
+                  className: "w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all resize-none min-h-[100px] text-sm",
+                  placeholder: t2("timelogs.notes_placeholder") || "What did you work on?",
+                  value: form.notes,
+                  onChange: (e) => setForm({ ...form, notes: e.target.value })
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "submit", className: "w-full flex items-center justify-center gap-2 bg-[var(--color-primary)] text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { size: 18 }),
+            t2("timelogs.save_button") || "Save Time Log"
+          ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "lg:col-span-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-6 py-5 border-b border-gray-100 flex items-center justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-black text-gray-900 flex items-center gap-2", children: t2("timelogs.history") || "Your Log History" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-blue-50 text-blue-600 px-3 py-1 text-xs font-bold rounded-full", children: [
+            logs.length,
+            " ",
+            t2("timelogs.logs") || "entries"
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "divide-y divide-gray-100", children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-8 text-center text-gray-400 animate-pulse", children: t2("common.loading") || "Loading..." }) : logs.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-16 text-center", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "text-gray-300", size: 24 }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-gray-400 font-medium", children: t2("timelogs.no_logs") || "No time logs yet. Start logging your work!" })
+        ] }) : logs.map((log2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group hover:bg-gray-50/50 transition-colors", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3 mb-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-gray-900 text-lg", children: log2.project_name || `Project #${log2.project_id}` }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 px-2.5 py-0.5 rounded-full text-xs font-black tracking-wide", children: [
+                log2.hours,
+                "h"
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm text-gray-500 whitespace-pre-wrap", children: log2.notes || /* @__PURE__ */ jsxRuntimeExports.jsx("em", { className: "text-gray-300", children: "No notes provided" }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[10px] font-black text-gray-400 uppercase tracking-widest mt-3 flex items-center gap-1.5", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { size: 12 }),
+              " ",
+              new Date(log2.log_date).toLocaleDateString()
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: () => handleDelete(log2.id),
+              className: "p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 hidden md:block",
+              title: t2("common.delete") || "Delete",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: () => handleDelete(log2.id),
+              className: "md:hidden text-xs text-red-500 font-bold bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 mt-2",
+              children: "Delete"
+            }
+          )
+        ] }, log2.id)) })
+      ] }) })
+    ] })
+  ] });
+};
 function Layout({ systemTitle, version: version2 }) {
   const { t: t2 } = useTranslation();
   const location = useLocation();
@@ -71779,6 +71990,10 @@ function Layout({ systemTitle, version: version2 }) {
         /* @__PURE__ */ jsxRuntimeExports.jsxs(Link$1, { to: "/calendar", className: sidebarLinkClass(["/calendar"]), title: t2("nav.calendar"), children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { size: 24 }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold", children: t2("nav.calendar") })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Link$1, { to: "/timelogs", className: sidebarLinkClass(["/timelogs"]), title: t2("nav.timelogs") || "Time Logging", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { size: 24 }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold", children: t2("nav.timelogs") || "Time Logging" })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs(Link$1, { to: "/settings", className: sidebarLinkClass(["/settings"]), title: t2("nav.settings"), children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Settings$1, { size: 24 }),
@@ -71845,6 +72060,7 @@ function Layout({ systemTitle, version: version2 }) {
           /* @__PURE__ */ jsxRuntimeExports.jsx(LeadsView, { archivedView: true })
         ] }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(Route$1, { path: "/calendar", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CalendarView, {}) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Route$1, { path: "/timelogs", element: /* @__PURE__ */ jsxRuntimeExports.jsx(TimeLogsView, {}) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(Route$1, { path: "/settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, {}) })
       ] }) }) })
     ] })

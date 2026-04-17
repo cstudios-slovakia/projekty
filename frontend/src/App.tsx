@@ -9,7 +9,9 @@ import { LeadReorder } from './components/LeadReorder';
 import { SetupWizard } from './components/SetupWizard';
 import { LeadsView } from './components/LeadsView';
 import { CalendarView } from './components/CalendarView';
+import { TimeLogsView } from './components/TimeLogsView';
 import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
+import { Clock } from 'lucide-react';
 
 interface LayoutProps {
   systemTitle: string;
@@ -68,6 +70,10 @@ function Layout({ systemTitle, version }: LayoutProps) {
           <Link to="/calendar" className={sidebarLinkClass(['/calendar'])} title={t('nav.calendar')}>
             <CalendarIcon size={24} />
             <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.calendar')}</span>
+          </Link>
+          <Link to="/timelogs" className={sidebarLinkClass(['/timelogs'])} title={t('nav.timelogs') || 'Time Logging'}>
+            <Clock size={24} />
+            <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.timelogs') || 'Time Logging'}</span>
           </Link>
           <Link to="/settings" className={sidebarLinkClass(['/settings'])} title={t('nav.settings')}>
             <SettingsIcon size={24} />
@@ -130,6 +136,7 @@ function Layout({ systemTitle, version }: LayoutProps) {
               <Route path="/leads" element={<LeadsView archivedView={false} />} />
               <Route path="/leads-archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.leads')}</h2><LeadsView archivedView={true} /></>} />
               <Route path="/calendar" element={<CalendarView />} />
+              <Route path="/timelogs" element={<TimeLogsView />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>
