@@ -17,7 +17,7 @@ if ($method === 'OPTIONS') {
 
 try {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT id, username, role, member_id, language FROM users ORDER BY id ASC");
+        $stmt = $pdo->query("SELECT id, username, email, role, member_id, language FROM users ORDER BY id ASC");
         echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
         
     } elseif ($method === 'POST') {
@@ -36,10 +36,11 @@ try {
         } else {
             // Register new user
             $hash = password_hash($input['password'], PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, member_id) VALUES (?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, email, role, member_id) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([
                 $input['username'],
                 $hash,
+                $input['email'] ?? null,
                 $input['role'] ?? 'viewer',
                 $input['member_id'] ?? null
             ]);
@@ -61,6 +62,10 @@ try {
         if (isset($input['language'])) {
             $fields[] = "language = ?";
             $values[] = $input['language'];
+        }
+        if (isset($input['email'])) {
+            $fields[] = "email = ?";
+            $values[] = $input['email'];
         }
         if (isset($input['role'])) {
             $fields[] = "role = ?";

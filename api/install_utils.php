@@ -26,6 +26,7 @@ function get_schema_sql($db_type, $prefix = '') {
             username VARCHAR(50) UNIQUE NOT NULL,
             password_hash VARCHAR(255) NOT NULL,
             role VARCHAR(20) DEFAULT 'user',
+            email VARCHAR(255) NULL,
             language VARCHAR(5) DEFAULT 'en',
             reset_token VARCHAR(255) NULL
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";

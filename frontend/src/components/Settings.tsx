@@ -13,6 +13,7 @@ interface Entity {
 interface User {
   id: number;
   username: string;
+  email?: string;
   role: string;
   member_id?: number | null;
 }
@@ -22,7 +23,7 @@ export const Settings: React.FC = () => {
   const [entities, setEntities] = useState<Entity[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
-  const [newUser, setNewUser] = useState<{username: string, password: string, role?: string}>({ username: '', password: '', role: 'viewer' });
+  const [newUser, setNewUser] = useState<{username: string, password: string, email?: string, role?: string}>({ username: '', password: '', email: '', role: 'viewer' });
   const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'roles' | 'system'>('project');
   
   // System Settings
@@ -174,7 +175,7 @@ export const Settings: React.FC = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newUser)
     }).then(() => {
-      setNewUser({ username: '', password: '' });
+      setNewUser({ username: '', password: '', email: '' });
       fetchUsers();
     });
   };
@@ -440,6 +441,15 @@ export const Settings: React.FC = () => {
                     onChange={e => setNewUser({...newUser, password: e.target.value})}
                     required
                   />
+                </div>
+                <div className="flex gap-4">
+                  <input 
+                    type="email" 
+                    placeholder="Email Address" 
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all" 
+                    value={newUser.email || ''}
+                    onChange={e => setNewUser({...newUser, email: e.target.value})}
+                  />
                   <select
                     className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all"
                     value={newUser.role || 'viewer'}
@@ -480,6 +490,15 @@ export const Settings: React.FC = () => {
                       </div>
                       
                       <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200/60 mt-1">
+                        <input
+                          type="email"
+                          placeholder="Email Address"
+                          className="bg-white border rounded-lg px-3 py-1.5 text-xs border-gray-200 text-gray-700 w-[150px] md:w-auto flex-1"
+                          defaultValue={u.email || ''}
+                          onBlur={(e) => {
+                             if(e.target.value !== (u.email || '')) handleUpdateUser(u.id, 'email', e.target.value);
+                          }}
+                        />
                         <select
                           className={`bg-white border rounded-lg px-3 py-1.5 text-xs font-bold ${u.username === 'admin' ? 'opacity-50 cursor-not-allowed border-gray-200 text-gray-400' : 'border-gray-200 text-gray-700'}`}
                           value={u.role}
@@ -493,12 +512,20 @@ export const Settings: React.FC = () => {
                         </select>
                         {(u.role === 'employee' || u.role === 'manager' || u.role === 'admin') && (
                           <select
-                            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700"
+                            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 max-w-[180px] md:max-w-none"
                             value={u.member_id || ''}
                             onChange={(e) => handleUpdateUser(u.id, 'member_id', e.target.value ? Number(e.target.value) : null)}
                           >
                             <option value="">-- Link to Person --</option>
-                            {entities.filter(e => !['project_type', 'lead_status', 'lead_source'].includes(e.type)).map((e) => (
+                            {[...entities.filter(e => !['project_type', 'lead_status', 'lead_source'].includes(e.type))].sort((a, b) => {
+                               const order = ['pm', 'designer', 'developer'];
+                               const aIdx = order.indexOf(a.type);
+                               const bIdx = order.indexOf(b.type);
+                               if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                               if (aIdx !== -1) return -1;
+                               if (bIdx !== -1) return 1;
+                               return a.type.localeCompare(b.type);
+                            }).map((e) => (
                               <option key={e.id} value={e.id}>{e.name} ({e.type})</option>
                             ))}
                           </select>

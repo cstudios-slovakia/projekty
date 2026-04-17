@@ -249,6 +249,10 @@ try {
         echo "Adding member_id to users (link to entity)...\n";
         $pdo->exec("ALTER TABLE users ADD COLUMN member_id INTEGER NULL");
     }
+    if (!column_exists($pdo, 'users', 'email')) {
+        echo "Adding email to users...\n";
+        $pdo->exec("ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL");
+    }
 
     // Ensure default admin user has admin role
     $pdo->exec("UPDATE users SET role = 'admin' WHERE id = 1 AND (role IS NULL OR role = 'user')");

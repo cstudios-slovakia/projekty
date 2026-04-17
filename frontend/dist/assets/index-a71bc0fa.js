@@ -60493,7 +60493,7 @@ const Settings = () => {
   const [entities, setEntities] = reactExports.useState([]);
   const [users, setUsers] = reactExports.useState([]);
   const [newEntity, setNewEntity] = reactExports.useState({ type: "developer", name: "", color: "#3b82f6" });
-  const [newUser, setNewUser] = reactExports.useState({ username: "", password: "", role: "viewer" });
+  const [newUser, setNewUser] = reactExports.useState({ username: "", password: "", email: "", role: "viewer" });
   const [activeTab, setActiveTab] = reactExports.useState("project");
   const [sysSettings, setSysSettings] = reactExports.useState({
     system_title: "Lead Tracker",
@@ -60628,7 +60628,7 @@ const Settings = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser)
     }).then(() => {
-      setNewUser({ username: "", password: "" });
+      setNewUser({ username: "", password: "", email: "" });
       fetchUsers();
     });
   };
@@ -60887,16 +60887,26 @@ const Settings = () => {
                 required: true
               }
             ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex gap-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "password",
+                placeholder: t2("login.password"),
+                className: "flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all",
+                value: newUser.password,
+                onChange: (e) => setNewUser({ ...newUser, password: e.target.value }),
+                required: true
+              }
+            ) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-4", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "input",
                 {
-                  type: "password",
-                  placeholder: t2("login.password"),
+                  type: "email",
+                  placeholder: "Email Address",
                   className: "flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--color-primary)] transition-all",
-                  value: newUser.password,
-                  onChange: (e) => setNewUser({ ...newUser, password: e.target.value }),
-                  required: true
+                  value: newUser.email || "",
+                  onChange: (e) => setNewUser({ ...newUser, email: e.target.value })
                 }
               ),
               /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -60934,6 +60944,19 @@ const Settings = () => {
                 u2.username !== "admin" && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => handleDeleteUser(u2.id), className: "p-2 text-gray-300 hover:text-red-500 transition-colors", children: /* @__PURE__ */ jsxRuntimeExports.jsx(UserX, { size: 18 }) })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-2 pt-2 border-t border-gray-200/60 mt-1", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "email",
+                    placeholder: "Email Address",
+                    className: "bg-white border rounded-lg px-3 py-1.5 text-xs border-gray-200 text-gray-700 w-[150px] md:w-auto flex-1",
+                    defaultValue: u2.email || "",
+                    onBlur: (e) => {
+                      if (e.target.value !== (u2.email || ""))
+                        handleUpdateUser(u2.id, "email", e.target.value);
+                    }
+                  }
+                ),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs(
                   "select",
                   {
@@ -60952,12 +60975,23 @@ const Settings = () => {
                 (u2.role === "employee" || u2.role === "manager" || u2.role === "admin") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                   "select",
                   {
-                    className: "bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700",
+                    className: "bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 max-w-[180px] md:max-w-none",
                     value: u2.member_id || "",
                     onChange: (e) => handleUpdateUser(u2.id, "member_id", e.target.value ? Number(e.target.value) : null),
                     children: [
                       /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "-- Link to Person --" }),
-                      entities.filter((e) => !["project_type", "lead_status", "lead_source"].includes(e.type)).map((e) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: e.id, children: [
+                      [...entities.filter((e) => !["project_type", "lead_status", "lead_source"].includes(e.type))].sort((a, b) => {
+                        const order = ["pm", "designer", "developer"];
+                        const aIdx = order.indexOf(a.type);
+                        const bIdx = order.indexOf(b.type);
+                        if (aIdx !== -1 && bIdx !== -1)
+                          return aIdx - bIdx;
+                        if (aIdx !== -1)
+                          return -1;
+                        if (bIdx !== -1)
+                          return 1;
+                        return a.type.localeCompare(b.type);
+                      }).map((e) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: e.id, children: [
                         e.name,
                         " (",
                         e.type,

@@ -1050,6 +1050,10 @@ video {
   width: 2rem;
 }
 
+.w-\[150px\]{
+  width: 150px;
+}
+
 .w-\[400px\]{
   width: 400px;
 }
@@ -1101,6 +1105,10 @@ video {
 
 .max-w-\[1600px\]{
   max-width: 1600px;
+}
+
+.max-w-\[180px\]{
+  max-width: 180px;
 }
 
 .max-w-lg{
@@ -3246,6 +3254,10 @@ input:focus, select:focus{
 
   .md\:w-full{
     width: 100%;
+  }
+
+  .md\:max-w-none{
+    max-width: none;
   }
 
   .md\:flex-none{
