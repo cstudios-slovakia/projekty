@@ -60664,7 +60664,7 @@ const Settings = () => {
     "#8b5cf6"
     // Violet
   ];
-  const renderEntityColumn = (title, type, roleId) => {
+  const renderEntityColumn = (title, type, roleId, hasHourlyRate = true) => {
     const list = entities.filter((e) => e.type === type);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-[350px] bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col h-full", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center mb-6", children: [
@@ -60741,7 +60741,7 @@ const Settings = () => {
               ] })
             ] })
           ] }),
-          (type === "developer" || type === "designer") && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 mx-2 flex-shrink-0", children: [
+          hasHourlyRate && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 mx-2 flex-shrink-0", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[10px] text-gray-400 font-bold", children: "€" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
               "input",
@@ -60806,10 +60806,14 @@ const Settings = () => {
       )
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "pt-2", children: [
-      activeTab === "project" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: renderEntityColumn(t2("projects.types") || "Project Types", "project_type") }),
+      activeTab === "project" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: renderEntityColumn(t2("projects.types") || "Project Types", "project_type", void 0, false) }),
       activeTab === "roles" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xl font-bold text-gray-900 ml-4", children: t2("settings.roles.title") || "Dynamic Roles" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xl font-bold text-gray-900 ml-4", children: "Core Team Overview" }) }),
+        renderEntityColumn(t2("projects.pms") || "Project Managers", "pm", void 0, true),
+        renderEntityColumn(t2("projects.designer") || "Designers", "designer", void 0, true),
+        renderEntityColumn(t2("projects.developer") || "Developers", "developer", void 0, true),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200 mt-4", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xl font-bold text-gray-900 ml-4", children: t2("settings.roles.title") || "Dynamic & Additional Roles" }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(
               "input",
@@ -60857,8 +60861,7 @@ const Settings = () => {
             )
           ] })
         ] }),
-        roles.map((r2) => renderEntityColumn(r2.label, r2.label.toLowerCase(), r2.id)),
-        renderEntityColumn(t2("projects.pms") || "Project Managers", "pm")
+        roles.filter((r2) => !["developer", "designer"].includes(r2.label.toLowerCase())).map((r2) => renderEntityColumn(r2.label, r2.label.toLowerCase(), r2.id, true))
       ] }),
       activeTab === "lead" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row flex-wrap gap-6", children: [
         renderEntityColumn(t2("leads.statuses") || "Lead Statuses", "lead_status"),

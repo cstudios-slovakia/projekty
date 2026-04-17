@@ -204,7 +204,7 @@ export const Settings: React.FC = () => {
     '#8b5cf6', // Violet
   ];
 
-  const renderEntityColumn = (title: string, type: string, roleId?: number) => {
+  const renderEntityColumn = (title: string, type: string, roleId?: number, hasHourlyRate: boolean = true) => {
     const list = entities.filter((e: Entity) => e.type === type);
     return (
       <div className="flex-1 min-w-[350px] bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col h-full">
@@ -278,7 +278,7 @@ export const Settings: React.FC = () => {
                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">ID #{e.id}</span>
                  </div>
                </div>
-               {(type === 'developer' || type === 'designer') && (
+               {hasHourlyRate && (
                  <div className="flex items-center gap-1 mx-2 flex-shrink-0">
                    <span className="text-[10px] text-gray-400 font-bold">€</span>
                    <input
@@ -343,7 +343,7 @@ export const Settings: React.FC = () => {
         {/* TAB: Project Settings */}
         {activeTab === 'project' && (
           <div className="flex flex-col lg:flex-row flex-wrap gap-6">
-            {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type')}
+            {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type', undefined, false)}
           </div>
         )}
 
@@ -351,7 +351,14 @@ export const Settings: React.FC = () => {
         {activeTab === 'roles' && (
           <div className="flex flex-col lg:flex-row flex-wrap gap-6">
             <div className="w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 ml-4">{t('settings.roles.title') || 'Dynamic Roles'}</h3>
+              <h3 className="text-xl font-bold text-gray-900 ml-4">Core Team Overview</h3>
+            </div>
+            {renderEntityColumn(t('projects.pms') || 'Project Managers', 'pm', undefined, true)}
+            {renderEntityColumn(t('projects.designer') || 'Designers', 'designer', undefined, true)}
+            {renderEntityColumn(t('projects.developer') || 'Developers', 'developer', undefined, true)}
+
+            <div className="w-full flex justify-between items-center bg-white p-4 rounded-3xl border border-gray-200 mt-4">
+              <h3 className="text-xl font-bold text-gray-900 ml-4">{t('settings.roles.title') || 'Dynamic & Additional Roles'}</h3>
               <div className="flex items-center gap-2">
                 <input 
                   type="text" 
@@ -394,8 +401,7 @@ export const Settings: React.FC = () => {
                 </button>
               </div>
             </div>
-            {roles.map((r: any) => renderEntityColumn(r.label, r.label.toLowerCase(), r.id))}
-            {renderEntityColumn(t('projects.pms') || 'Project Managers', 'pm')}
+            {roles.filter((r: any) => !['developer', 'designer'].includes(r.label.toLowerCase())).map((r: any) => renderEntityColumn(r.label, r.label.toLowerCase(), r.id, true))}
           </div>
         )}
 

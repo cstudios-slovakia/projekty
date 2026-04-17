@@ -6,7 +6,7 @@
         "php": ">=8.0",
         "ext-pdo": "*",
         "ext-json": "*",
-        "cstudios-slovakia/projekty": "v1.7.7"
+        "cstudios-slovakia/projekty": "v1.7.8"
     },
     "scripts": {
         "post-create-project-cmd": [
