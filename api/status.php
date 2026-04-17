@@ -8,7 +8,9 @@ require_once 'db.php';
 
 $response = [
     "installed" => $is_installed,
-    "version" => "1.7.11"
+    'version' => '1.7.12',
+    'status' => 'ok',
+    'timestamp' => date('c')
 ];
 
 if ($is_installed) {
