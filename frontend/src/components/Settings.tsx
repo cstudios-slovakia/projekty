@@ -145,6 +145,20 @@ export const Settings: React.FC = () => {
     fetch(`/api/settings.php?id=${id}`, { method: 'DELETE' }).then(() => fetchEntities());
   };
 
+  const handleDeleteRole = (id: number) => {
+    if(!confirm(t('common.confirm_delete'))) return;
+    fetch(`/api/roles.php?id=${id}`, { method: 'DELETE' }).then(() => fetchRoles());
+  };
+
+  const handleRenameRole = (id: number, newLabel: string) => {
+    if(!newLabel.trim()) return;
+    fetch(`/api/roles.php?id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: newLabel.trim() })
+    }).then(() => fetchRoles());
+  };
+
   const handleUpdateRate = (entity: Entity, rate: number) => {
     fetch(`/api/settings.php?id=${entity.id}`, {
       method: 'PUT',
@@ -190,13 +204,39 @@ export const Settings: React.FC = () => {
     '#8b5cf6', // Violet
   ];
 
-  const renderEntityColumn = (title: string, type: string) => {
+  const renderEntityColumn = (title: string, type: string, roleId?: number) => {
     const list = entities.filter((e: Entity) => e.type === type);
     return (
       <div className="flex-1 min-w-[350px] bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col h-full">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-          <span className="bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-full font-bold">{list.length}</span>
+          <div className="flex w-full items-center justify-between gap-3 mr-3 border-b pb-2">
+            {roleId ? (
+              <input
+                type="text"
+                className="text-xl font-bold text-gray-900 bg-transparent border-none outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 rounded px-1 -ml-1 flex-1"
+                defaultValue={title}
+                onBlur={(e) => {
+                  if(e.target.value !== title) handleRenameRole(roleId, e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if(e.key === 'Enter') e.currentTarget.blur();
+                }}
+                title="Click to rename role"
+              />
+            ) : (
+              <h3 className="text-xl font-bold text-gray-900 flex-1">{title}</h3>
+            )}
+            {roleId && (
+              <button 
+                onClick={() => handleDeleteRole(roleId)} 
+                className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                title="Delete this dynamic role"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+          </div>
+          <span className="bg-gray-100 text-gray-500 text-xs px-2.5 py-1 rounded-full font-bold ml-2">{list.length}</span>
         </div>
         
         <div className="space-y-4 mb-6">
@@ -305,6 +345,21 @@ export const Settings: React.FC = () => {
                   placeholder={t('settings.roles.add_new') || 'Add New Role...'} 
                   className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]"
                   id="new_role_input"
+                  onKeyDown={e => {
+                    if(e.key === 'Enter') {
+                       const el = e.target as HTMLInputElement;
+                       if(el.value) {
+                         fetch('/api/roles.php', {
+                           method: 'POST',
+                           headers: { 'Content-Type': 'application/json' },
+                           body: JSON.stringify({ label: el.value, is_timeline_group: true, sort_order: (roles.length + 1) * 10 })
+                         }).then(() => {
+                           el.value = '';
+                           fetchRoles();
+                         });
+                       }
+                    }
+                  }}
                 />
                 <button 
                   onClick={() => {
@@ -326,7 +381,7 @@ export const Settings: React.FC = () => {
                 </button>
               </div>
             </div>
-            {roles.map((r: any) => renderEntityColumn(r.label, r.label.toLowerCase()))}
+            {roles.map((r: any) => renderEntityColumn(r.label, r.label.toLowerCase(), r.id))}
             {renderEntityColumn(t('projects.pms') || 'Project Managers', 'pm')}
             {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type')}
           </div>

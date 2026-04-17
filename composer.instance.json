@@ -5,17 +5,18 @@
     "require": {
         "php": ">=8.0",
         "ext-pdo": "*",
-        "ext-json": "*"
+        "ext-json": "*",
+        "cstudios-slovakia/projekty": "v1.7.6"
     },
     "scripts": {
         "post-create-project-cmd": [
             "php -r \"copy('api/config.php.example', 'api/config.php');\" || true"
         ],
         "post-install-cmd": [
-            "php api/migrate.php"
+            "php vendor/cstudios-slovakia/projekty/api/migrate.php"
         ],
         "post-update-cmd": [
-            "php api/migrate.php"
+            "php vendor/cstudios-slovakia/projekty/api/migrate.php"
         ]
     }
 }
