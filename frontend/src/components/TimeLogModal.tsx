@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Clock, Play, Save } from 'lucide-react';
+import { X, Clock, Save } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface Props {

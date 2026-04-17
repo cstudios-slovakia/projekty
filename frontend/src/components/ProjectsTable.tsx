@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, Play } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ConfirmModal } from './ConfirmModal';
@@ -44,6 +44,7 @@ interface Project {
   pm_color?: string;
   project_type_name?: string;
   project_type_color?: string;
+  custom_assignments?: string | any[];
 }
 
 interface SettingsEntity {
@@ -650,7 +651,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           )}
                           {(() => {
                             let custom = [];
-                            try { if (p.custom_assignments) custom = JSON.parse(p.custom_assignments); } catch (e) {}
+                            try { if (p.custom_assignments) custom = typeof p.custom_assignments === 'string' ? JSON.parse(p.custom_assignments) : p.custom_assignments; } catch (e) {}
                             return custom.map((ca: any, i: number) => (
                               <span key={i} className="text-[12px] font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 opacity-90 shadow-sm" style={{ backgroundColor: ca.member_color ? ca.member_color + '20' : '#f8fafc', color: ca.member_color || '#475569', borderColor: ca.member_color ? ca.member_color + '40' : '#e2e8f0' }} title={ca.role_label}>
                                 <User size={12} /> {ca.member_name}
