@@ -55,7 +55,7 @@ try {
         
         $pdo->beginTransaction();
         try {
-            $expenseStmt = $pdo->prepare("INSERT INTO project_expenses (project_id, entity_id, type, name, hours, custom_cost) VALUES (?, ?, 'dev', ?, ?, 0)");
+            $expenseStmt = $pdo->prepare("INSERT INTO project_expenses (project_id, entity_id, week, custom_name, hours, custom_cost) VALUES (?, ?, ?, ?, ?, 0)");
             $stmt = $pdo->prepare("INSERT INTO time_logs (project_id, user_id, hours, notes, log_date, expense_id) VALUES (?, ?, ?, ?, ?, ?)");
             $userStmt = $pdo->prepare("SELECT member_id FROM users WHERE id = ?");
             
@@ -71,9 +71,13 @@ try {
                 $expenseId = null;
                 
                 if ($user && $user['member_id']) {
+                    $logDate = $log['log_date'] ?? date('Y-m-d');
+                    $weekStr = date('o-\WW', strtotime($logDate));
+                    
                     $expenseStmt->execute([
                         $log['project_id'],
                         $user['member_id'],
+                        $weekStr,
                         'Time Log: ' . ($log['notes'] ?? 'Work'),
                         $log['hours']
                     ]);
@@ -130,11 +134,13 @@ try {
             $updateStmt->execute([$projectId, $hours, $notes, $logDate, $logId]);
             
             if ($currentLog['expense_id']) {
-                $expUpdateStmt = $pdo->prepare("UPDATE project_expenses SET project_id = ?, hours = ?, name = ? WHERE id = ?");
+                $weekStr = date('o-\WW', strtotime($logDate));
+                $expUpdateStmt = $pdo->prepare("UPDATE project_expenses SET project_id = ?, hours = ?, custom_name = ?, week = ? WHERE id = ?");
                 $expUpdateStmt->execute([
                     $projectId,
                     $hours,
                     'Time Log: ' . ($notes ?? 'Work'),
+                    $weekStr,
                     $currentLog['expense_id']
                 ]);
             }
