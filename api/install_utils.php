@@ -122,6 +122,17 @@ function get_schema_sql($db_type, $prefix = '') {
             updated_at $timestamp
         ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
 
+        CREATE TABLE {$prefix}time_logs (
+            id $pk,
+            project_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            expense_id INTEGER REFERENCES {$prefix}project_expenses(id) ON DELETE SET NULL,
+            hours NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+            notes $text,
+            log_date DATE NOT NULL,
+            created_at $timestamp
+        ) " . ($is_mysql ? "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4" : "") . ";
+
         CREATE TABLE {$prefix}comments (
             id $pk,
             project_id INTEGER REFERENCES {$prefix}projects(id) ON DELETE CASCADE,

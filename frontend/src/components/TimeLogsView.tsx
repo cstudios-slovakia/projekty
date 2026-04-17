@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
-import { Clock, Plus, Trash2, Calendar as CalendarIcon, ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
+import { Clock, Plus, Trash2, Calendar as CalendarIcon, ArrowLeft, Save, CheckCircle2, Edit3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MDEditor from '@uiw/react-md-editor';
 
@@ -42,26 +42,45 @@ export const TimeLogsView: React.FC = () => {
   const token = localStorage.getItem('token');
   const user = token ? JSON.parse(atob(token)) : null;
 
+  // Admin/Manager Multi-User Logging
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [targetUserId, setTargetUserId] = useState<number>(user?.id);
+
+  // Edit Mode state
+  const [editingLogId, setEditingLogId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<TimeLog | null>(null);
+
   useEffect(() => {
     if (user?.id) {
-      fetchData();
+      if (user.role === 'admin' || user.role === 'manager') {
+        fetch('/api/users.php')
+          .then(r => r.json())
+          .then(res => {
+            if (res.status === 'success') setAllUsers(res.data);
+          });
+      }
     }
-  }, [user?.id]);
+  }, [user?.id, user?.role]);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    if (targetUserId) {
+      fetchData(targetUserId);
+    }
+  }, [targetUserId]);
+
+  const fetchData = async (uid: number) => {
     try {
-      // Fetch user's logs
-      const logsRes = await fetch(`/api/time_logs.php?user_id=${user.id}`);
+      // Fetch specifically chosen user's logs
+      const logsRes = await fetch(`/api/time_logs.php?user_id=${uid}`);
       const logsData = await logsRes.json();
       if (logsData.status === 'success') {
         setLogs(logsData.data);
       }
 
-      // Fetch active projects to log against
+      // Fetch active projects
       const projRes = await fetch('/api/projects.php');
       const projData = await projRes.json();
       if (projData.status === 'success') {
-        // Filter strictly accepted / active timeline projects
         const activeStatuses = ['In Progress', 'Price Offer Accepted', 'Signed', 'Invoiced', 'Paid', 'Price Offer Closed'];
         setProjects(projData.data.filter((p: Project) => activeStatuses.includes(p.status)));
       }
@@ -122,7 +141,7 @@ export const TimeLogsView: React.FC = () => {
     try {
       const payloadLogs = validRows.map(r => ({
         project_id: r.project_id,
-        user_id: user.id,
+        user_id: targetUserId, // Use target user!
         hours: r.hours,
         notes: r.notes,
         log_date: activeDate
@@ -136,7 +155,7 @@ export const TimeLogsView: React.FC = () => {
       const data = await res.json();
       if (data.status === 'success') {
         setDraftRows([]); // clear scratchpad
-        fetchData();
+        fetchData(targetUserId);
       } else {
         alert(data.message || 'Failed to save logs');
       }
@@ -145,11 +164,37 @@ export const TimeLogsView: React.FC = () => {
     }
   };
 
+  const startEditLog = (log: TimeLog) => {
+    setEditingLogId(log.id);
+    setEditForm({ ...log });
+  };
+
+  const handleUpdateLog = async () => {
+    if (!editForm || !editForm.project_id || editForm.hours <= 0) return;
+    try {
+      const res = await fetch(`/api/time_logs.php?id=${editForm.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setEditingLogId(null);
+        setEditForm(null);
+        fetchData(targetUserId);
+      } else {
+        alert(data.message || 'Update failed');
+      }
+    } catch (e) {
+      alert('Error updating log');
+    }
+  };
+
   const handleDeleteLog = async (id: number) => {
     if (!window.confirm(t('common.confirm_delete') || 'Are you sure you want to delete this log?')) return;
     try {
       await fetch(`/api/time_logs.php?id=${id}`, { method: 'DELETE' });
-      fetchData();
+      fetchData(targetUserId);
     } catch (e) {
       alert('Error deleting log');
     }
@@ -163,10 +208,23 @@ export const TimeLogsView: React.FC = () => {
         <Link to="/" className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 transition-all shadow-sm">
           <ArrowLeft size={20} />
         </Link>
-        <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-          <Clock className="text-[var(--color-primary)]" size={32} />
-          {t('timelogs.title') || 'Time Logging'}
-        </h2>
+        <div className="flex items-center gap-4 flex-wrap">
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+            <Clock className="text-[var(--color-primary)]" size={32} />
+            {t('timelogs.title') || 'Time Logging'}
+          </h2>
+          {(user?.role === 'admin' || user?.role === 'manager') && allUsers.length > 0 && (
+            <select
+              className="ml-4 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all text-sm shadow-sm"
+              value={targetUserId}
+              onChange={e => setTargetUserId(Number(e.target.value))}
+            >
+              {allUsers.map(u => (
+                <option key={u.id} value={u.id}>{u.username} ({u.role})</option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {/* TOP TIMELINE PANEL */}
@@ -226,35 +284,99 @@ export const TimeLogsView: React.FC = () => {
           <div className="mb-8 space-y-3">
             <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Saved Logs</h4>
             {activeDateLogs.map(log => (
-              <div key={log.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-gray-50 border border-gray-100 rounded-2xl p-4 group hover:border-[var(--color-primary)]/30 transition-all">
-                <div className="w-full md:w-1/3">
-                  <div className="text-xs font-bold text-gray-400 uppercase">Project</div>
-                  <div className="font-bold text-gray-900 truncate">{log.project_name || `Project #${log.project_id}`}</div>
-                </div>
-                <div className="w-full md:w-1/2">
-                  <div className="text-xs font-bold text-gray-400 uppercase mb-2">Notes</div>
-                  <div className="text-sm text-gray-600 markdown-body-override" data-color-mode="light">
-                    {log.notes ? (
-                      <MDEditor.Markdown source={log.notes} style={{ backgroundColor: 'transparent' }} />
-                    ) : (
-                      <em className="text-gray-300">No notes provided</em>
-                    )}
+              editingLogId === log.id ? (
+                <div key={log.id} className="flex flex-col lg:flex-row items-end gap-4 bg-white border-2 border-[var(--color-primary)]/50 rounded-2xl p-5 relative shadow-[0_8px_30px_rgb(0,0,0,0.08)] scale-[1.01] transition-all my-6 fade-in">
+                  <div className="w-full lg:flex-1">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Project</label>
+                    <select
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all"
+                      value={editForm?.project_id || ''}
+                      onChange={e => setEditForm(prev => prev ? {...prev, project_id: Number(e.target.value)} : null)}
+                    >
+                      {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  
+                  <div className="w-full lg:flex-[2]">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Notes</label>
+                    <div data-color-mode="light" className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
+                      <MDEditor
+                        value={editForm?.notes || ''}
+                        onChange={(val) => setEditForm(prev => prev ? {...prev, notes: val || ''} : null)}
+                        height={250}
+                        preview="edit"
+                        hideToolbar={false}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="w-full lg:w-32">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Hours</label>
+                    <input
+                      type="number"
+                      step="0.25"
+                      min="0.25"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-lg text-center"
+                      value={editForm?.hours || ''}
+                      onChange={e => setEditForm(prev => prev ? {...prev, hours: Number(e.target.value)} : null)}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 h-full pb-0 mt-3 lg:mt-0">
+                    <button 
+                      onClick={() => { setEditingLogId(null); setEditForm(null); }}
+                      className="px-4 py-3 text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={handleUpdateLog}
+                      className="flex items-center gap-2 bg-[var(--color-primary)] text-white px-5 py-3 rounded-xl font-black shadow-lg shadow-[var(--color-primary)]/20 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      <Save size={18} /> Save
+                    </button>
                   </div>
                 </div>
-                <div className="w-full md:w-auto flex items-center justify-between gap-4">
-                  <div>
-                    <div className="text-xs font-bold text-gray-400 uppercase">Hours</div>
-                    <div className="font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1 rounded-lg">{log.hours}h</div>
+              ) : (
+                <div key={log.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-gray-50 border border-gray-100 hover:bg-white rounded-2xl p-4 group hover:border-[var(--color-primary)]/40 hover:shadow-sm transition-all duration-300">
+                  <div className="w-full md:w-1/3">
+                    <div className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-wider mb-1">Project</div>
+                    <div className="font-bold text-gray-900 truncate">{log.project_name || `Project #${log.project_id}`}</div>
                   </div>
-                  <button 
-                    onClick={() => handleDeleteLog(log.id)}
-                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all md:opacity-0 group-hover:opacity-100"
-                    title={t('common.delete') || 'Delete Log'}
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="w-full md:w-1/2">
+                    <div className="text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">Notes</div>
+                    <div className="text-sm text-gray-600 markdown-body-override" data-color-mode="light">
+                      {log.notes ? (
+                        <MDEditor.Markdown source={log.notes} style={{ backgroundColor: 'transparent' }} />
+                      ) : (
+                        <em className="text-gray-300 font-medium">No notes provided</em>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-full md:w-auto flex flex-col items-center justify-between gap-4 md:ml-auto">
+                    <div>
+                      <div className="text-xs font-bold text-gray-400 uppercase text-center mb-1 tracking-wider">Hours</div>
+                      <div className="font-black focus:outline-none text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-4 py-1.5 rounded-xl text-center min-w-[4rem]">{log.hours}h</div>
+                    </div>
+                  </div>
+                  <div className="flex md:flex-col gap-2 mt-4 md:mt-0 md:opacity-0 group-hover:opacity-100 transition-all duration-300 w-full md:w-auto justify-end">
+                    <button 
+                      onClick={() => startEditLog(log)}
+                      className="p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all"
+                      title="Edit Log"
+                    >
+                      <Edit3 size={18} />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteLog(log.id)}
+                      className="p-2 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                      title={t('common.delete') || 'Delete Log'}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )
             ))}
           </div>
         )}

@@ -254,6 +254,12 @@ try {
         $pdo->exec("ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL");
     }
 
+    // 13. Ensure time_logs has expense_id
+    if (!column_exists($pdo, 'time_logs', 'expense_id')) {
+        echo "Adding expense_id to time_logs...\n";
+        $pdo->exec("ALTER TABLE time_logs ADD COLUMN expense_id INTEGER REFERENCES project_expenses(id) ON DELETE SET NULL");
+    }
+
     // Ensure default admin user has admin role
     $pdo->exec("UPDATE users SET role = 'admin' WHERE id = 1 AND (role IS NULL OR role = 'user')");
 

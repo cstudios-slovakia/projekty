@@ -55,8 +55,8 @@ try {
         
         $pdo->beginTransaction();
         try {
-            $stmt = $pdo->prepare("INSERT INTO time_logs (project_id, user_id, hours, notes, log_date) VALUES (?, ?, ?, ?, ?)");
             $expenseStmt = $pdo->prepare("INSERT INTO project_expenses (project_id, entity_id, type, name, hours, custom_cost) VALUES (?, ?, 'dev', ?, ?, 0)");
+            $stmt = $pdo->prepare("INSERT INTO time_logs (project_id, user_id, hours, notes, log_date, expense_id) VALUES (?, ?, ?, ?, ?, ?)");
             $userStmt = $pdo->prepare("SELECT member_id FROM users WHERE id = ?");
             
             $insertedIds = [];
@@ -66,19 +66,9 @@ try {
                    continue;
                 }
                 
-                $stmt->execute([
-                    $log['project_id'],
-                    $log['user_id'],
-                    $log['hours'],
-                    $log['notes'] ?? null,
-                    $log['log_date'] ?? date('Y-m-d')
-                ]);
-                
-                $newId = defined('IS_MYSQL') && IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('time_logs_id_seq');
-                $insertedIds[] = $newId;
-                
                 $userStmt->execute([$log['user_id']]);
                 $user = $userStmt->fetch();
+                $expenseId = null;
                 
                 if ($user && $user['member_id']) {
                     $expenseStmt->execute([
@@ -87,7 +77,20 @@ try {
                         'Time Log: ' . ($log['notes'] ?? 'Work'),
                         $log['hours']
                     ]);
+                    $expenseId = defined('IS_MYSQL') && IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('project_expenses_id_seq');
                 }
+                
+                $stmt->execute([
+                    $log['project_id'],
+                    $log['user_id'],
+                    $log['hours'],
+                    $log['notes'] ?? null,
+                    $log['log_date'] ?? date('Y-m-d'),
+                    $expenseId
+                ]);
+                
+                $newId = defined('IS_MYSQL') && IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('time_logs_id_seq');
+                $insertedIds[] = $newId;
             }
             
             $pdo->commit();
@@ -97,15 +100,81 @@ try {
             throw $ex;
         }
         
+    } elseif ($method === 'PUT') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$logId) {
+            http_response_code(400);
+            echo json_encode(["status" => "error", "message" => "Missing log ID"]);
+            exit;
+        }
+        
+        // Fetch current to optionally update expense
+        $checkStmt = $pdo->prepare("SELECT * FROM time_logs WHERE id = ?");
+        $checkStmt->execute([$logId]);
+        $currentLog = $checkStmt->fetch();
+        
+        if (!$currentLog) {
+            http_response_code(404);
+            echo json_encode(["status" => "error", "message" => "Log not found"]);
+            exit;
+        }
+        
+        $pdo->beginTransaction();
+        try {
+            $projectId = $input['project_id'] ?? $currentLog['project_id'];
+            $hours = $input['hours'] ?? $currentLog['hours'];
+            $notes = $input['notes'] ?? $currentLog['notes'];
+            $logDate = $input['log_date'] ?? $currentLog['log_date'];
+
+            $updateStmt = $pdo->prepare("UPDATE time_logs SET project_id = ?, hours = ?, notes = ?, log_date = ? WHERE id = ?");
+            $updateStmt->execute([$projectId, $hours, $notes, $logDate, $logId]);
+            
+            if ($currentLog['expense_id']) {
+                $expUpdateStmt = $pdo->prepare("UPDATE project_expenses SET project_id = ?, hours = ?, name = ? WHERE id = ?");
+                $expUpdateStmt->execute([
+                    $projectId,
+                    $hours,
+                    'Time Log: ' . ($notes ?? 'Work'),
+                    $currentLog['expense_id']
+                ]);
+            }
+            
+            $pdo->commit();
+            echo json_encode(["status" => "success", "message" => "Log updated"]);
+        } catch (\Exception $ex) {
+            $pdo->rollBack();
+            throw $ex;
+        }
+
     } elseif ($method === 'DELETE') {
         if (!$logId) {
             http_response_code(400);
             echo json_encode(["status" => "error", "message" => "Missing log ID"]);
             exit;
         }
-        $stmt = $pdo->prepare("DELETE FROM time_logs WHERE id = ?");
-        $stmt->execute([$logId]);
-        echo json_encode(["status" => "success"]);
+        
+        $checkStmt = $pdo->prepare("SELECT expense_id FROM time_logs WHERE id = ?");
+        $checkStmt->execute([$logId]);
+        $currentLog = $checkStmt->fetch();
+        
+        $pdo->beginTransaction();
+        try {
+            // Because ON DELETE SET NULL was used in the schema, we delete the time log, then the expense itself if we want to remove the hours entirely. 
+            // WAIT, if we delete the expense, the time log's ON DELETE SET NULL triggers, which is fine. Let's delete the time_log first, then project_expense if exists.
+            $stmt = $pdo->prepare("DELETE FROM time_logs WHERE id = ?");
+            $stmt->execute([$logId]);
+            
+            if ($currentLog && $currentLog['expense_id']) {
+                $expDelStmt = $pdo->prepare("DELETE FROM project_expenses WHERE id = ?");
+                $expDelStmt->execute([$currentLog['expense_id']]);
+            }
+            
+            $pdo->commit();
+            echo json_encode(["status" => "success"]);
+        } catch (\Exception $ex) {
+            $pdo->rollBack();
+            throw $ex;
+        }
     }
 } catch (\PDOException $e) {
     http_response_code(500);
