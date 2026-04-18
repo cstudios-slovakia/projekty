@@ -29,11 +29,15 @@ interface NewLogRow {
   notes: string;
 }
 
+const getLocalISODate = (d: Date = new Date()) => {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+};
+
 export const TimeLogsView: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<TimeLog[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [activeDate, setActiveDate] = useState(new Date().toISOString().split('T')[0]);
+  const [activeDate, setActiveDate] = useState(getLocalISODate());
   
   // Scratchpad rows for the active day
   const [draftRows, setDraftRows] = useState<NewLogRow[]>([]);
@@ -95,16 +99,16 @@ export const TimeLogsView: React.FC = () => {
     }
   };
 
-  // Generate the last 21 days for the timeline
+  // Generate the last 14 days for the timeline
   const timelineDays = useMemo(() => {
     const days = [];
     const today = new Date();
     today.setHours(0,0,0,0);
-    // Start from 20 days ago up to today
-    for (let i = 20; i >= 0; i--) {
+    // Start from 13 days ago up to today
+    for (let i = 13; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
-      const str = d.toISOString().split('T')[0];
+      const str = getLocalISODate(d);
       days.push({
         dateStr: str,
         label: d.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -252,7 +256,7 @@ export const TimeLogsView: React.FC = () => {
             <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Select Day to Log</h3>
             <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x">
               {timelineDays.map(day => {
-            const isToday = day.dateStr === new Date().toISOString().split('T')[0];
+            const isToday = day.dateStr === getLocalISODate();
             return (
             <button
               key={day.dateStr}
