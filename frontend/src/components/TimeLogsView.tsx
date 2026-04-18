@@ -508,12 +508,21 @@ export const TimeLogsView: React.FC = () => {
             </div>
             <div className="min-h-[400px]">
               {logs.slice((listPage - 1) * ITEMS_PER_PAGE, listPage * ITEMS_PER_PAGE).map(log => (
-                <div key={log.id} className="grid grid-cols-12 gap-4 py-4 border-b border-gray-100 items-center px-4 hover:bg-gray-50 transition-colors">
+                <div key={log.id} className="grid grid-cols-12 gap-4 py-4 border-b border-gray-100 items-center px-4 hover:bg-gray-50 transition-colors group relative">
                   <div className="col-span-2 text-sm font-bold text-gray-600">{new Date(log.log_date).toLocaleDateString()}</div>
                   <div className="col-span-3 text-sm font-black text-gray-900 truncate" title={log.project_name}>{log.project_name || `#${log.project_id}`}</div>
                   <div className="col-span-2 text-sm text-gray-600 truncate" title={log.username}>{log.username}</div>
                   <div className="col-span-4 text-xs text-gray-500 line-clamp-2 pr-4">{log.notes ? log.notes.replace(/[#*`_~]/g, '') : '-'}</div>
-                  <div className="col-span-1 text-right text-sm font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-1 rounded-lg inline-block self-center ml-auto">{log.hours}h</div>
+                  <div className="col-span-1 text-right text-sm font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-1 rounded-lg flex-shrink-0 inline-flex items-center justify-center self-center ml-auto relative">
+                      {log.hours}h
+                      <button 
+                        onClick={() => handleDeleteLog(log.id)}
+                        className="absolute right-0 translate-x-[110%] p-1.5 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 bg-white shadow-sm border border-red-100"
+                        title={t('common.delete') || 'Delete Log'}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                  </div>
                 </div>
               ))}
             </div>
