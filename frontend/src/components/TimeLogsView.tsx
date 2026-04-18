@@ -37,6 +37,11 @@ export const TimeLogsView: React.FC = () => {
   
   // Scratchpad rows for the active day
   const [draftRows, setDraftRows] = useState<NewLogRow[]>([]);
+  
+  // View mode
+  const [viewMode, setViewMode] = useState<'day' | 'list'>('day');
+  const [listPage, setListPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
   // Current user from token
   const token = localStorage.getItem('token');
@@ -44,7 +49,7 @@ export const TimeLogsView: React.FC = () => {
 
   // Admin/Manager Multi-User Logging
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [targetUserId, setTargetUserId] = useState<number>(user?.id);
+  const [targetUserId, setTargetUserId] = useState<number | 'all'>(user?.id);
 
   // Edit Mode state
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
@@ -68,10 +73,11 @@ export const TimeLogsView: React.FC = () => {
     }
   }, [targetUserId]);
 
-  const fetchData = async (uid: number) => {
+  const fetchData = async (uid: number | 'all') => {
     try {
       // Fetch specifically chosen user's logs
-      const logsRes = await fetch(`/api/time_logs.php?user_id=${uid}`);
+      const url = uid === 'all' ? '/api/time_logs.php' : `/api/time_logs.php?user_id=${uid}`;
+      const logsRes = await fetch(url);
       const logsData = await logsRes.json();
       if (logsData.status === 'success') {
         setLogs(logsData.data);
@@ -89,13 +95,13 @@ export const TimeLogsView: React.FC = () => {
     }
   };
 
-  // Generate the last 14 days for the timeline
+  // Generate the last 21 days for the timeline
   const timelineDays = useMemo(() => {
     const days = [];
     const today = new Date();
     today.setHours(0,0,0,0);
-    // Start from 13 days ago up to today
-    for (let i = 13; i >= 0; i--) {
+    // Start from 20 days ago up to today
+    for (let i = 20; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       const str = d.toISOString().split('T')[0];
@@ -141,7 +147,7 @@ export const TimeLogsView: React.FC = () => {
     try {
       const payloadLogs = validRows.map(r => ({
         project_id: r.project_id,
-        user_id: targetUserId, // Use target user!
+        user_id: targetUserId === 'all' ? user.id : targetUserId, // Use target user or self!
         hours: r.hours,
         notes: r.notes,
         log_date: activeDate
@@ -219,8 +225,12 @@ export const TimeLogsView: React.FC = () => {
               <select
                 className="bg-transparent text-gray-900 focus:outline-none font-black transition-all text-sm cursor-pointer"
                 value={targetUserId}
-                onChange={e => setTargetUserId(Number(e.target.value))}
+                onChange={e => {
+                  setTargetUserId(e.target.value === 'all' ? 'all' : Number(e.target.value));
+                  setListPage(1);
+                }}
               >
+                <option value="all">{t('common.all_users') || 'All Users'}</option>
                 {allUsers.map(u => (
                   <option key={u.id} value={u.id}>{u.username} ({u.role})</option>
                 ))}
@@ -230,11 +240,18 @@ export const TimeLogsView: React.FC = () => {
         </div>
       </div>
 
-      {/* TOP TIMELINE PANEL */}
-      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 overflow-hidden">
-        <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Select Day to Log</h3>
-        <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x">
-          {timelineDays.map(day => {
+      <div className="flex gap-2">
+         <button onClick={() => setViewMode('day')} className={`px-5 py-2 font-black tracking-widest uppercase text-[11px] rounded-xl transition-all ${viewMode === 'day' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50'}`}>Daily Timeline</button>
+         <button onClick={() => setViewMode('list')} className={`px-5 py-2 font-black tracking-widest uppercase text-[11px] rounded-xl transition-all ${viewMode === 'list' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50'}`}>Full List View</button>
+      </div>
+
+      {viewMode === 'day' ? (
+        <>
+          {/* TOP TIMELINE PANEL */}
+          <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 overflow-hidden">
+            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Select Day to Log</h3>
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x">
+              {timelineDays.map(day => {
             const isToday = day.dateStr === new Date().toISOString().split('T')[0];
             return (
             <button
@@ -469,6 +486,51 @@ export const TimeLogsView: React.FC = () => {
           </div>
         )}
       </div>
+      </>
+      ) : (
+      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 overflow-hidden min-h-[500px]">
+        <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">All Tracked Logs ({logs.length})</h3>
+        
+        {logs.length === 0 ? (
+          <div className="p-12 text-center text-gray-400 font-bold italic border border-dashed rounded-2xl bg-gray-50 border-gray-200">No logs found.</div>
+        ) : (
+          <div className="w-full relative">
+            <div className="grid grid-cols-12 gap-4 pb-3 border-b-2 border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">
+              <div className="col-span-2">Date</div>
+              <div className="col-span-3">Project</div>
+              <div className="col-span-2">User</div>
+              <div className="col-span-4">Notes</div>
+              <div className="col-span-1 text-right">Hours</div>
+            </div>
+            <div className="min-h-[400px]">
+              {logs.slice((listPage - 1) * ITEMS_PER_PAGE, listPage * ITEMS_PER_PAGE).map(log => (
+                <div key={log.id} className="grid grid-cols-12 gap-4 py-4 border-b border-gray-100 items-center px-4 hover:bg-gray-50 transition-colors">
+                  <div className="col-span-2 text-sm font-bold text-gray-600">{new Date(log.log_date).toLocaleDateString()}</div>
+                  <div className="col-span-3 text-sm font-black text-gray-900 truncate" title={log.project_name}>{log.project_name || `#${log.project_id}`}</div>
+                  <div className="col-span-2 text-sm text-gray-600 truncate" title={log.username}>{log.username}</div>
+                  <div className="col-span-4 text-xs text-gray-500 line-clamp-2 pr-4">{log.notes ? log.notes.replace(/[#*`_~]/g, '') : '-'}</div>
+                  <div className="col-span-1 text-right text-sm font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-1 rounded-lg inline-block self-center ml-auto">{log.hours}h</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center mt-6 px-2">
+              <button 
+                disabled={listPage === 1} 
+                onClick={() => setListPage(p => Math.max(1, p - 1))}
+                className="text-xs font-black uppercase bg-gray-50 px-4 py-2 rounded-xl text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+               >← Previous</button>
+              <div className="text-xs font-bold text-gray-400 bg-gray-50 px-4 py-2 rounded-xl">Page {listPage} of {Math.ceil(logs.length / ITEMS_PER_PAGE)}</div>
+               <button 
+                disabled={listPage === Math.ceil(logs.length / ITEMS_PER_PAGE)} 
+                onClick={() => setListPage(p => Math.min(Math.ceil(logs.length / ITEMS_PER_PAGE), p + 1))}
+                className="text-xs font-black uppercase bg-gray-50 px-4 py-2 rounded-xl text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+               >Next →</button>
+            </div>
+          </div>
+        )}
+      </div>
+      )}
     </div>
   );
 };
