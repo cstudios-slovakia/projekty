@@ -747,17 +747,6 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           <>
                             <button 
                               type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setTimeLogProjectId(p.id);
-                              }} 
-                              className="p-3 bg-white border border-[#e78b01]/20 text-[#e78b01] hover:bg-[#e78b01] hover:text-white hover:border-[#e78b01] rounded-xl transition-all shadow-sm" 
-                              title="Log Time"
-                            >
-                               <Play size={18} className="ml-0.5" />
-                            </button>
-                            <button 
-                              type="button"
                               onClick={() => startEdit(p)} 
                               className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-500 rounded-xl transition-all shadow-sm" 
                               title="Edit Details"

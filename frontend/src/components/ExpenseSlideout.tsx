@@ -198,6 +198,17 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                       <span className="font-bold text-gray-900 text-sm truncate">{exp.entity_id ? exp.entity_name : exp.custom_name}</span>
                       <span className="text-[10px] font-black bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full uppercase">{exp.entity_id ? exp.entity_type : 'Custom'}</span>
                     </div>
+                    {exp.entity_id && exp.custom_name && exp.custom_name.startsWith('Time Log:') && (
+                       <details className="mt-1 mb-1 group/details">
+                         <summary className="text-[10px] font-bold text-gray-400 cursor-pointer hover:text-gray-700 select-none uppercase tracking-widest list-none inline-flex items-center gap-1">
+                           <span className="group-open/details:hidden">+ {t('projects.view_notes') || 'View Notes'}</span>
+                           <span className="hidden group-open/details:inline">- {t('projects.hide_notes') || 'Hide Notes'}</span>
+                         </summary>
+                         <p className="mt-1 text-xs text-gray-600 bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm leading-relaxed whitespace-pre-wrap">
+                           {exp.custom_name.replace(/^Time Log: (\-\s*[a-zA-Z0-9_\-]+)?/, '').trim()}
+                         </p>
+                       </details>
+                    )}
                     <div className="text-xs text-gray-400 mt-0.5 flex gap-3 items-center">
                       <span className="font-medium">{exp.week}</span>
                       {exp.entity_id && (
