@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, Play } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ConfirmModal } from './ConfirmModal';
