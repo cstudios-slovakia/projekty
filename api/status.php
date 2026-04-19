@@ -8,7 +8,7 @@ require_once 'db.php';
 
 $response = [
     "installed" => $is_installed,
-    'version' => '1.7.19',
+    'version' => '1.7.20',
     'status' => 'ok',
     'timestamp' => date('c')
 ];

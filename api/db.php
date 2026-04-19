@@ -60,7 +60,7 @@ if ($is_installed) {
     $db     = DB_NAME;
     $user   = DB_USER;
     $pass   = DB_PASS;
-    $port   = DB_PORT;
+    $port   = defined('DB_PORT') ? DB_PORT : (DB_TYPE === 'pgsql' ? '5432' : '3306');
     $type   = DB_TYPE;
     $prefix = defined('DB_PREFIX') ? DB_PREFIX : '';
 
