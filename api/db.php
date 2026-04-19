@@ -5,17 +5,17 @@
  * Supports legacy config.php and modern .env files.
  */
 
-$config_file = __DIR__ . '/config.php';
+// Detection of current context: vendor vs developer root
+$is_vendor = strpos(__DIR__, '/vendor/') !== false || strpos(__DIR__, '\\vendor\\') !== false;
+$project_root = $is_vendor ? dirname(dirname(dirname(dirname(__DIR__)))) : dirname(__DIR__);
+
+$config_file = $project_root . '/api/config.php';
 
 // Hunt for .env upward (supports local and vendor-based installs)
 $env_file = null;
-$search_dir = __DIR__;
-for ($i = 0; $i < 5; $i++) {
-    if (file_exists($search_dir . '/.env')) {
-        $env_file = $search_dir . '/.env';
-        break;
-    }
-    $search_dir = dirname($search_dir);
+$search_dir = $project_root;
+if (file_exists($search_dir . '/.env')) {
+    $env_file = $search_dir . '/.env';
 }
 
 // 1. Loader for .env (no dependencies)
