@@ -326,7 +326,6 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
           </div>
         )}
       </div>
-      </div>
     </div>,
     document.body
   );
