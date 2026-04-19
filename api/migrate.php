@@ -102,9 +102,6 @@ try {
         ['accent_color_secondary', '#00b800'],
         ['default_language', 'en']
     ];
-    $stmt = $pdo->prepare("SELECT 1 FROM system_settings WHERE \"key\" = ?");
-    $insert = $pdo->prepare("INSERT INTO system_settings (\"key\", \"value\") VALUES (?, ?)");
-    
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     $q = ($driver === 'pgsql') ? '"' : '`';
     $stmt = $pdo->prepare("SELECT 1 FROM system_settings WHERE {$q}key{$q} = ?");
