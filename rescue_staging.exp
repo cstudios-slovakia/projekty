@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+set password "498c5f1171"
+set host "uid1102122@shell.r5.websupport.sk"
+set port "25111"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $host
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    -re {.*[\$#] } { send "mkdir -p cstudios.sk/sub/projektstaging\r" }
+}
+
+# 1. Move/Clean up home directory bloat
+expect -re {.*[\$#] }
+send "mv api assets composer.json composer.lock favicon.png index.html publish.php vendor vite.svg cstudios.sk/sub/projektstaging/\r"
+expect -re {.*[\$#] }
+
+# 2. Re-inject DB configuration into the correct location
+send "cat << 'EOF' > cstudios.sk/sub/projektstaging/api/config.php
+<?php
+define('DB_HOST', 'db.r5.websupport.sk');
+define('DB_NAME', '16AYwX6g_composerUpdateTest');
+define('DB_USER', 'kFT04vWO');
+define('DB_PASS', '&SF2\[vL+SF1(Jb7UAPK*');
+define('DB_TYPE', 'pgsql');
+EOF\r"
+expect -re {.*[\$#] }
+
+# 3. Enter the territory and finish the job
+send "cd cstudios.sk/sub/projektstaging\r"
+expect -re {.*[\$#] }
+
+# Run publish and migrate manually to be sure
+send "php vendor/cstudios-slovakia/projekty/publish.php\r"
+expect -re {.*[\$#] }
+send "php vendor/cstudios-slovakia/projekty/api/migrate.php\r"
+expect -re {.*[\$#] }
+
+send "exit\r"
+expect eof

@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+set password "498c5f1171"
+set host "uid1102122@shell.r5.websupport.sk"
+set port "25111"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $host
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    -re {.*[\$#] } { send "sed -i 's/v1.7.19/v1.7.20/g' cstudios.sk/sub/projektstaging/composer.json\r" }
+}
+
+expect -re {.*[\$#] }
+send "cd cstudios.sk/sub/projektstaging && composer update --no-interaction\r"
+
+expect -re {.*[\$#] }
+send "cd ~\r"
+
+expect -re {.*[\$#] }
+send "rm -rf api assets composer.json composer.lock favicon.png index.html vendor vite.svg\r"
+
+expect -re {.*[\$#] }
+send "exit\r"
+expect eof

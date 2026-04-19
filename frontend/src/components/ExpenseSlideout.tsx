@@ -45,6 +45,10 @@ const getCurrentWeek = () => {
 
 export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBudget, onClose, onBudgetChange }) => {
   const { t } = useTranslation();
+  const userToken = localStorage.getItem('token');
+  const user = userToken ? JSON.parse(atob(userToken)) : null;
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,6 +163,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                     <input
                       type="number"
                       value={budget}
+                      disabled={!canEdit}
                       onChange={e => setBudget(Number(e.target.value))}
                       onBlur={handleBudgetSave}
                       className="text-lg font-black text-gray-900 bg-transparent w-full outline-none"
@@ -231,9 +236,11 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
                   <div className="text-right flex-shrink-0">
                     <p className="font-black text-gray-900">€{exp.entity_id ? (Number(exp.hours) * Number(exp.hourly_rate)).toLocaleString() : Number(exp.custom_cost).toLocaleString()}</p>
                   </div>
-                  <button onClick={() => handleDelete(exp.id)} className="p-1.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
-                    <Trash2 size={14} />
-                  </button>
+                  {canEdit && (
+                    <button onClick={() => handleDelete(exp.id)} className="p-1.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               ))
             )}
@@ -241,81 +248,84 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
         </div>
 
         {/* Add New Expense Row */}
-        <div className="border-t border-gray-100 p-6 md:p-8 bg-gray-50/50">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('projects.slideout.add_expense_title') || 'Log New Expense'}</p>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <select
-                value={newRow.entity_id}
-                onChange={e => setNewRow({ ...newRow, entity_id: e.target.value })}
-                className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
-              >
-                <option value="">{t('projects.who_worked') || 'Who worked?'}</option>
-                <optgroup label={t('projects.developers') || 'Developers'}>
-                  {entities.filter(e => e.type === 'developer').map(e => (
-                    <option key={e.id} value={e.id}>{e.name} ({t('common.dev_tag') || 'Dev'}) — €{Number(e.hourly_rate)}/h</option>
-                  ))}
-                </optgroup>
-                <optgroup label={t('projects.designers') || 'Designers'}>
-                  {entities.filter(e => e.type === 'designer').map(e => (
-                    <option key={e.id} value={e.id}>{e.name} ({t('common.design_tag') || 'Design'}) — €{Number(e.hourly_rate)}/h</option>
-                  ))}
-                </optgroup>
-                <optgroup label={t('common.other') || 'Other'}>
-                  <option value="custom">{t('projects.custom_expense') || 'Custom expense...'}</option>
-                </optgroup>
-              </select>
-              
-              {newRow.entity_id === 'custom' ? (
+        {canEdit && (
+          <div className="border-t border-gray-100 p-6 md:p-8 bg-gray-50/50">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('projects.slideout.add_expense_title') || 'Log New Expense'}</p>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={newRow.entity_id}
+                  onChange={e => setNewRow({ ...newRow, entity_id: e.target.value })}
+                  className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
+                >
+                  <option value="">{t('projects.who_worked') || 'Who worked?'}</option>
+                  <optgroup label={t('projects.developers') || 'Developers'}>
+                    {entities.filter(e => e.type === 'developer').map(e => (
+                      <option key={e.id} value={e.id}>{e.name} ({t('common.dev_tag') || 'Dev'}) — €{Number(e.hourly_rate)}/h</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label={t('projects.designers') || 'Designers'}>
+                    {entities.filter(e => e.type === 'designer').map(e => (
+                      <option key={e.id} value={e.id}>{e.name} ({t('common.design_tag') || 'Design'}) — €{Number(e.hourly_rate)}/h</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label={t('common.other') || 'Other'}>
+                    <option value="custom">{t('projects.custom_expense') || 'Custom expense...'}</option>
+                  </optgroup>
+                </select>
+                
+                {newRow.entity_id === 'custom' ? (
+                  <input
+                    type="number"
+                    placeholder={t('projects.total_cost_placeholder') || 'Total Cost (€)'}
+                    value={newRow.custom_cost}
+                    onChange={e => setNewRow({ ...newRow, custom_cost: e.target.value })}
+                    className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[var(--color-primary)] transition-all"
+                    min="0"
+                    step="0.5"
+                  />
+                ) : (
+                  <input
+                    type="number"
+                    placeholder={t('projects.hours_placeholder') || 'Hours'}
+                    value={newRow.hours}
+                    onChange={e => setNewRow({ ...newRow, hours: e.target.value })}
+                    className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[var(--color-primary)] transition-all"
+                    min="0"
+                    step="0.5"
+                  />
+                )}
+              </div>
+
+              {newRow.entity_id === 'custom' && (
                 <input
-                  type="number"
-                  placeholder={t('projects.total_cost_placeholder') || 'Total Cost (€)'}
-                  value={newRow.custom_cost}
-                  onChange={e => setNewRow({ ...newRow, custom_cost: e.target.value })}
-                  className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[var(--color-primary)] transition-all"
-                  min="0"
-                  step="0.5"
-                />
-              ) : (
-                <input
-                  type="number"
-                  placeholder={t('projects.hours_placeholder') || 'Hours'}
-                  value={newRow.hours}
-                  onChange={e => setNewRow({ ...newRow, hours: e.target.value })}
-                  className="bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-bold outline-none focus:border-[var(--color-primary)] transition-all"
-                  min="0"
-                  step="0.5"
+                  type="text"
+                  placeholder={t('projects.expense_description_placeholder') || 'Expense description...'}
+                  value={newRow.custom_name}
+                  onChange={e => setNewRow({ ...newRow, custom_name: e.target.value })}
+                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
                 />
               )}
-            </div>
 
-            {newRow.entity_id === 'custom' && (
-              <input
-                type="text"
-                placeholder={t('projects.expense_description_placeholder') || 'Expense description...'}
-                value={newRow.custom_name}
-                onChange={e => setNewRow({ ...newRow, custom_name: e.target.value })}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
-              />
-            )}
-
-            <div className="flex gap-3">
-              <input
-                type="week"
-                value={newRow.week || getCurrentWeek()}
-                onChange={e => setNewRow({ ...newRow, week: e.target.value })}
-                className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
-              />
-              <button
-                onClick={handleAdd}
-                disabled={(!newRow.entity_id || (newRow.entity_id !== 'custom' && !newRow.hours) || (newRow.entity_id === 'custom' && (!newRow.custom_name || !newRow.custom_cost)))}
-                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:scale-100"
-              >
-                <Plus size={18} /> {t('common.add')}
-              </button>
+              <div className="flex gap-3">
+                <input
+                  type="week"
+                  value={newRow.week || getCurrentWeek()}
+                  onChange={e => setNewRow({ ...newRow, week: e.target.value })}
+                  className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-[var(--color-primary)] transition-all"
+                />
+                <button
+                  onClick={handleAdd}
+                  disabled={(!newRow.entity_id || (newRow.entity_id !== 'custom' && !newRow.hours) || (newRow.entity_id === 'custom' && (!newRow.custom_name || !newRow.custom_cost)))}
+                  className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:scale-100"
+                >
+                  <Plus size={18} /> {t('common.add')}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
       </div>
     </div>,
     document.body

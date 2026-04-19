@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set password "498c5f1171"
+set host "uid1102122@shell.r5.websupport.sk"
+set port "25111"
+spawn ssh -p $port -o StrictHostKeyChecking=no $host
+expect "password:"
+send "$password\r"
+expect -re {.*[\$#] }
+send "ls -la cstudios.sk/\r"
+expect -re {.*[\$#] }
+send "ls -la cstudios.sk/sub/\r"
+expect -re {.*[\$#] }
+send "exit\r"
+expect eof

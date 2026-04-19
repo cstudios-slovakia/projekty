@@ -47,6 +47,10 @@ interface Props {
 
 export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
   const { t } = useTranslation();
+  const userToken = localStorage.getItem('token');
+  const user = userToken ? JSON.parse(atob(userToken)) : null;
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+
   const [leads, setLeads] = useState<Lead[]>([]);
   const [entities, setEntities] = useState<SettingsEntity[]>([]);
   const [filterName, setFilterName] = useState('');
@@ -171,7 +175,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
           >
             <RefreshCw size={20} />
           </button>
-          {!archivedView && (
+          {!archivedView && canEdit && (
             <button onClick={() => setIsCreating(true)} className="flex-1 md:flex-none bg-[var(--color-primary)] text-white px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-95 transition-all">
               <Plus size={18} /> {t('leads.new_lead')}
             </button>

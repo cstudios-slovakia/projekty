@@ -29,12 +29,14 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
   };
 
   const hasFullAccess = user?.role === 'admin' || user?.role === 'manager';
+  const isViewer = user?.role === 'viewer';
+  const canViewSystem = hasFullAccess || isViewer;
 
   useEffect(() => {
-    if (!hasFullAccess && location.pathname !== '/timelogs') {
+    if (!canViewSystem && location.pathname !== '/timelogs') {
       window.location.hash = '#/timelogs';
     }
-  }, [hasFullAccess, location.pathname]);
+  }, [canViewSystem, location.pathname]);
 
   const isProjectRoute = location.pathname === '/' || location.pathname === '/archive' || location.pathname === '/reorder';
   const isLeadRoute = location.pathname === '/leads' || location.pathname === '/leads-archive';
@@ -64,7 +66,7 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
         </div>
 
         <div className="flex-1 flex flex-col gap-4">
-          {hasFullAccess && (
+          {canViewSystem && (
             <>
               <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title={t('nav.projects')}>
                 <Briefcase size={24} />
@@ -127,7 +129,7 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
               <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 ml-4">
                 <Link to="/" className={subNavClass('/')}>{t('nav.active')}</Link>
                 <Link to="/archive" className={subNavClass('/archive')}>{t('nav.archived')}</Link>
-                <Link to="/reorder" className={subNavClass('/reorder')}>{t('nav.order_view')}</Link>
+                {hasFullAccess && <Link to="/reorder" className={subNavClass('/reorder')}>{t('nav.order_view')}</Link>}
               </div>
             )}
 
@@ -146,7 +148,7 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-[1600px] mx-auto">
             <Routes>
-              {hasFullAccess ? (
+              {canViewSystem ? (
                 <>
                   <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
                   <Route path="/expenses" element={<ExpensesView />} />
@@ -155,7 +157,7 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
                   <Route path="/leads" element={<LeadsView archivedView={false} />} />
                   <Route path="/leads-archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.leads')}</h2><LeadsView archivedView={true} /></>} />
                   <Route path="/calendar" element={<CalendarView />} />
-                  <Route path="/settings" element={<Settings />} />
+                  {hasFullAccess && <Route path="/settings" element={<Settings />} />}
                 </>
               ) : null}
               <Route path="/timelogs" element={<TimeLogsView />} />

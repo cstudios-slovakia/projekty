@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 10
+set host "uid1102122@shell.r5.websupport.sk"
+set password "793921881f"
+set port "28865"
+set cmd [lindex $argv 0]
+
+spawn ssh -o StrictHostKeyChecking=no -p $port $host $cmd
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

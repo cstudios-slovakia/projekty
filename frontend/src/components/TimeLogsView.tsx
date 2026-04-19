@@ -50,6 +50,7 @@ export const TimeLogsView: React.FC = () => {
   // Current user from token
   const token = localStorage.getItem('token');
   const user = token ? JSON.parse(atob(token)) : null;
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
 
   // Admin/Manager Multi-User Logging
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -295,12 +296,14 @@ export const TimeLogsView: React.FC = () => {
               </div>
             </div>
           </div>
-          <button 
-            onClick={addDraftRow}
-            className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all text-sm"
-          >
-            <Plus size={16} /> Add Row
-          </button>
+          {canEdit && (
+            <button 
+              onClick={addDraftRow}
+              className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all text-sm"
+            >
+              <Plus size={16} /> Add Row
+            </button>
+          )}
         </div>
 
         {/* Existing Logs for this date */}
@@ -383,22 +386,24 @@ export const TimeLogsView: React.FC = () => {
                       <div className="font-black focus:outline-none text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-4 py-1.5 rounded-xl text-center min-w-[4rem]">{log.hours}h</div>
                     </div>
                   </div>
-                  <div className="flex md:flex-col gap-2 mt-4 md:mt-0 md:opacity-0 group-hover:opacity-100 transition-all duration-300 w-full md:w-auto justify-end">
-                    <button 
-                      onClick={() => startEditLog(log)}
-                      className="p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all"
-                      title="Edit Log"
-                    >
-                      <Edit3 size={18} />
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteLog(log.id)}
-                      className="p-2 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                      title={t('common.delete') || 'Delete Log'}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                  {canEdit && (
+                    <div className="flex md:flex-col gap-2 mt-4 md:mt-0 md:opacity-0 group-hover:opacity-100 transition-all duration-300 w-full md:w-auto justify-end">
+                      <button 
+                        onClick={() => startEditLog(log)}
+                        className="p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all"
+                        title="Edit Log"
+                      >
+                        <Edit3 size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteLog(log.id)}
+                        className="p-2 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                        title={t('common.delete') || 'Delete Log'}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             ))}
@@ -515,13 +520,15 @@ export const TimeLogsView: React.FC = () => {
                   <div className="col-span-4 text-xs text-gray-500 line-clamp-2 pr-4">{log.notes ? log.notes.replace(/[#*`_~]/g, '') : '-'}</div>
                   <div className="col-span-1 text-right text-sm font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-1 rounded-lg flex-shrink-0 inline-flex items-center justify-center self-center ml-auto relative">
                       {log.hours}h
-                      <button 
-                        onClick={() => handleDeleteLog(log.id)}
-                        className="absolute right-0 translate-x-[110%] p-1.5 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 bg-white shadow-sm border border-red-100"
-                        title={t('common.delete') || 'Delete Log'}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {canEdit && (
+                        <button 
+                          onClick={() => handleDeleteLog(log.id)}
+                          className="absolute right-0 translate-x-[110%] p-1.5 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 bg-white shadow-sm border border-red-100"
+                          title={t('common.delete') || 'Delete Log'}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                   </div>
                 </div>
               ))}

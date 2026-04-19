@@ -1,0 +1,67 @@
+#!/usr/bin/expect -f
+set timeout 600
+set password "498c5f1171"
+set host "uid1102122@shell.r5.websupport.sk"
+set port "25111"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $host
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    -re {.*[\$#] } { send "cd cstudios.sk/sub/projektstaging && ls -la\r" }
+}
+
+# 1. Clean up (just in case)
+expect -re "(\\\$|#)"
+send "rm -rf *\r"
+expect -re "(\\\$|#)"
+
+# 2. Create composer.json for v1.6.x
+send "cat << 'EOF' > composer.json
+{
+    \"name\": \"cstudios-slovakia/projekty-instance\",
+    \"require\": {
+        \"php\": \">=8.0\",
+        \"cstudios-slovakia/projekty\": \"v1.6.*\"
+    },
+    \"scripts\": {
+        \"post-create-project-cmd\": \[
+            \"php -r \\\"copy('api/config.php.example', 'api/config.php');\\\" || true\"
+        \],
+        \"post-install-cmd\": \[
+            \"php vendor/cstudios-slovakia/projekty/api/migrate.php\"
+        \],
+        \"post-update-cmd\": \[
+            \"php vendor/cstudios-slovakia/projekty/api/migrate.php\"
+        \]
+    }
+}
+EOF\r"
+expect -re "(\\\$|#)"
+
+# 3. Install 1.6.x
+send "composer update --no-interaction\r"
+expect -re "(\\\$|#)"
+
+# 4. Copy shells and frontend (1.6.x didn't have publish.php)
+send "cp vendor/cstudios-slovakia/projekty/publish_shells.php . && php publish_shells.php\r"
+expect -re "(\\\$|#)"
+send "cp -r vendor/cstudios-slovakia/projekty/frontend/dist/* .\r"
+expect -re "(\\\$|#)"
+
+# 5. Create config.php manually to avoid setup wizard prompt during automated test
+send "cat << 'EOF' > api/config.php
+<?php
+define('DB_HOST', 'db.r5.websupport.sk');
+define('DB_NAME', '16AYwX6g_composerUpdateTest');
+define('DB_USER', 'kFT04vWO');
+define('DB_PASS', '&SF2\[vL+SF1(Jb7UAPK*');
+define('DB_TYPE', 'pgsql');
+EOF\r"
+expect -re "(\\\$|#)"
+
+# 6. Run migrate to ensure 1.6.x schema is there
+send "php api/migrate.php\r"
+expect -re "(\\\$|#)"
+
+send "exit\r"
+expect eof

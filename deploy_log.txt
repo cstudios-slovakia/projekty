@@ -1,0 +1,101 @@
+spawn rsync -avz -e ssh -p 27435 -o StrictHostKeyChecking=no composer.instance.json uid1102122@shell.r5.websupport.sk:cstudios.sk/sub/projektstaging/composer.json
+ssh: connect to host shell.r5.websupport.sk port 27435: Connection refused
+rsync(63811): error: unexpected end of file
+rsync(63811): error: io_read_nonblocking
+rsync(63811): error: io_read_buf
+rsync(63811): error: io_read_int
+rsync(63811): warning: child 63814 exited with status 255
+send: spawn id exp5 not open
+    while executing
+"send "$password\r""
+    (file "./rebuild_proper_staging.exp" line 9)
+Rate limit blocked, waiting 30 seconds...
+spawn rsync -avz -e ssh -p 27435 -o StrictHostKeyChecking=no composer.instance.json uid1102122@shell.r5.websupport.sk:cstudios.sk/sub/projektstaging/composer.json
+ssh: connect to host shell.r5.websupport.sk port 27435: Connection refused
+rsync(63891): error: unexpected end of file
+rsync(63891): error: io_read_nonblocking
+rsync(63891): error: io_read_buf
+rsync(63891): error: io_read_int
+rsync(63891): warning: child 63894 exited with status 255
+send: spawn id exp5 not open
+    while executing
+"send "$password\r""
+    (file "./rebuild_proper_staging.exp" line 9)
+Rate limit blocked, waiting 30 seconds...
+spawn rsync -avz -e ssh -p 26210 -o StrictHostKeyChecking=no composer.instance.json uid1102122@shell.r5.websupport.sk:cstudios.sk/sub/projektstaging/composer.json
+Warning: Permanently added '[shell.r5.websupport.sk]:26210' (ED25519) to the list of known hosts.
+uid1102122@shell.r5.websupport.sk's password: 
+Transfer starting: 1 files
+composer.instance.json
+
+sent 439 bytes  received 54 bytes  4828 bytes/sec
+total size is 705  speedup is 1.43
+spawn ssh -p 26210 -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk
+uid1102122@shell.r5.websupport.sk's password: 
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-87-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+uid1102122@shellserver:~$ cd cstudios.sk/sub/projektstaging
+uid1102122@shellserver:~/cstudios.sk/sub/projektstaging$ <b/projektstaging$ rm -rf vendor api frontend assets     
+uid1102122@shellserver:~/cstudios.sk/sub/projektstaging$ <ub/projektstaging$ composer update --no-interaction     
+cp vendor/cstudios-slovakia/projekty/publish_shells.php . && php publish_shells.php
+cp -r vendor/cstudios-slovakia/projekty/frontend/dist/* .
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 0 installs, 1 update, 0 removals
+  - Upgrading cstudios-slovakia/projekty (v1.7.11 => v1.7.12)
+Writing lock file
+Installing dependencies from lock file (including require-dev)
+Package operations: 2 installs, 0 updates, 0 removals
+  - Downloading cstudios-slovakia/projekty (v1.7.12)
+ 0/1 [>---------------------------]   0%  - Downloading cstudios-slovakia/projekty (v1.7.12)
+
+ 1/1 [============================] 100%
+  - Installing cstudios-slovakia/projekty (v1.7.12): Extracting archive
+  - Installing erusev/parsedown (1.8.0): Extracting archive
+ 0/2 [>---------------------------]   0%    Failed to extract erusev/parsedown: (9) /usr/bin/unzip -qq /data/6/9/6954f2c4-35ea-46cd-b5bf-d8aaeb947eb1/cstudios.sk/sub/projektstaging/vendor/composer/tmp-d2a710e809de13fa86c4408cd399d517.zip -d /data/6/9/6954f2c4-35ea-46cd-b5bf-d8aaeb947eb1/cstudios.sk/sub/projektstaging/vendor/composer/d9cdd7cc
+
+unzip:  cannot find or open /data/6/9/6954f2c4-35ea-46cd-b5bf-d8aaeb947eb1/cstudios.sk/sub/projektstaging/vendor/composer/tmp-d2a710e809de13fa86c4408cd399d517.zip.
+
+    This most likely is due to a custom installer plugin not handling the returned Promise from the downloader
+    See https://github.com/composer/installers/commit/5006d0c28730ade233a8f42ec31ac68fb1c5c9bb for an example fix
+    Install of erusev/parsedown failed
+
+ 1/2 [==============>-------------]  50%
+ 2/2 [============================] 100%
+In ZipDownloader.php line 255:
+                                                                               
+  '/data/6/9/6954f2c4-35ea-46cd-b5bf-d8aaeb947eb1/cstudios.sk/sub/projektstag  
+  ing/vendor/composer/tmp-d2a710e809de13fa86c4408cd399d517.zip' is a corrupte  
+  d zip archive (0 bytes), try again.                                          
+                                                                               
+
+update [--with WITH] [--prefer-source] [--prefer-dist] [--prefer-install PREFER-INSTALL] [--dry-run] [--dev] [--no-dev] [--lock] [--no-install] [--no-audit] [--audit-format AUDIT-FORMAT] [--no-security-blocking] [--no-autoloader] [--no-suggest] [--no-progress] [-w|--with-dependencies] [-W|--with-all-dependencies] [-v|vv|vvv|--verbose] [-o|--optimize-autoloader] [-a|--classmap-authoritative] [--apcu-autoloader] [--apcu-autoloader-prefix APCU-AUTOLOADER-PREFIX] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--prefer-stable] [--prefer-lowest] [-m|--minimal-changes] [--patch-only] [-i|--interactive] [--root-reqs] [--bump-after-update [BUMP-AFTER-UPDATE]] [--] [<packages>...]
+
+uid1102122@shellserver:~/cstudios.sk/sub/projektstaging$ <ekty/publish_shells.php . && php publish_shells.php     
+Fixed: api/db.php
+Fixed: api/projects.php
+Fixed: api/pipeline.php
+Fixed: api/settings.php
+Fixed: api/users.php
+Fixed: api/migrate.php
+Fixed: api/status.php
+Fixed: api/dashboard.php
+Fixed: api/expenses.php
+exit
+Fixed: api/comments.php
+Fixed: api/system_settings.php
+Fixed: api/reorder.php
+Fixed: api/install.php
+Fixed: api/roles.php
+Fixed: api/time_logs.php
+Fixed: api/calendar.php
+Fixed: api/login.php
+Fixed: api/lead_activities.php
+uid1102122@shellserver:~/cstudios.sk/sub/projektstaging$ <vendor/cstudios-slovakia/projekty/frontend/dist/* .     
+uid1102122@shellserver:~/cstudios.sk/sub/projektstaging$ exit
+logout
+Connection to shell.r5.websupport.sk closed.
+Deployment successful!

@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 600
+set host "uid1102122@shell.r5.websupport.sk"
+set password "793921881f"
+set port "28865"
+
+spawn ssh -o StrictHostKeyChecking=no -p $port $host
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "$ "
+}
+
+send "cd cstudios.sk/sub/projektstaging/frontend\r"
+expect "$ "
+
+# Set Node options to limit memory usage
+send "export NODE_OPTIONS=--max-old-space-size=512\r"
+expect "$ "
+
+# Run build with minimal overhead
+send "npx vite build --minify false\r"
+expect {
+    "Killed" { puts "Build failed again due to memory limits."; exit 1 }
+    "$ "
+}
+
+send "exit\r"
+expect eof

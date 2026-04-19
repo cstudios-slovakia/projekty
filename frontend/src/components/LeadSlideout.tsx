@@ -48,6 +48,10 @@ interface Props {
 
 export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate }) => {
   const { t } = useTranslation();
+  const userToken = localStorage.getItem('token');
+  const user = userToken ? JSON.parse(atob(userToken)) : null;
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+
   const [lead, setLead] = useState<Lead | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -197,44 +201,46 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
             {activeTab === 'timeline' ? (
                 <div className="space-y-10">
                     {/* Log Activity Form */}
-                    <div className="bg-gray-50 border border-gray-100 rounded-[32px] p-6 shadow-inner">
-                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                            <Plus size={16} className="text-[var(--color-primary)]" /> {t('leads.activities.log_activity')}
-                        </h3>
-                        <form onSubmit={handlePostActivity} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-3">
-                                <select 
-                                    className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold"
-                                    value={newActivity.type}
-                                    onChange={e => setNewActivity({...newActivity, type: e.target.value})}
-                                >
-                                    <option value="Call">{t('leads.activity.call') || 'Call'}</option>
-                                    <option value="Email">{t('leads.activity.email') || 'Email'}</option>
-                                    <option value="Meeting">{t('leads.activity.meeting') || 'Meeting'}</option>
-                                    <option value="Online Call">{t('leads.activity.online_call') || 'Online Call'}</option>
-                                    <option value="Proposal">{t('leads.activity.proposal') || 'Proposal'}</option>
-                                    <option value="Other">{t('common.other') || 'Other'}</option>
-                                </select>
-                                <input 
-                                    type="datetime-local" 
-                                    className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold text-gray-500"
-                                    value={newActivity.activity_date}
-                                    onChange={e => setNewActivity({...newActivity, activity_date: e.target.value})}
+                    {canEdit && (
+                        <div className="bg-gray-50 border border-gray-100 rounded-[32px] p-6 shadow-inner">
+                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <Plus size={16} className="text-[var(--color-primary)]" /> {t('leads.activities.log_activity')}
+                            </h3>
+                            <form onSubmit={handlePostActivity} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <select 
+                                        className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold"
+                                        value={newActivity.type}
+                                        onChange={e => setNewActivity({...newActivity, type: e.target.value})}
+                                    >
+                                        <option value="Call">{t('leads.activity.call') || 'Call'}</option>
+                                        <option value="Email">{t('leads.activity.email') || 'Email'}</option>
+                                        <option value="Meeting">{t('leads.activity.meeting') || 'Meeting'}</option>
+                                        <option value="Online Call">{t('leads.activity.online_call') || 'Online Call'}</option>
+                                        <option value="Proposal">{t('leads.activity.proposal') || 'Proposal'}</option>
+                                        <option value="Other">{t('common.other') || 'Other'}</option>
+                                    </select>
+                                    <input 
+                                        type="datetime-local" 
+                                        className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold text-gray-500"
+                                        value={newActivity.activity_date}
+                                        onChange={e => setNewActivity({...newActivity, activity_date: e.target.value})}
+                                    />
+                                </div>
+                                <textarea 
+                                    placeholder={t('leads.activities.notes_placeholder') || "Summary of the activity or next steps..."}
+                                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-4 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                    value={newActivity.notes}
+                                    onChange={e => setNewActivity({...newActivity, notes: e.target.value})}
                                 />
-                            </div>
-                            <textarea 
-                                placeholder={t('leads.activities.notes_placeholder') || "Summary of the activity or next steps..."}
-                                className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-4 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                                value={newActivity.notes}
-                                onChange={e => setNewActivity({...newActivity, notes: e.target.value})}
-                            />
-                            <div className="flex justify-end">
-                                <button className="bg-gray-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95">
-                                    {t('leads.activities.add_log')}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                                <div className="flex justify-end">
+                                    <button className="bg-gray-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95">
+                                        {t('leads.activities.add_log')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
 
                     {/* Timeline Grid */}
                     <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-100 before:rounded-full">
@@ -327,6 +333,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.status')}</label>
                             <select 
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold"
+                                disabled={!canEdit}
                                 value={String(isEditing ? editForm.status_id : lead.status_id) || ''}
                                 onChange={e => {
                                     const val = Number(e.target.value);
@@ -348,6 +355,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.source')}</label>
                             <select 
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold"
+                                disabled={!canEdit}
                                 value={String(isEditing ? editForm.source_id : lead.source_id) || ''}
                                 onChange={e => {
                                     const val = Number(e.target.value);
@@ -369,6 +377,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.pm')}</label>
                             <select 
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold"
+                                disabled={!canEdit}
                                 value={String(isEditing ? editForm.pm_id : lead.pm_id) || ''}
                                 onChange={e => {
                                     const val = Number(e.target.value);
@@ -388,47 +397,51 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                         </div>
                     </div>
 
-                    <div className="flex gap-4 pt-4 border-t border-gray-100">
-                        {isEditing ? (
-                            <button onClick={handleSaveLead} className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
-                                <Save size={18} /> {t('common.save')}
+                    {canEdit && (
+                        <div className="flex gap-4 pt-4 border-t border-gray-100">
+                            {isEditing ? (
+                                <button onClick={handleSaveLead} className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+                                    <Save size={18} /> {t('common.save')}
+                                </button>
+                            ) : (
+                                <button onClick={() => setIsEditing(true)} className="flex-1 bg-gray-50 text-gray-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-100 transition-all">
+                                    {t('leads.edit_profile') || 'Edit Lead Profile'}
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => {
+                                    fetch(`/api/pipeline.php?id=${id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ is_archived: !lead.is_archived })
+                                    }).then(() => { fetchLead(); onUpdate(); onClose(); });
+                                }}
+                                className="p-4 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-2xl transition-all"
+                                title={lead.is_archived ? t('common.unarchive') : t('common.archive')}
+                            >
+                                <Archive size={20} />
                             </button>
-                        ) : (
-                            <button onClick={() => setIsEditing(true)} className="flex-1 bg-gray-50 text-gray-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-100 transition-all">
-                                {t('leads.edit_profile') || 'Edit Lead Profile'}
+                            <button onClick={handleDelete} className="p-4 bg-gray-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all" title={t('common.delete')}>
+                                <Trash2 size={20} />
                             </button>
-                        )}
-                        <button 
-                            onClick={() => {
-                                fetch(`/api/pipeline.php?id=${id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ is_archived: !lead.is_archived })
-                                }).then(() => { fetchLead(); onUpdate(); onClose(); });
-                            }}
-                            className="p-4 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-2xl transition-all"
-                            title={lead.is_archived ? t('common.unarchive') : t('common.archive')}
-                        >
-                            <Archive size={20} />
-                        </button>
-                        <button onClick={handleDelete} className="p-4 bg-gray-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all" title={t('common.delete')}>
-                            <Trash2 size={20} />
-                        </button>
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
         </main>
 
         {/* Action Panel Holder (Fixed at bottom) */}
-        <footer className="p-8 border-t border-gray-100 bg-white shadow-2xl-up flex items-center justify-center">
-            <button 
-                onClick={handleUpgrade}
-                className="w-full py-5 bg-gradient-to-r from-[var(--color-primary)] to-amber-500 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-[var(--color-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 group"
-            >
-                <Briefcase size={22} className="group-hover:rotate-12 transition-transform" />
-                {t('leads.upgrade_button') || 'UPGRADE TO LIVE PROJECT'}
-            </button>
-        </footer>
+        {canEdit && (
+            <footer className="p-8 border-t border-gray-100 bg-white shadow-2xl-up flex items-center justify-center">
+                <button 
+                    onClick={handleUpgrade}
+                    className="w-full py-5 bg-gradient-to-r from-[var(--color-primary)] to-amber-500 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-[var(--color-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 group"
+                >
+                    <Briefcase size={22} className="group-hover:rotate-12 transition-transform" />
+                    {t('leads.upgrade_button') || 'UPGRADE TO LIVE PROJECT'}
+                </button>
+            </footer>
+        )}
       </div>
     </div>,
     document.body

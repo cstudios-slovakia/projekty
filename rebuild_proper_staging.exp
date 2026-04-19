@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "7f47035f58"
+set host "uid1102122@shell.r5.websupport.sk"
+set port "25291"
+
+spawn rsync -avz -e "ssh -p $port -o StrictHostKeyChecking=no" composer.instance.json $host:cstudios.sk/sub/projektstaging/composer.json
+expect "password:"
+send "$password\r"
+expect eof
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+send "cd cstudios.sk/sub/projektstaging\r"
+expect "$ "
+
+send "rm -rf vendor api frontend assets\r"
+expect "$ "
+
+send "composer update --no-interaction\r"
+expect {
+    timeout { puts "Composer timeout"; exit 1 }
+    "$ "
+}
+
+send "cp vendor/cstudios-slovakia/projekty/publish_shells.php . && php publish_shells.php\r"
+expect "$ "
+
+send "cp -r vendor/cstudios-slovakia/projekty/frontend/dist/* .\r"
+expect "$ "
+
+send "exit\r"
+expect eof

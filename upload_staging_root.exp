@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+set timeout -1
+set host "uid1102122@shell.r5.websupport.sk"
+set password "793921881f"
+set port "28865"
+
+# First, clear the entire staging directory except for vendor?
+# Actually, the easiest is to just wipe the whole directory and start fresh
+spawn ssh -o StrictHostKeyChecking=no -p $port $host "rm -rf cstudios.sk/sub/projektstaging/* && rm -rf cstudios.sk/sub/projektstaging/.* 2>/dev/null; mkdir -p cstudios.sk/sub/projektstaging"
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
+
+# Now rsync the files directly to the root of staging
+spawn rsync -avz --exclude="node_modules" --exclude=".git" --exclude="*.exp" --exclude="*.txt" --exclude="*.sh" -e "ssh -o StrictHostKeyChecking=no -p $port" ./ $host:cstudios.sk/sub/projektstaging/
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
+
+# Ensure .env is set inside staging root
+spawn ssh -o StrictHostKeyChecking=no -p $port $host "printf \"APP_INSTALLED=true\\nDB_DRIVER=pgsql\\nDB_HOST=db.r5.websupport.sk\\nDB_PORT=5432\\nDB_NAME=16AYwX6g_rollback_copy_20260417104207\\nDB_USER=5tGzuBFv\\nDB_PASS=se/4kQq&St:B^^,0a1}y\\nINSTALLED_AT=2026-04-11 06:42:03\\n\" > cstudios.sk/sub/projektstaging/.env"
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

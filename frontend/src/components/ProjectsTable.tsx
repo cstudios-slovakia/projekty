@@ -63,6 +63,10 @@ const progressOptions = ['Not Started', 'In Progress', 'Finished'];
 
 export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const { t } = useTranslation();
+  const userToken = localStorage.getItem('token');
+  const user = userToken ? JSON.parse(atob(userToken)) : null;
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [entities, setEntities] = useState<SettingsEntity[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -157,6 +161,10 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const projectTypes = entities.filter(e => e.type === 'project_type');
 
   const startEdit = (p: Project) => {
+    if (!canEdit) {
+      toggleExpand(p.id);
+      return;
+    }
     setEditingId(p.id);
     let customArray = [];
     try {
@@ -339,9 +347,13 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         >
           <RefreshCw size={20} />
         </button>
-        {!isCreating && !archivedView && (
-          <button onClick={() => setIsCreating(true)} className="bg-[var(--color-secondary)] hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02] active:scale-95 ml-auto">
-            <Plus size={20} /> {t('projects.new_project')}
+        {!isCreating && !archivedView && canEdit && (
+          <button 
+            className="flex items-center gap-2 bg-[#e78b01] hover:bg-[#c97500] text-white px-5 py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 ml-auto"
+            onClick={() => setIsCreating(true)}
+          >
+            <Plus size={20} />
+            <span className="hidden md:inline">{t('projects.new_project') || 'New Project'}</span>
           </button>
         )}
       </div>
@@ -460,15 +472,17 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           <span className="md:hidden text-[10px] font-black uppercase tracking-wider">{t('projects.slideout.details')}</span>
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
-                        <div className="md:hidden flex items-center gap-2">
-                          <button 
-                            type="button"
-                            onClick={(e) => toggleArchive(e, p)} 
-                            className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl"
-                          >
-                            <Archive size={16} />
-                          </button>
-                        </div>
+                        {canEdit && (
+                          <div className="md:hidden flex items-center gap-2">
+                            <button 
+                              type="button"
+                              onClick={(e) => toggleArchive(e, p)} 
+                              className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl"
+                            >
+                              <Archive size={16} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300">
@@ -743,7 +757,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           <button onClick={() => handleSave(p.id)} className="p-3 bg-[#00b800] hover:bg-green-600 text-white rounded-xl shadow-lg transition-all transform active:scale-95">
                             <Save size={18} />
                           </button>
-                        ) : (
+                        ) : canEdit ? (
                           <>
                             <button 
                               type="button"
@@ -762,7 +776,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                <Archive size={18} />
                             </button>
                           </>
-                        )}
+                        ) : null}
                       </div>
                       {/* Mobile Actions (Visible Only in Editing) */}
                       {isEditing && (

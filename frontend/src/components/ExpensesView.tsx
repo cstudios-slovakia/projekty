@@ -16,6 +16,10 @@ interface Project {
 
 export const ExpensesView: React.FC = () => {
   const { t } = useTranslation();
+  const userToken = localStorage.getItem('token');
+  const user = userToken ? JSON.parse(atob(userToken)) : null;
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterName, setFilterName] = useState('');
@@ -137,13 +141,15 @@ export const ExpensesView: React.FC = () => {
                     <div className="flex flex-col">
                         <div className="flex items-center gap-3">
                         <span className="text-base font-bold text-gray-900 tracking-tight">{p.name}</span>
-                        <button 
-                            onClick={() => setExpenseProjectId(p.id)}
-                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
-                            title={t('projects.slideout.add_expense')}
-                        >
-                            <Plus size={16} />
-                        </button>
+                        {canEdit && (
+                            <button 
+                                onClick={() => setExpenseProjectId(p.id)}
+                                className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
+                                title={t('projects.slideout.add_expense')}
+                            >
+                                <Plus size={16} />
+                            </button>
+                        )}
                         </div>
                         {p.updated_at && (
                             <div className="flex items-center gap-1.5 mt-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest">

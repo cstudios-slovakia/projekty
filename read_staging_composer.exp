@@ -1,0 +1,9 @@
+#!/usr/bin/expect -f
+set password "793921881f"
+set host "uid1102122@shell.r5.websupport.sk"
+set port "28865"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $host "cat cstudios.sk/sub/projektstaging/composer.json"
+expect "password:"
+send "$password\r"
+expect eof
