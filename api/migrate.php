@@ -18,12 +18,11 @@ function column_exists($pdo, $table, $column) {
     if ($driver === 'pgsql') {
         $stmt = $pdo->prepare("SELECT 1 FROM information_schema.columns WHERE table_name = ? AND column_name = ?");
         $stmt->execute([$table, $column]);
-        return (bool)$stmt->fetch();
     } else {
-        $stmt = $pdo->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
-        $stmt->execute([$column]);
-        return (bool)$stmt->fetch();
+        $stmt = $pdo->prepare("SELECT 1 FROM information_schema.columns WHERE table_name = ? AND column_name = ? AND table_schema = DATABASE()");
+        $stmt->execute([$table, $column]);
     }
+    return (bool)$stmt->fetch();
 }
 
 function table_exists($pdo, $table) {
@@ -31,12 +30,11 @@ function table_exists($pdo, $table) {
     if ($driver === 'pgsql') {
         $stmt = $pdo->prepare("SELECT 1 FROM information_schema.tables WHERE table_name = ?");
         $stmt->execute([$table]);
-        return (bool)$stmt->fetch();
     } else {
-        $stmt = $pdo->prepare("SHOW TABLES LIKE ?");
+        $stmt = $pdo->prepare("SELECT 1 FROM information_schema.tables WHERE table_name = ? AND table_schema = DATABASE()");
         $stmt->execute([$table]);
-        return (bool)$stmt->fetch();
     }
+    return (bool)$stmt->fetch();
 }
 
 try {
