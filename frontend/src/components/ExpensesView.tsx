@@ -18,7 +18,7 @@ export const ExpensesView: React.FC = () => {
   const { t } = useTranslation();
   const userToken = localStorage.getItem('token');
   const user = userToken ? JSON.parse(atob(userToken)) : null;
-  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+  const canEdit = user?.role !== 'viewer';
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);

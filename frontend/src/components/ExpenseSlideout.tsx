@@ -47,7 +47,7 @@ export const ExpenseSlideout: React.FC<Props> = ({ projectId, projectName, devBu
   const { t } = useTranslation();
   const userToken = localStorage.getItem('token');
   const user = userToken ? JSON.parse(atob(userToken)) : null;
-  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+  const canEdit = user?.role !== 'viewer';
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [entities, setEntities] = useState<Entity[]>([]);

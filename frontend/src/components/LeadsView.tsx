@@ -49,7 +49,7 @@ export const LeadsView: React.FC<Props> = ({ archivedView = false }) => {
   const { t } = useTranslation();
   const userToken = localStorage.getItem('token');
   const user = userToken ? JSON.parse(atob(userToken)) : null;
-  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+  const canEdit = user?.role !== 'viewer';
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [entities, setEntities] = useState<SettingsEntity[]>([]);

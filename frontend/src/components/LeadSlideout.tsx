@@ -50,7 +50,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
   const { t } = useTranslation();
   const userToken = localStorage.getItem('token');
   const user = userToken ? JSON.parse(atob(userToken)) : null;
-  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+  const canEdit = user?.role !== 'viewer';
 
   const [lead, setLead] = useState<Lead | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);

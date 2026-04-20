@@ -50,7 +50,7 @@ export const TimeLogsView: React.FC = () => {
   // Current user from token
   const token = localStorage.getItem('token');
   const user = token ? JSON.parse(atob(token)) : null;
-  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+  const canEdit = user?.role !== 'viewer';
 
   // Admin/Manager Multi-User Logging
   const [allUsers, setAllUsers] = useState<any[]>([]);
