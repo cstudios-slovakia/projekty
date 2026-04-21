@@ -1,0 +1,9 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p26127
+expect "password:"
+send "31e15f87ef\r"
+expect "$ "
+send "find ~ -maxdepth 4 -name \"projektyerik.cstudios.sk\" -type d 2>/dev/null || ls -la ~\r"
+expect "$ "
+send "exit\r"

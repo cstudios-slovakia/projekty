@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, Filler } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, FileText, CheckCircle } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 ChartJS.register(
@@ -18,112 +18,13 @@ ChartJS.register(
 );
 
 interface DashboardData {
-  funnel: any[];
+  funnel: any;
   income: any[];
   workload_dev: any[];
   workload_design: any[];
   workload_pm: any[];
   leads?: any[];
 }
-
-const FunnelChart: React.FC<{ data: any }> = ({ data }) => {
-  const { t } = useTranslation();
-  
-  const funnelStages = [
-    { key: 'leads', color: '#6366f1', label: t('dashboard.funnel.stage_leads') },
-    { key: 'sent', color: '#3b82f6', label: t('dashboard.funnel.stage_sent') },
-    { key: 'accepted', color: '#10b981', label: t('dashboard.funnel.stage_accepted') },
-    { key: 'net', color: '#f59e0b', label: t('dashboard.funnel.stage_net') }
-  ].map(stage => ({
-    ...stage,
-    count: Number(data[stage.key]?.count || 0),
-    amount: Number(data[stage.key]?.amount || 0)
-  }));
-
-  const maxAmount = Math.max(...funnelStages.map(s => s.amount), 1);
-  const totalHeight = 350;
-  const stageHeight = totalHeight / funnelStages.length;
-
-  return (
-    <div className="w-full flex items-center justify-center py-6 px-4">
-      <svg viewBox={`0 0 500 ${totalHeight + 40}`} className="w-full max-w-2xl drop-shadow-2xl overflow-visible">
-        <defs>
-          {funnelStages.map(stage => (
-            <linearGradient key={`grad-${stage.key}`} id={`grad-${stage.key}`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={stage.color} stopOpacity="0.8" />
-              <stop offset="100%" stopColor={stage.color} />
-            </linearGradient>
-          ))}
-        </defs>
-
-        {funnelStages.map((stage, i) => {
-          const y = i * stageHeight;
-          const nextStageAmount = funnelStages[i+1] ? funnelStages[i+1].amount : stage.amount * 0.4;
-          
-          // Width based on volume (amount)
-          const topWidth = Math.max((stage.amount / maxAmount) * 460, 100);
-          const bottomWidth = Math.max((nextStageAmount / maxAmount) * 460, 60);
-
-          const x1 = (500 - topWidth) / 2;
-          const x2 = (500 + topWidth) / 2;
-          const x3 = (500 + bottomWidth) / 2;
-          const x4 = (500 - bottomWidth) / 2;
-
-          return (
-            <g key={stage.key} className="group transition-all duration-300">
-              {/* Trapezoid Base */}
-              <polygon 
-                points={`${x1},${y} ${x2},${y} ${x3},${y + stageHeight - 4} ${x4},${y + stageHeight - 4}`} 
-                fill={`url(#grad-${stage.key})`}
-                className="transition-all duration-500 hover:brightness-110 cursor-pointer outline-none shadow-xl"
-              />
-              
-              {/* Count Text (Center-Top) */}
-              <text 
-                x={250} y={y + stageHeight / 2 - 8} 
-                textAnchor="middle" 
-                fill="white" 
-                className="text-[28px] font-black drop-shadow-md select-none pointer-events-none"
-              >
-                {stage.count}
-              </text>
-
-              {/* Stage Amount (Center-Middle) */}
-              <text 
-                x={250} y={y + stageHeight / 2 + 12} 
-                textAnchor="middle" 
-                fill="rgba(255,255,255,0.9)" 
-                className="text-[14px] font-black select-none pointer-events-none tracking-tight"
-              >
-                €{Math.round(stage.amount).toLocaleString()}
-              </text>
-
-              {/* Stage label (Side Label integrated) */}
-              <text 
-                x={x1 - 10} y={y + stageHeight / 2} 
-                textAnchor="end" 
-                fill="rgba(0,0,0,0.4)" 
-                className="text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                {stage.label}
-              </text>
-
-              {/* Persistent label (always visible, outside to not clutter center) */}
-              <text 
-                x={250} y={y + 16} 
-                textAnchor="middle" 
-                fill="rgba(255,255,255,0.5)" 
-                className="text-[9px] font-black uppercase tracking-[0.2em] select-none pointer-events-none"
-              >
-                {stage.label}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-};
 
 export const DashboardKPIs: React.FC = () => {
   const { t } = useTranslation();
@@ -235,16 +136,31 @@ export const DashboardKPIs: React.FC = () => {
           {t('common.refresh')}
         </button>
       </div>
-      {/* KPI Cards Row REMOVED as requested */}
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* Project Funnel */}
-        <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[500px]">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{t('dashboard.funnel.title')}</h3>
-          <p className="text-[10px] text-gray-400 mb-6 md:mb-8 uppercase tracking-[0.2em] font-black">{t('dashboard.funnel.subtitle')}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        
+        {/* Financial KPIs replace Funnel */}
+        <div className="flex flex-col gap-6">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[32px] p-6 md:p-8 shadow-lg text-white flex flex-col justify-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+             <div className="absolute -top-4 -right-4 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                <FileText size={180} />
+             </div>
+             <div className="relative z-10 w-full">
+               <h3 className="text-[11px] uppercase tracking-[0.2em] font-black text-blue-200 mb-2">{t('dashboard.pending_proposals') || 'Sent Unaccepted'}</h3>
+               <p className="text-4xl lg:text-5xl font-black mb-1 truncate">€{Number(data.funnel?.sent_unaccepted?.amount || 0).toLocaleString()}</p>
+               <p className="text-sm font-bold text-blue-100">{data.funnel?.sent_unaccepted?.count || 0} {t('dashboard.projects_count') || 'projects pending'}</p>
+             </div>
+          </div>
           
-          <div className="flex-1 flex flex-col justify-center overflow-x-hidden">
-            <FunnelChart data={data.funnel} />
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[32px] p-6 md:p-8 shadow-lg text-white flex flex-col justify-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+             <div className="absolute -top-4 -right-4 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                <CheckCircle size={180} />
+             </div>
+             <div className="relative z-10 w-full">
+               <h3 className="text-[11px] uppercase tracking-[0.2em] font-black text-emerald-100 mb-2">{t('dashboard.remaining_invoicable') || 'Remaining Invoicable'}</h3>
+               <p className="text-4xl lg:text-5xl font-black mb-1 truncate">€{Number(data.funnel?.remaining_invoicable?.amount || 0).toLocaleString()}</p>
+               <p className="text-sm font-bold text-emerald-100">{data.funnel?.remaining_invoicable?.count || 0} {t('dashboard.projects_count') || 'active signed projects'}</p>
+             </div>
           </div>
         </div>
 

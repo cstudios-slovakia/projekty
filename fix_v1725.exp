@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no uid2136377@shell.r2.websupport.sk -p27226
+expect "password:"
+send "a0ea80008e\r"
+expect "$ "
+send "cd ~/softwaresolutions.sk/sub/projekt\r"
+expect "$ "
+send "composer require cstudios-slovakia/projekty:v1.7.25\r"
+expect "$ "
+send "exit\r"
