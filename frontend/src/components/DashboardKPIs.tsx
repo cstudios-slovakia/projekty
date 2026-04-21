@@ -217,40 +217,22 @@ export const DashboardKPIs: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Grouped by Developer */}
-                <div className="space-y-4 mt-8">
-                  {Object.entries(
-                    data.deadlines.slice(1).reduce((acc: any, d: any) => {
-                      const dev = d.dev_name || 'Unassigned';
-                      if (!acc[dev]) acc[dev] = [];
-                      acc[dev].push(d);
-                      return acc;
-                    }, {})
-                  ).map(([devName, projects]: any) => (
-                    <details key={devName} className="group border border-gray-100 rounded-2xl bg-gray-50 overflow-hidden">
-                      <summary className="font-bold text-sm text-gray-700 px-4 py-3 cursor-pointer select-none hover:bg-gray-100 transition-colors list-none flex justify-between items-center">
-                        <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                          {devName}
-                        </span>
-                        <span className="text-xs text-gray-400 bg-white px-2 rounded-md shadow-sm border border-gray-100">{projects.length} pending</span>
-                      </summary>
-                      <div className="px-4 pb-4 pt-1 space-y-2 bg-white">
-                        {projects.map((p: any) => (
-                          <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-gray-50 last:border-0 gap-2">
-                            <div className="flex flex-col">
-                              <span className="font-bold text-gray-900 text-sm truncate max-w-[180px]" title={p.project_title}>{p.project_title}</span>
-                              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">PM: {p.pm_name || '-'}</span>
-                            </div>
-                            <span className="text-xs font-black text-gray-600 bg-gray-100 px-2 py-1 rounded-lg shrink-0 text-center">
-                              {new Date(p.deadline).toLocaleDateString()}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  ))}
-                </div>
+                {/* Furthest Deadline */}
+                {data.deadlines.length > 1 && (
+                  <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 mt-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-100 px-2 py-0.5 rounded-md">Furthest Deadline</span>
+                      <span className="text-sm font-bold text-blue-600">
+                        {new Date(data.deadlines[data.deadlines.length - 1].deadline).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-1">{data.deadlines[data.deadlines.length - 1].project_title}</h4>
+                    <div className="flex items-center gap-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <span>PM: <span className="text-gray-900">{data.deadlines[data.deadlines.length - 1].pm_name || 'Unassigned'}</span></span>
+                      <span>DEV: <span className="text-gray-900">{data.deadlines[data.deadlines.length - 1].dev_name || 'Unassigned'}</span></span>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center justify-center h-full text-sm font-bold text-gray-400">
