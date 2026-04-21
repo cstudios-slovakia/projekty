@@ -85,6 +85,25 @@ try {
         $settingsStmt = $pdo->query("SELECT {$quote}key{$quote}, {$quote}value{$quote} FROM " . (defined('DB_PREFIX') ? DB_PREFIX : '') . 'system_settings');
         $settings = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
+        // 6. Upcoming Deadlines
+        $deadlinesStmt = $pdo->query("
+            SELECT 
+                p.id, 
+                p.name as project_title, 
+                p.deadline, 
+                pm.name as pm_name, 
+                dev.name as dev_name
+            FROM projects p
+            LEFT JOIN settings_entities pm ON p.pm_id = pm.id
+            LEFT JOIN settings_entities dev ON p.dev_id = dev.id
+            WHERE p.is_archived = FALSE 
+              AND p.deadline IS NOT NULL 
+              AND p.status NOT IN ('Price Offer Rejected', 'Closed', 'Price Offer Sent', 'New Lead')
+            ORDER BY p.deadline ASC
+            LIMIT 50
+        ");
+        $deadlines = $deadlinesStmt->fetchAll();
+
         echo json_encode([
             "status" => "success", 
             "data" => [
@@ -93,7 +112,8 @@ try {
                 "workload_dev" => $workload,
                 "workload_design" => $designWorkload,
                 "workload_pm" => $pmWorkload,
-                "settings" => $settings
+                "settings" => $settings,
+                "deadlines" => $deadlines
             ]
         ]);
     }

@@ -6,12 +6,22 @@ header('Access-Control-Allow-Origin: *');
 define('ALLOW_NO_DB', true);
 require_once 'db.php';
 
-$response = [
-    "installed" => $is_installed,
-    'version' => '1.7.22',
-    'status' => 'ok',
-    'timestamp' => date('c')
-];
+    // Extract version dynamically from composer.json
+    $version = '1.8.x';
+    $composer_path = dirname(__DIR__) . '/composer.json';
+    if (file_exists($composer_path)) {
+        $json = json_decode(file_get_contents($composer_path), true);
+        if (isset($json['version'])) {
+            $version = $json['version'];
+        }
+    }
+
+    $response = [
+        "installed" => $is_installed,
+        'version' => $version,
+        'status' => 'ok',
+        'timestamp' => date('c')
+    ];
 
 if ($is_installed) {
     try {
