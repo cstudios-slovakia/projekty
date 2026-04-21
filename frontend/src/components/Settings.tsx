@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, UserPlus, UserX, Shield, User as UserIcon } from 'lucide-react';
+import { Plus, Trash2, UserPlus, UserX, Shield, User as UserIcon, TrendingUp } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface Entity {
@@ -349,12 +349,22 @@ export const Settings: React.FC = () => {
         {activeTab === 'project' && (
           <div className="flex flex-col gap-6">
             <div className="bg-white p-6 rounded-3xl border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Financial KPI Warnings</h3>
-              <p className="text-sm text-gray-500 mb-6">Set the minimum threshold for financial KPIs. If the dashboard values drop below these numbers, the widgets will turn orange as a warning.</p>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900">{t('settings.project.warnings_title') || 'Financial KPI Warnings'}</h3>
+                <button 
+                  onClick={() => saveSysSettings()}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--color-primary)] to-yellow-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-[var(--color-primary)]/20 hover:shadow-xl active:scale-95 transition-all w-full sm:w-auto mt-4 sm:mt-0"
+                >
+                  <TrendingUp size={16} />
+                  {t('settings.system.save_button') || 'Save Preferences'}
+                </button>
+              </div>
+              
+              <p className="text-sm text-gray-500 mb-6">{t('settings.project.warnings_subtitle') || 'Set the minimum threshold for financial KPIs. If the dashboard values drop below these numbers, the widgets will turn orange as a warning.'}</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Sent Unaccepted Warning (€)</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('settings.project.warning_sent') || 'Sent Unaccepted Warning (€)'}</label>
                   <input 
                     type="number" 
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-bold"
@@ -363,7 +373,7 @@ export const Settings: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Remaining Invoicable Warning (€)</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('settings.project.warning_inv') || 'Remaining Invoicable Warning (€)'}</label>
                   <input 
                     type="number" 
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-bold"

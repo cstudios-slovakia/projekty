@@ -135,7 +135,7 @@ export const DashboardKPIs: React.FC = () => {
              <div className="relative z-10 w-full">
                <h3 className="text-[11px] uppercase tracking-[0.2em] font-black text-white/80 mb-2">{t('dashboard.pending_proposals') || 'Sent Unaccepted'}</h3>
                <p className="text-4xl lg:text-5xl font-black mb-1 truncate">€{Number(data.funnel?.sent_unaccepted?.amount || 0).toLocaleString()}</p>
-               <p className="text-sm font-bold text-white/90">{data.funnel?.sent_unaccepted?.count || 0} {t('dashboard.projects_count') || 'projects pending'}</p>
+               <p className="text-sm font-bold text-white/90">{data.funnel?.sent_unaccepted?.count || 0} {t('dashboard.projects_pending') || 'projects pending'}</p>
              </div>
           </div>
           
@@ -196,8 +196,8 @@ export const DashboardKPIs: React.FC = () => {
 
         {/* Upcoming Deadlines Widget */}
         <div className="bg-white rounded-[32px] p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col min-h-[400px]">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">Upcoming Deadlines</h3>
-          <p className="text-[10px] text-gray-400 mb-8 uppercase tracking-[0.2em] font-black">Project Timelines</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">{t('dashboard.upcoming_deadlines.title') || 'Upcoming Deadlines'}</h3>
+          <p className="text-[10px] text-gray-400 mb-8 uppercase tracking-[0.2em] font-black">{t('dashboard.upcoming_deadlines.subtitle') || 'Project Timelines'}</p>
           
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             {data.deadlines && data.deadlines.length > 0 ? (
@@ -205,15 +205,15 @@ export const DashboardKPIs: React.FC = () => {
                 {/* Highlighted Closest Deadline */}
                 <div className="bg-red-50/50 border border-red-100 rounded-2xl p-4 mb-6 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-100 px-2 py-0.5 rounded-md">Next Urgent</span>
+                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-100 px-2 py-0.5 rounded-md">{t('dashboard.upcoming_deadlines.next_urgent') || 'Next Urgent'}</span>
                     <span className="text-sm font-bold text-red-600">
                       {new Date(data.deadlines[0].deadline).toLocaleDateString()}
                     </span>
                   </div>
                   <h4 className="text-lg font-bold text-gray-900 mb-1">{data.deadlines[0].project_title}</h4>
                   <div className="flex items-center gap-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                    <span>PM: <span className="text-gray-900">{data.deadlines[0].pm_name || 'Unassigned'}</span></span>
-                    <span>DEV: <span className="text-gray-900">{data.deadlines[0].dev_name || 'Unassigned'}</span></span>
+                    <span>{t('common.pm') || 'PM'}: <span className="text-gray-900">{data.deadlines[0].pm_name || t('leads.unassigned') || 'Unassigned'}</span></span>
+                    <span>{t('common.dev_tag') || 'DEV'}: <span className="text-gray-900">{data.deadlines[0].dev_name || t('leads.unassigned') || 'Unassigned'}</span></span>
                   </div>
                 </div>
 
@@ -221,22 +221,22 @@ export const DashboardKPIs: React.FC = () => {
                 {data.deadlines.length > 1 && (
                   <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 mt-6 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-100 px-2 py-0.5 rounded-md">Furthest Deadline</span>
+                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-100 px-2 py-0.5 rounded-md">{t('dashboard.upcoming_deadlines.furthest') || 'Furthest Deadline'}</span>
                       <span className="text-sm font-bold text-blue-600">
                         {new Date(data.deadlines[data.deadlines.length - 1].deadline).toLocaleDateString()}
                       </span>
                     </div>
                     <h4 className="text-lg font-bold text-gray-900 mb-1">{data.deadlines[data.deadlines.length - 1].project_title}</h4>
                     <div className="flex items-center gap-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      <span>PM: <span className="text-gray-900">{data.deadlines[data.deadlines.length - 1].pm_name || 'Unassigned'}</span></span>
-                      <span>DEV: <span className="text-gray-900">{data.deadlines[data.deadlines.length - 1].dev_name || 'Unassigned'}</span></span>
+                      <span>{t('common.pm') || 'PM'}: <span className="text-gray-900">{data.deadlines[data.deadlines.length - 1].pm_name || t('leads.unassigned') || 'Unassigned'}</span></span>
+                      <span>{t('common.dev_tag') || 'DEV'}: <span className="text-gray-900">{data.deadlines[data.deadlines.length - 1].dev_name || t('leads.unassigned') || 'Unassigned'}</span></span>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex items-center justify-center h-full text-sm font-bold text-gray-400">
-                No active deadlines found
+                {t('dashboard.upcoming_deadlines.no_deadlines') || 'No active deadlines found'}
               </div>
             )}
           </div>

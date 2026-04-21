@@ -87,6 +87,17 @@
       "title": "Expected Income",
       "subtitle": "Monthly Forecast",
       "label": "Income"
+    },
+    "pending_proposals": "Sent Unaccepted",
+    "remaining_invoicable": "Remaining Invoicable",
+    "projects_count": "active signed projects",
+    "projects_pending": "projects pending",
+    "upcoming_deadlines": {
+      "title": "Upcoming Deadlines",
+      "subtitle": "Project Timelines",
+      "next_urgent": "Next Urgent",
+      "furthest": "Furthest Deadline",
+      "no_deadlines": "No active deadlines found"
     }
   },
   "leads": {
@@ -252,6 +263,12 @@
       "lead": "Lead Settings",
       "users": "Users",
       "system": "System Settings"
+    },
+    "project": {
+      "warnings_title": "Financial KPI Warnings",
+      "warnings_subtitle": "Set the minimum threshold for financial KPIs. If the dashboard values drop below these numbers, the widgets will turn orange as a warning.",
+      "warning_sent": "Sent Unaccepted Warning (€)",
+      "warning_inv": "Remaining Invoicable Warning (€)"
     },
     "profile": {
       "title": "Personal Preferences",

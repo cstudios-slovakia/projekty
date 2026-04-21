@@ -87,6 +87,17 @@
       "title": "Očakávaný príjem",
       "subtitle": "Mesačná prognóza",
       "label": "Príjem"
+    },
+    "pending_proposals": "Zaslané - neprijaté",
+    "remaining_invoicable": "Zostáva vyfakturovať",
+    "projects_count": "aktívnych podpísaných",
+    "projects_pending": "čakajúcich projektov",
+    "upcoming_deadlines": {
+      "title": "Blížiace sa termíny",
+      "subtitle": "Časové osi projektov",
+      "next_urgent": "Najbližší termín",
+      "furthest": "Najvzdialenejší termín",
+      "no_deadlines": "Nenašli sa žiadne aktívne termíny"
     }
   },
   "leads": {
@@ -252,6 +263,12 @@
       "lead": "Nastavenia lead-ov",
       "users": "Užívatelia",
       "system": "Systémové nastavenia"
+    },
+    "project": {
+      "warnings_title": "Varovania kľúčových údajov (KPI)",
+      "warnings_subtitle": "Nastavte minimálnu hranicu pre finančné KPI. Ak hodnoty klesnú pod tieto čísla, farba widgetu sa zmení na oranžovú ako varovanie.",
+      "warning_sent": "Varovanie: Zaslané nepotvrdené (€)",
+      "warning_inv": "Varovanie: Zostáva vyfakturovať (€)"
     },
     "profile": {
       "title": "Osobné preferencie",
