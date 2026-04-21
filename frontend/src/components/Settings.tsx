@@ -32,7 +32,9 @@ export const Settings: React.FC = () => {
     accent_color_primary: '#e78b01', 
     accent_color_secondary: '#00b800',
     lead_api_key: '',
-    default_language: 'en'
+    default_language: 'en',
+    sent_unaccepted_warning: 0,
+    remaining_invoicable_warning: 0
   });
   
   const [userSettings, setUserSettings] = useState({
@@ -69,7 +71,9 @@ export const Settings: React.FC = () => {
             accent_color_primary: d.accent_color_primary || '#e78b01',
             accent_color_secondary: d.accent_color_secondary || '#00b800',
             lead_api_key: d.lead_api_key || '',
-            default_language: d.default_language || 'en'
+            default_language: d.default_language || 'en',
+            sent_unaccepted_warning: Number(d.sent_unaccepted_warning) || 0,
+            remaining_invoicable_warning: Number(d.remaining_invoicable_warning) || 0
           });
         }
       });
@@ -343,8 +347,45 @@ export const Settings: React.FC = () => {
       <div className="pt-2">
         {/* TAB: Project Settings */}
         {activeTab === 'project' && (
-          <div className="flex flex-col lg:flex-row flex-wrap gap-6">
-            {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type', undefined, false)}
+          <div className="flex flex-col gap-6">
+            <div className="bg-white p-6 rounded-3xl border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Financial KPI Warnings</h3>
+              <p className="text-sm text-gray-500 mb-6">Set the minimum threshold for financial KPIs. If the dashboard values drop below these numbers, the widgets will turn orange as a warning.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Sent Unaccepted Warning (€)</label>
+                  <input 
+                    type="number" 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-bold"
+                    value={sysSettings.sent_unaccepted_warning}
+                    onChange={e => setSysSettings({...sysSettings, sent_unaccepted_warning: Number(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Remaining Invoicable Warning (€)</label>
+                  <input 
+                    type="number" 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-bold"
+                    value={sysSettings.remaining_invoicable_warning}
+                    onChange={e => setSysSettings({...sysSettings, remaining_invoicable_warning: Number(e.target.value)})}
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <button 
+                  onClick={saveSysSettings}
+                  className="px-6 py-3 bg-[var(--color-primary)] text-white font-bold rounded-xl shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  {t('common.save') || 'Save Settings'}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row flex-wrap gap-6">
+              {renderEntityColumn(t('projects.types') || 'Project Types', 'project_type', undefined, false)}
+            </div>
           </div>
         )}
 

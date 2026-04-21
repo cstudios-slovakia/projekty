@@ -24,6 +24,7 @@ interface DashboardData {
   workload_design: any[];
   workload_pm: any[];
   leads?: any[];
+  settings?: any;
 }
 
 export const DashboardKPIs: React.FC = () => {
@@ -141,25 +142,25 @@ export const DashboardKPIs: React.FC = () => {
         
         {/* Financial KPIs replace Funnel */}
         <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[32px] p-6 md:p-8 shadow-lg text-white flex flex-col justify-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+          <div className={`bg-gradient-to-br ${Number(data.settings?.sent_unaccepted_warning) > 0 && Number(data.funnel?.sent_unaccepted?.amount || 0) < Number(data.settings?.sent_unaccepted_warning) ? 'from-orange-500 to-red-600' : 'from-blue-600 to-indigo-700'} rounded-[32px] p-6 md:p-8 shadow-lg text-white flex flex-col justify-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300`}>
              <div className="absolute -top-4 -right-4 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
                 <FileText size={180} />
              </div>
              <div className="relative z-10 w-full">
-               <h3 className="text-[11px] uppercase tracking-[0.2em] font-black text-blue-200 mb-2">{t('dashboard.pending_proposals') || 'Sent Unaccepted'}</h3>
+               <h3 className="text-[11px] uppercase tracking-[0.2em] font-black text-white/80 mb-2">{t('dashboard.pending_proposals') || 'Sent Unaccepted'}</h3>
                <p className="text-4xl lg:text-5xl font-black mb-1 truncate">€{Number(data.funnel?.sent_unaccepted?.amount || 0).toLocaleString()}</p>
-               <p className="text-sm font-bold text-blue-100">{data.funnel?.sent_unaccepted?.count || 0} {t('dashboard.projects_count') || 'projects pending'}</p>
+               <p className="text-sm font-bold text-white/90">{data.funnel?.sent_unaccepted?.count || 0} {t('dashboard.projects_count') || 'projects pending'}</p>
              </div>
           </div>
           
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[32px] p-6 md:p-8 shadow-lg text-white flex flex-col justify-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+          <div className={`bg-gradient-to-br ${Number(data.settings?.remaining_invoicable_warning) > 0 && Number(data.funnel?.remaining_invoicable?.amount || 0) < Number(data.settings?.remaining_invoicable_warning) ? 'from-orange-500 to-red-600' : 'from-emerald-500 to-teal-600'} rounded-[32px] p-6 md:p-8 shadow-lg text-white flex flex-col justify-center flex-1 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300`}>
              <div className="absolute -top-4 -right-4 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
                 <CheckCircle size={180} />
              </div>
              <div className="relative z-10 w-full">
-               <h3 className="text-[11px] uppercase tracking-[0.2em] font-black text-emerald-100 mb-2">{t('dashboard.remaining_invoicable') || 'Remaining Invoicable'}</h3>
+               <h3 className="text-[11px] uppercase tracking-[0.2em] font-black text-white/80 mb-2">{t('dashboard.remaining_invoicable') || 'Remaining Invoicable'}</h3>
                <p className="text-4xl lg:text-5xl font-black mb-1 truncate">€{Number(data.funnel?.remaining_invoicable?.amount || 0).toLocaleString()}</p>
-               <p className="text-sm font-bold text-emerald-100">{data.funnel?.remaining_invoicable?.count || 0} {t('dashboard.projects_count') || 'active signed projects'}</p>
+               <p className="text-sm font-bold text-white/90">{data.funnel?.remaining_invoicable?.count || 0} {t('dashboard.projects_count') || 'active signed projects'}</p>
              </div>
           </div>
         </div>

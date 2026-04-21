@@ -6,7 +6,7 @@ send "31e15f87ef\r"
 expect "$ "
 send "cd ~/cstudios.sk/sub/projektyerik\r"
 expect "$ "
-send "composer require cstudios-slovakia/projekty:v1.7.25\r"
+send "composer require cstudios-slovakia/projekty:v1.8.5\r"
 expect {
     "Allow these packages to compile" {
         send "y\r"

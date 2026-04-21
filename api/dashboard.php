@@ -15,6 +15,8 @@ if ($method === 'OPTIONS') {
 
 try {
     if ($method === 'GET') {
+        $is_mysql = (defined('DB_TYPE') && (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
+        $quote = $is_mysql ? '`' : '';
         // 1. Funnel: 4-Stage Cumulative Data
         $funnel = [
             "sent_unaccepted" => $pdo->query("SELECT COUNT(*) as count, SUM(COALESCE(total_value, 0)) as amount FROM projects WHERE is_archived = FALSE AND status = 'Price Offer Sent'")->fetch(),
@@ -80,6 +82,9 @@ try {
         ");
         $pmWorkload = $pmWorkloadStmt->fetchAll();
 
+        $settingsStmt = $pdo->query("SELECT {$quote}key{$quote}, {$quote}value{$quote} FROM " . (defined('DB_PREFIX') ? DB_PREFIX : '') . 'system_settings');
+        $settings = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
         echo json_encode([
             "status" => "success", 
             "data" => [
@@ -87,7 +92,8 @@ try {
                 "income" => $income,
                 "workload_dev" => $workload,
                 "workload_design" => $designWorkload,
-                "workload_pm" => $pmWorkload
+                "workload_pm" => $pmWorkload,
+                "settings" => $settings
             ]
         ]);
     }
