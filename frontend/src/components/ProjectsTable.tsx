@@ -384,27 +384,46 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
       <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden overflow-x-auto md:overflow-visible">
         <table className="w-full text-left text-sm text-gray-600 border-collapse table-auto md:table-fixed">
-          <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[11px] tracking-[0.1em] font-bold text-gray-400">
-            <tr>
-              <th className="p-5 w-12 text-center"></th>
-              <th className="p-5 md:w-1/4 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('name')}>
-                <div className="flex items-center">{t('projects.project_info') || 'Project Info'} <SortIcon col="name" /></div>
-              </th>
-              <th className="p-5 w-32 text-center cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('deadline')}>
-                <div className="flex items-center justify-center">{t('projects.deadline')} <SortIcon col="deadline" /></div>
-              </th>
-              <th className="p-5 w-44 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('status')}>
-                <div className="flex items-center">{t('projects.workflow') || 'Workflow'} <SortIcon col="status" /></div>
-              </th>
-              <th className="p-5 w-32">{t('projects.pm') || 'PM'}</th>
-              <th className="p-5 w-44">{t('projects.designer') || 'Designer'}</th>
-              <th className="p-5 w-44">{t('projects.developer') || 'Developer'}</th>
-              <th className="p-5 w-40 text-right cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('total_value')}>
-                <div className="flex items-center justify-end">{t('projects.financials') || 'Financials'} <SortIcon col="total_value" /></div>
-              </th>
-              <th className="p-5 w-24 text-center">{t('common.actions')}</th>
-            </tr>
-          </thead>
+          {viewMode === 'supercompact' ? (
+            <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[10px] tracking-[0.1em] font-bold text-gray-400">
+              <tr>
+                <th className="p-3 w-10 text-center"></th>
+                <th className="p-3 w-48 cursor-pointer hover:text-gray-900" onClick={() => handleSort('name')}>
+                  <div className="flex items-center">{t('projects.project_info') || 'Project Title'} <SortIcon col="name" /></div>
+                </th>
+                <th className="p-3 w-28 text-center cursor-pointer hover:text-gray-900" onClick={() => handleSort('deadline')}>
+                  <div className="flex items-center justify-center">{t('projects.deadline')} <SortIcon col="deadline" /></div>
+                </th>
+                <th className="p-3 w-40">{t('projects.pm') || 'Project Manager'}</th>
+                <th className="p-3 w-40">{t('projects.developer') || 'Developer'}</th>
+                <th className="p-3 w-40">{t('projects.designer') || 'Graphic Designer'}</th>
+                <th className="p-3 w-28 text-center">{t('projects.design_end') || 'Designer Deadline'}</th>
+                <th className="p-3">{t('projects.notes') || 'Notes'}</th>
+              </tr>
+            </thead>
+          ) : (
+            <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[11px] tracking-[0.1em] font-bold text-gray-400">
+              <tr>
+                <th className="p-5 w-12 text-center"></th>
+                <th className="p-5 md:w-1/4 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('name')}>
+                  <div className="flex items-center">{t('projects.project_info') || 'Project Info'} <SortIcon col="name" /></div>
+                </th>
+                <th className="p-5 w-32 text-center cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('deadline')}>
+                  <div className="flex items-center justify-center">{t('projects.deadline')} <SortIcon col="deadline" /></div>
+                </th>
+                <th className="p-5 w-44 cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('status')}>
+                  <div className="flex items-center">{t('projects.workflow') || 'Workflow'} <SortIcon col="status" /></div>
+                </th>
+                <th className="p-5 w-32">{t('projects.pm') || 'PM'}</th>
+                <th className="p-5 w-44">{t('projects.designer') || 'Designer'}</th>
+                <th className="p-5 w-44">{t('projects.developer') || 'Developer'}</th>
+                <th className="p-5 w-40 text-right cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('total_value')}>
+                  <div className="flex items-center justify-end">{t('projects.financials') || 'Financials'} <SortIcon col="total_value" /></div>
+                </th>
+                <th className="p-5 w-24 text-center">{t('common.actions')}</th>
+              </tr>
+            </thead>
+          )}
           <tbody className="divide-y divide-gray-50 block md:table-row-group">
             {isCreating && !archivedView && (
               <tr className="bg-gray-50/50 block md:table-row border-b md:border-none p-4 md:p-0">
@@ -508,7 +527,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       className={`group transition-all block md:table-row border-b border-gray-200 cursor-pointer hover:bg-gray-100 border-l-4 ${getSupercompactStatusColor(p.status)}`} 
                       onClick={() => toggleExpand(p.id)}
                     >
-                       <td className="p-1 md:p-1.5 text-center block md:table-cell w-12 border-b md:border-b-0 border-gray-100">
+                       <td className="p-1 md:p-1.5 text-center block md:table-cell w-10 border-b md:border-b-0 border-gray-100">
                          <ChevronDown size={14} className="mx-auto text-gray-400 group-hover:text-gray-600" />
                        </td>
                        <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[200px]">
@@ -517,22 +536,20 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                        <td className="p-1 md:p-1.5 text-center block md:table-cell border-b md:border-b-0 border-gray-100">
                          <span className="text-[11px] font-black text-gray-600">{p.deadline ? new Date(p.deadline).toLocaleDateString('sk-SK') : '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[150px]">
-                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t(`leads.status_${p.status.toLowerCase().replace(/ /g, '_')}`) || p.status}</span>
-                       </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[100px]">
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
                          <span className="text-[11px] font-medium text-gray-600 truncate">{p.pm_name || '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[100px]">
-                         <span className="text-[11px] font-medium text-gray-600 truncate">{p.designer_name || '-'}</span>
-                       </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[100px]">
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
                          <span className="text-[11px] font-medium text-gray-600 truncate">{p.dev_name || '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
-                         <span className="text-[13px] font-black text-gray-900 tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
+                         <span className="text-[11px] font-medium text-gray-600 truncate">{p.designer_name || '-'}</span>
                        </td>
                        <td className="p-1 md:p-1.5 text-center block md:table-cell border-b md:border-b-0 border-gray-100">
+                         <span className="text-[11px] font-bold text-gray-600">{p.design_end ? new Date(p.design_end).toLocaleDateString('sk-SK') : '-'}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[150px]">
+                         <span className="text-[11px] text-gray-500 truncate" title={p.notes || ''}>{p.notes || '-'}</span>
                        </td>
                     </tr>
                   ) : (

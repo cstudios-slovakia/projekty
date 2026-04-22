@@ -6,7 +6,7 @@ header('Access-Control-Allow-Origin: *');
 define('ALLOW_NO_DB', true);
 require_once 'db.php';
 
-    $version = '1.9.3';
+    $version = '1.9.4';
     $composer_path = dirname(__DIR__) . '/composer.json';
     if (file_exists($composer_path)) {
         $json = json_decode(file_get_contents($composer_path), true);
