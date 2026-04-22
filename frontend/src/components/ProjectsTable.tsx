@@ -73,7 +73,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortColumn, setSortColumn] = useState('sort_order');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
-  const [viewMode, setViewMode] = useState<'expanded' | 'compact' | 'supercompact'>('expanded');
+  const [viewMode, setViewMode] = useState<'expanded' | 'compact' | 'supercompact'>(
+    (localStorage.getItem('projectsViewMode') as 'expanded' | 'compact' | 'supercompact') || 'expanded'
+  );
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   
   // Filters
@@ -83,8 +85,18 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [filterDesigner, setFilterDesigner] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [groupByState, setGroupByState] = useState(false);
+  const [groupByState, setGroupByState] = useState(
+    localStorage.getItem('projectsGroupByState') === 'true'
+  );
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('projectsViewMode', viewMode);
+  }, [viewMode]);
+
+  useEffect(() => {
+    localStorage.setItem('projectsGroupByState', String(groupByState));
+  }, [groupByState]);
   const [timeLogProjectId, setTimeLogProjectId] = useState<number | null>(null);
   
   // New Project Form

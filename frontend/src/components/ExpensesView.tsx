@@ -25,9 +25,15 @@ export const ExpensesView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filterName, setFilterName] = useState('');
   const [filterPM, setFilterPM] = useState('');
-  const [viewMode, setViewMode] = useState<'expanded' | 'compact' | 'supercompact'>('expanded');
+  const [viewMode, setViewMode] = useState<'expanded' | 'compact' | 'supercompact'>(
+    (localStorage.getItem('expensesViewMode') as 'expanded' | 'compact' | 'supercompact') || 'expanded'
+  );
   const [showFilters, setShowFilters] = useState(false);
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('expensesViewMode', viewMode);
+  }, [viewMode]);
 
   const fetchData = async () => {
     try {
