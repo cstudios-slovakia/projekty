@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, AlignJustify, List, Menu } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, AlignJustify, List, Menu, Filter, Layers } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ConfirmModal } from './ConfirmModal';
@@ -82,6 +82,8 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [filterDev, setFilterDev] = useState('');
   const [filterDesigner, setFilterDesigner] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [groupByState, setGroupByState] = useState(false);
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
   const [timeLogProjectId, setTimeLogProjectId] = useState<number | null>(null);
   
@@ -297,6 +299,29 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  const projectsToRender: Array<{type: 'project', data: Project} | {type: 'group', status: string, count: number}> = [];
+  if (groupByState) {
+     const groups = filteredProjects.reduce((acc, p) => {
+        if (!acc[p.status]) acc[p.status] = [];
+        acc[p.status].push(p);
+        return acc;
+     }, {} as Record<string, Project[]>);
+     statusOptions.forEach(opt => {
+        if (groups[opt] && groups[opt].length > 0) {
+           projectsToRender.push({type: 'group', status: opt, count: groups[opt].length});
+           groups[opt].forEach(p => projectsToRender.push({type: 'project', data: p}));
+        }
+     });
+     Object.keys(groups).forEach(status => {
+        if (!statusOptions.includes(status) && groups[status].length > 0) {
+           projectsToRender.push({type: 'group', status, count: groups[status].length});
+           groups[status].forEach(p => projectsToRender.push({type: 'project', data: p}));
+        }
+     });
+  } else {
+     filteredProjects.forEach(p => projectsToRender.push({type: 'project', data: p}));
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Search & Filters */}
@@ -309,38 +334,20 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
             onChange={e => setFilterName(e.target.value)}
           />
         </div>
-        <select 
-          className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
+        <button 
+          onClick={() => setShowFilters(!showFilters)}
+          className={`p-3 rounded-2xl border transition-all flex items-center gap-2 font-bold text-sm ${showFilters ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-white active:scale-95'}`}
+          title="Toggle Filters"
         >
-          <option value="">{t('projects.all_statuses') || 'All Statuses'}</option>
-          {statusOptions.map(opt => <option key={opt} value={opt}>{t(`leads.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
-        </select>
-        <select 
-          className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
-          value={filterPM}
-          onChange={e => setFilterPM(e.target.value)}
+          <Filter size={20} />
+        </button>
+        <button 
+          onClick={() => setGroupByState(!groupByState)}
+          className={`p-3 rounded-2xl border transition-all flex items-center gap-2 font-bold text-sm ${groupByState ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-white active:scale-95'}`}
+          title="Group by State"
         >
-          <option value="">{t('projects.all_pms') || 'All PMs'}</option>
-          {pms.map(pm => <option key={pm.id} value={pm.id}>{pm.name}</option>)}
-        </select>
-        <select 
-          className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
-          value={filterDev}
-          onChange={e => setFilterDev(e.target.value)}
-        >
-          <option value="">{t('projects.all_devs') || 'All Devs'}</option>
-          {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </select>
-        <select 
-          className="bg-gray-50 text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:bg-white transition-all cursor-pointer font-medium"
-          value={filterDesigner}
-          onChange={e => setFilterDesigner(e.target.value)}
-        >
-          <option value="">{t('projects.all_designers') || 'All Designers'}</option>
-          {designers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </select>
+          <Layers size={20} />
+        </button>
         <button 
           onClick={fetchData}
           className="p-3 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 hover:text-[var(--color-primary)] transition-all hover:bg-white active:scale-90"
@@ -382,7 +389,44 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         )}
       </div>
 
-      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden overflow-x-auto md:overflow-visible">
+      {showFilters && (
+        <div className="bg-gray-50/50 rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-wrap gap-4 items-center animate-fade-in relative -mt-3 z-0">
+          <select 
+            className="flex-1 min-w-[200px] bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-200 outline-none hover:border-gray-300 transition-all cursor-pointer font-medium shadow-sm"
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+          >
+            <option value="">{t('projects.all_statuses') || 'All Statuses'}</option>
+            {statusOptions.map(opt => <option key={opt} value={opt}>{t(`leads.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
+          </select>
+          <select 
+            className="flex-1 min-w-[200px] bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-200 outline-none hover:border-gray-300 transition-all cursor-pointer font-medium shadow-sm"
+            value={filterPM}
+            onChange={e => setFilterPM(e.target.value)}
+          >
+            <option value="">{t('projects.all_pms') || 'All PMs'}</option>
+            {pms.map(pm => <option key={pm.id} value={pm.id}>{pm.name}</option>)}
+          </select>
+          <select 
+            className="flex-1 min-w-[200px] bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-200 outline-none hover:border-gray-300 transition-all cursor-pointer font-medium shadow-sm"
+            value={filterDev}
+            onChange={e => setFilterDev(e.target.value)}
+          >
+            <option value="">{t('projects.all_devs') || 'All Devs'}</option>
+            {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+          <select 
+            className="flex-1 min-w-[200px] bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-200 outline-none hover:border-gray-300 transition-all cursor-pointer font-medium shadow-sm"
+            value={filterDesigner}
+            onChange={e => setFilterDesigner(e.target.value)}
+          >
+            <option value="">{t('projects.all_designers') || 'All Designers'}</option>
+            {designers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        </div>
+      )}
+
+      <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden overflow-x-auto md:overflow-visible relative z-10">
         <table className="w-full text-left text-sm text-gray-600 border-collapse table-auto md:table-fixed">
           {viewMode === 'supercompact' ? (
             <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[10px] tracking-[0.1em] font-bold text-gray-400">
@@ -501,7 +545,19 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
               </tr>
             )}
 
-            {filteredProjects.map((p) => {
+            {projectsToRender.map((item, idx) => {
+              if (item.type === 'group') {
+                return (
+                  <tr key={`group-${item.status}-${idx}`} className="bg-slate-50/80 block md:table-row">
+                    <td colSpan={10} className="px-5 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest border-y border-gray-200 shadow-sm">
+                      {t(`leads.status_${item.status.toLowerCase().replace(/ /g, '_')}`) || item.status} 
+                      <span className="ml-3 bg-white px-2.5 py-1 rounded-full text-[10px] text-gray-500 shadow-sm border border-gray-200">{item.count}</span>
+                    </td>
+                  </tr>
+                );
+              }
+
+              const p = item.data;
               const isEditing = editingId === p.id;
               const isExpanded = expandedId === p.id;
               const isSupercompact = !isExpanded && !isEditing && viewMode === 'supercompact';
