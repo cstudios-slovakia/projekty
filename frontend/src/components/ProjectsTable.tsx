@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, AlignJustify, List, Menu, Filter, Layers } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
+import { ProjectSlideout } from './ProjectSlideout';
 import { ConfirmModal } from './ConfirmModal';
 import { TimeLogModal } from './TimeLogModal';
 
@@ -89,6 +90,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
     localStorage.getItem('projectsGroupByState') === 'true'
   );
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
+  const [slideoutProjectId, setSlideoutProjectId] = useState<number | null>(null);
 
   useEffect(() => {
     localStorage.setItem('projectsViewMode', viewMode);
@@ -922,6 +924,14 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                           <>
                             <button 
                               type="button"
+                              onClick={() => setSlideoutProjectId(p.id)} 
+                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-purple-500 hover:border-purple-500 rounded-xl transition-all shadow-sm" 
+                              title="Activities & Details"
+                            >
+                               <List size={18} />
+                            </button>
+                            <button 
+                              type="button"
                               onClick={() => startEdit(p)} 
                               className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-500 rounded-xl transition-all shadow-sm" 
                               title="Edit Details"
@@ -1176,6 +1186,18 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
               />
           );
       })()}
+      {/* Project Details Slideout */}
+      {slideoutProjectId && (
+        <ProjectSlideout
+          id={slideoutProjectId}
+          entities={entities}
+          onClose={() => setSlideoutProjectId(null)}
+          onUpdate={() => {
+            fetchData();
+            notifyUpdate();
+          }}
+        />
+      )}
       
       <ConfirmModal 
         isOpen={confirmModal.isOpen}
