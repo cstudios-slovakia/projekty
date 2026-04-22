@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  X, Briefcase, Users, Palette, Monitor, Euro, Link as LinkIcon 
+  X, Briefcase, Users, Palette, Monitor, Euro, Link as LinkIcon,
+  Plus, Phone, Mail, Clock, MessageSquare
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { createPortal } from 'react-dom';
+
+interface Activity {
+  id: number;
+  project_id: number;
+  type: string;
+  notes: string;
+  activity_date: string;
+  created_at: string;
+}
 
 interface Project {
   id: number;
@@ -43,12 +53,20 @@ interface Props {
 
 export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate }) => {
   const { t } = useTranslation();
+  const userToken = localStorage.getItem('token');
+  const user = userToken ? JSON.parse(atob(userToken)) : null;
+  const canEdit = user?.role !== 'viewer';
+
   const [project, setProject] = useState<Project | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [editForm, setEditForm] = useState<Partial<Project>>({});
+  const [newActivity, setNewActivity] = useState({ type: 'Call', notes: '', activity_date: new Date().toISOString().slice(0, 16) });
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'details' | 'timeline'>('details');
 
   useEffect(() => {
     fetchProject();
+    fetchActivities();
   }, [id]);
 
   const fetchProject = () => {
@@ -61,6 +79,32 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
         }
       });
   };
+
+  const fetchActivities = () => {
+    fetch(`/api/project_activities.php?project_id=${id}`)
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') setActivities(res.data || []);
+      });
+  };
+
+  const handlePostActivity = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newActivity.notes) return;
+    fetch('/api/project_activities.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newActivity, project_id: id })
+    }).then(r => r.json()).then(res => {
+      if (res.status === 'success') {
+        setNewActivity({ type: 'Call', notes: '', activity_date: new Date().toISOString().slice(0, 16) });
+        fetchActivities();
+        onUpdate();
+      }
+    });
+  };
+
+  const isFuture = (dateStr: string) => new Date(dateStr) > new Date();
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,9 +153,26 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
           </button>
         </header>
 
+        {/* Tabs */}
+        <div className="flex px-8 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+            <button 
+                onClick={() => setActiveTab('details')}
+                className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'details' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+            >
+                {t('projects.slideout.details')}
+            </button>
+            <button 
+                onClick={() => setActiveTab('timeline')}
+                className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'timeline' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+            >
+                {t('leads.activities.title') || 'Activities'}
+            </button>
+        </div>
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gray-50/50">
-           <form id="project-form" onSubmit={handleSave} className="space-y-8">
+           {activeTab === 'details' ? (
+             <form id="project-form" onSubmit={handleSave} className="space-y-8">
               
               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
                   <div className="space-y-1">
@@ -225,19 +286,112 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
               </div>
 
            </form>
+           ) : (
+             <div className="space-y-10">
+                {/* Log Activity Form */}
+                {canEdit && (
+                    <div className="bg-white border border-gray-100 rounded-[32px] p-6 shadow-sm">
+                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                            <Plus size={16} className="text-[var(--color-primary)]" /> {t('leads.activities.log_activity') || 'Log Activity'}
+                        </h3>
+                        <form onSubmit={handlePostActivity} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <select 
+                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold"
+                                    value={newActivity.type}
+                                    onChange={e => setNewActivity({...newActivity, type: e.target.value})}
+                                >
+                                    <option value="Call">{t('leads.activity.call') || 'Call'}</option>
+                                    <option value="Email">{t('leads.activity.email') || 'Email'}</option>
+                                    <option value="Meeting">{t('leads.activity.meeting') || 'Meeting'}</option>
+                                    <option value="Online Call">{t('leads.activity.online_call') || 'Online Call'}</option>
+                                    <option value="Proposal">{t('leads.activity.proposal') || 'Proposal'}</option>
+                                    <option value="Other">{t('common.other') || 'Other'}</option>
+                                </select>
+                                <input 
+                                    type="datetime-local" 
+                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-500"
+                                    value={newActivity.activity_date}
+                                    onChange={e => setNewActivity({...newActivity, activity_date: e.target.value})}
+                                />
+                            </div>
+                            <textarea 
+                                placeholder={t('leads.activities.notes_placeholder') || "Summary of the activity or next steps..."}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                                value={newActivity.notes}
+                                onChange={e => setNewActivity({...newActivity, notes: e.target.value})}
+                            />
+                            <div className="flex justify-end">
+                                <button type="submit" className="bg-gray-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95">
+                                    {t('leads.activities.add_log') || 'Add Log'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+
+                {/* Timeline Grid */}
+                <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-200 before:rounded-full">
+                    {activities.map((act) => (
+                        <div key={act.id} className="relative group/act">
+                            {/* Dot Icon */}
+                            <div className={`absolute -left-[32px] top-0 w-6 h-6 rounded-lg flex items-center justify-center border-4 border-[#f8fafc] shadow-sm transition-all group-hover/act:scale-110 z-10 ${isFuture(act.activity_date) ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                {act.type === 'Call' || act.type === 'Online Call' ? <Phone size={10} /> :
+                                 act.type === 'Email' ? <Mail size={10} /> :
+                                 act.type === 'Meeting' ? <Users size={10} /> :
+                                 act.type === 'Proposal' ? <Briefcase size={10} /> :
+                                 <MessageSquare size={10} />}
+                            </div>
+
+                            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm transition-all group-hover/act:border-gray-200 group-hover/act:shadow-md">
+                                <div className="flex items-start justify-between gap-4 mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${isFuture(act.activity_date) ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                                            {act.type}
+                                        </span>
+                                        {isFuture(act.activity_date) && (
+                                            <span className="flex items-center gap-1 text-[10px] font-black text-green-500 uppercase tracking-widest">
+                                                <Clock size={10} /> {t('leads.activities.planned') || 'Planned'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-gray-400 whitespace-nowrap">
+                                        {new Date(act.activity_date).toLocaleString('sk-SK', {
+                                            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                                        })}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+                                    {act.notes}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+
+                    {activities.length === 0 && (
+                        <div className="bg-transparent py-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-3xl">
+                            <Clock size={24} className="text-gray-300 mb-2" />
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('leads.activities.no_activities') || 'No activities logged yet'}</p>
+                        </div>
+                    )}
+                </div>
+             </div>
+           )}
         </div>
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-100 bg-white flex items-center justify-between flex-shrink-0">
            <a href={`/#/?edit_project_id=${id}`} className="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors flex items-center gap-1"><LinkIcon size={14}/> {t('projects.open_full_view') || 'Open Full view'}</a>
-           <button 
-              form="project-form"
-              type="submit"
-              disabled={isSaving}
-              className="px-8 py-3.5 bg-gray-900 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl hover:bg-[var(--color-primary)] transition-all disabled:opacity-50"
-           >
-              {isSaving ? t('common.saving') : t('common.save')}
-           </button>
+           {activeTab === 'details' && (
+               <button 
+                  form="project-form"
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-8 py-3.5 bg-gray-900 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl hover:bg-[var(--color-primary)] transition-all disabled:opacity-50"
+               >
+                  {isSaving ? t('common.saving') : t('common.save')}
+               </button>
+           )}
         </div>
 
       </div>

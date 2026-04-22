@@ -116,6 +116,33 @@ try {
     }
 
     // 6. Create leads table if missing
+    // 8. Add project_activities table
+    if (!table_exists($pdo, 'project_activities')) {
+        echo "Creating project_activities table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'pgsql') {
+            $pdo->exec("CREATE TABLE project_activities (
+                id SERIAL PRIMARY KEY,
+                project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+                type VARCHAR(50) NOT NULL,
+                notes TEXT,
+                activity_date TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )");
+        } else {
+            $pdo->exec("CREATE TABLE project_activities (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                project_id INT NOT NULL,
+                type VARCHAR(50) NOT NULL,
+                notes TEXT,
+                activity_date TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        }
+    }
+
+    // 6. Create leads table if missing
     if (!table_exists($pdo, 'leads')) {
         echo "Creating leads table...\n";
         $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);

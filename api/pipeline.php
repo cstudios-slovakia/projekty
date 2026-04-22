@@ -104,6 +104,24 @@ try {
             ]);
             $projectId = $pdo->lastInsertId();
             
+            // 2.5 Migrate activities
+            $actStmt = $pdo->prepare("SELECT * FROM lead_activities WHERE lead_id = ?");
+            $actStmt->execute([$leadId]);
+            $activities = $actStmt->fetchAll();
+            
+            if (count($activities) > 0) {
+                $insActStmt = $pdo->prepare("INSERT INTO project_activities (project_id, type, notes, activity_date, created_at) VALUES (?, ?, ?, ?, ?)");
+                foreach ($activities as $act) {
+                    $insActStmt->execute([
+                        $projectId,
+                        $act['type'],
+                        $act['notes'],
+                        $act['activity_date'],
+                        $act['created_at']
+                    ]);
+                }
+            }
+
             // 3. Mark Lead as Archived or set a status
             $uStmt = $pdo->prepare("UPDATE leads SET is_archived = TRUE WHERE id = ?");
             $uStmt->execute([$leadId]);
