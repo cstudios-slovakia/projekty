@@ -142,17 +142,17 @@ export const ExpensesView: React.FC = () => {
 
       {/* Main Table */}
       <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-visible">
-        <table className="w-full text-left text-sm border-collapse">
+        <table className="w-full text-left text-sm border-collapse table-auto md:table-fixed">
           {viewMode === 'supercompact' ? (
             <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[10px] tracking-[0.1em] font-bold text-gray-400">
               <tr>
                 <th className="p-2 w-10 text-center"></th>
-                <th className="p-2">{t('projects.title')}</th>
-                <th className="p-2 w-32">{t('projects.pm')}</th>
-                <th className="p-2 w-32 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
-                <th className="p-2 w-32 text-right">{t('projects.value')}</th>
-                <th className="p-2 w-32 text-right">Invoiced</th>
-                <th className="p-2 w-32 text-right">{t('projects.profit') || 'Profit'}</th>
+                <th className="p-2 w-[22%]">{t('projects.title')}</th>
+                <th className="p-2 w-[15%]">{t('projects.pm')}</th>
+                <th className="p-2 w-[12%] text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
+                <th className="p-2 w-[12%] text-right">{t('projects.value')}</th>
+                <th className="p-2 w-[12%] text-right">Invoiced</th>
+                <th className="p-2 w-[15%] text-right">{t('projects.profit') || 'Profit'}</th>
                 <th className="p-2 w-24 text-right">{t('projects.margin') || 'Margin'}</th>
               </tr>
             </thead>
@@ -180,23 +180,25 @@ export const ExpensesView: React.FC = () => {
 
               if (isSupercompact) {
                 return (
-                  <tr key={p.id} className="group transition-all block md:table-row border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={p.id} onClick={canEdit ? () => setExpenseProjectId(p.id) : undefined} className={`group transition-all block md:table-row border-b border-gray-100 hover:bg-gray-50 ${canEdit ? 'cursor-pointer' : ''}`}>
                     <td className="p-1 md:p-1.5 text-center block md:table-cell w-10 border-b md:border-b-0 border-gray-100">
                       {canEdit && (
-                          <button 
-                              onClick={() => setExpenseProjectId(p.id)}
+                          <div
                               className="opacity-0 group-hover:opacity-100 w-6 h-6 bg-[var(--color-primary)] text-white rounded-md flex items-center justify-center transition-all mx-auto"
                               title={t('projects.slideout.add_expense')}
                           >
                               <Plus size={14} />
-                          </button>
+                          </div>
                       )}
                     </td>
-                    <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[200px]">
+                    <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate">
                       <span className="font-bold text-[12px] text-gray-900 truncate tracking-tight">{p.name}</span>
                     </td>
-                    <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
-                      <span className="text-[11px] font-medium text-gray-600 truncate">{p.pm_name || '-'}</span>
+                    <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate">
+                      <div className="flex items-center gap-1.5 truncate">
+                        {p.pm_name && <div className="w-2 h-2 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: p.pm_color || '#94a3b8' }} />}
+                        <span className="text-[11px] font-medium text-gray-600 truncate">{p.pm_name || '-'}</span>
+                      </div>
                     </td>
                     <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
                       <span className="text-[11px] font-medium text-gray-500">€{Number(p.total_spent).toLocaleString()}</span>
