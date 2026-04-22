@@ -478,7 +478,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                 <th className="p-5 w-40 text-right cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('total_value')}>
                   <div className="flex items-center justify-end">{t('projects.financials') || 'Financials'} <SortIcon col="total_value" /></div>
                 </th>
-                <th className="p-5 w-24 text-center">{t('common.actions')}</th>
+                <th className="p-5 w-36 text-center">{t('common.actions')}</th>
               </tr>
             </thead>
           )}

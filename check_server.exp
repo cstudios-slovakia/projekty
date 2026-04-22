@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p28035
+expect "password:"
+send "247fa026ba\r"
+expect "$ "
+send "ls -la cstudios.sk/sub/projektyerik/api/project_activities.php\r"
+expect "$ "
+send "cat cstudios.sk/sub/projektyerik/api/project_activities.php\r"
+expect "$ "
+send "exit\r"
+expect eof

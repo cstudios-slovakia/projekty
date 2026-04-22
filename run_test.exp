@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no -P 28035 test_post.php uid1102122@shell.r5.websupport.sk:cstudios.sk/sub/projektyerik/test_post.php
+expect "password:"
+send "247fa026ba\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p28035
+expect "password:"
+send "247fa026ba\r"
+expect "$ "
+send "cd cstudios.sk/sub/projektyerik\r"
+expect "$ "
+send "php test_post.php\r"
+expect "$ "
+send "rm test_post.php\r"
+expect "$ "
+send "exit\r"
+expect eof

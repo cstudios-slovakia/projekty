@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p28035
+expect "password:"
+send "247fa026ba\r"
+expect "$ "
+send "cd cstudios.sk/sub/projektyerik\r"
+expect "$ "
+send "php -r \"\\\$_SERVER['REQUEST_METHOD'] = 'POST'; file_put_contents('php://memory', json_encode(['project_id' => 1, 'type' => 'Call', 'notes' => 'Test', 'activity_date' => '2026-04-22 10:00:00'])); require 'api/project_activities.php';\"\r"
+expect "$ "
+send "exit\r"
+expect eof

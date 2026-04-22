@@ -138,7 +138,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
     });
   };
 
-  const isFuture = (dateStr: string) => new Date(dateStr) > new Date();
+  const isFuture = (dateStr: string) => new Date(dateStr.replace(' ', 'T')) > new Date();
 
   const statuses = entities.filter(e => e.type === 'lead_status');
   const sources = entities.filter(e => e.type === 'lead_source');
@@ -259,7 +259,7 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex flex-col">
                                             <span className={`text-[10px] font-black uppercase tracking-widest ${isFuture(act.activity_date) ? 'text-green-600' : 'text-gray-400'}`}>
-                                                {t(`leads.activity.${act.type.toLowerCase().replace(/ /g, '_')}`) || act.type} • {new Date(act.activity_date).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                {t(`leads.activity.${act.type.toLowerCase().replace(/ /g, '_')}`) || act.type} • {new Date(act.activity_date.replace(' ', 'T')).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {isFuture(act.activity_date) && (
                                                 <span className="text-[9px] font-bold text-green-500 mt-0.5 flex items-center gap-1">

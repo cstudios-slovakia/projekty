@@ -104,7 +104,7 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
     });
   };
 
-  const isFuture = (dateStr: string) => new Date(dateStr) > new Date();
+  const isFuture = (dateStr: string) => new Date(dateStr.replace(' ', 'T')) > new Date();
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -356,7 +356,7 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
                                         )}
                                     </div>
                                     <span className="text-[10px] font-bold text-gray-400 whitespace-nowrap">
-                                        {new Date(act.activity_date).toLocaleString('sk-SK', {
+                                        {new Date(act.activity_date.replace(' ', 'T')).toLocaleString('sk-SK', {
                                             day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                                         })}
                                     </span>
