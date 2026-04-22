@@ -16,9 +16,7 @@ if (!file_exists($api_dir)) {
     mkdir($api_dir, 0755, true);
     echo "Created API proxy destination: $api_dir\n";
 }
-
-$files = ['db.php', 'projects.php', 'pipeline.php', 'settings.php', 'users.php', 'migrate.php', 'status.php', 'dashboard.php', 'expenses.php', 'comments.php', 'system_settings.php', 'reorder.php', 'install.php', 'roles.php', 'time_logs.php', 'calendar.php', 'login.php', 'lead_activities.php'];
-
+$files = ['db.php', 'projects.php', 'pipeline.php', 'settings.php', 'users.php', 'migrate.php', 'status.php', 'dashboard.php', 'expenses.php', 'comments.php', 'system_settings.php', 'reorder.php', 'install.php', 'roles.php', 'time_logs.php', 'calendar.php', 'login.php', 'lead_activities.php', 'project_activities.php'];
 echo "Publishing API endpoints...\n";
 foreach ($files as $f) {
     if ($f === 'config.php.example') continue;

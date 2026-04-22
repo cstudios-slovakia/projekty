@@ -284,6 +284,14 @@ export const LeadSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate 
                     {/* Basic Info */}
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-1">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.company_name') || 'Company Name'}</label>
+                            {isEditing ? (
+                                <input value={editForm.company_name || ''} onChange={e => setEditForm({...editForm, company_name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white" />
+                            ) : (
+                                <p className="font-bold text-gray-900 border-b border-gray-50 px-1 py-1">{lead.company_name || '—'}</p>
+                            )}
+                        </div>
+                        <div className="space-y-1">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('leads.contact_person')}</label>
                             {isEditing ? (
                                 <input value={editForm.contact_name || ''} onChange={e => setEditForm({...editForm, contact_name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white" />

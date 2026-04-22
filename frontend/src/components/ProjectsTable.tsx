@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, AlignJustify, List, Menu, Filter, Layers } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, AlignJustify, List, Filter, Layers, Minus } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ProjectSlideout } from './ProjectSlideout';
@@ -75,7 +75,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [sortColumn, setSortColumn] = useState('sort_order');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [viewMode, setViewMode] = useState<'expanded' | 'compact' | 'supercompact'>(
-    (localStorage.getItem('projectsViewMode') as 'expanded' | 'compact' | 'supercompact') || 'expanded'
+    (localStorage.getItem('projectsViewMode') as 'expanded' | 'compact' | 'supercompact') || (window.innerWidth < 768 ? 'supercompact' : 'expanded')
   );
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   
@@ -375,21 +375,21 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
             className={`p-2 rounded-xl transition-all ${viewMode === 'expanded' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
             title={t('nav.expanded') || 'Expanded'}
           >
-            <List size={16} />
+            <AlignJustify size={16} />
           </button>
           <button 
             onClick={() => setViewMode('compact')} 
             className={`p-2 rounded-xl transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
             title={t('nav.compact') || 'Compact'}
           >
-            <Menu size={16} />
+            <List size={16} />
           </button>
           <button 
             onClick={() => setViewMode('supercompact')} 
             className={`p-2 rounded-xl transition-all ${viewMode === 'supercompact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
             title={t('nav.supercompact') || 'Super'}
           >
-            <AlignJustify size={16} />
+            <Minus size={16} />
           </button>
         </div>
         {!isCreating && !archivedView && canEdit && (
@@ -915,9 +915,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                     </td>
 
                     <td className={`${cellPadding} text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
-                      <div className="hidden md:flex justify-center gap-2">
+                      <div className="hidden md:flex justify-center gap-1.5">
                         {isEditing ? (
-                          <button onClick={() => handleSave(p.id)} className="p-3 bg-[#00b800] hover:bg-green-600 text-white rounded-xl shadow-lg transition-all transform active:scale-95">
+                          <button onClick={() => handleSave(p.id)} className="p-2.5 bg-[#00b800] hover:bg-green-600 text-white rounded-xl shadow-lg transition-all transform active:scale-95">
                             <Save size={18} />
                           </button>
                         ) : canEdit ? (
@@ -925,15 +925,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             <button 
                               type="button"
                               onClick={() => setSlideoutProjectId(p.id)} 
-                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-purple-500 hover:border-purple-500 rounded-xl transition-all shadow-sm" 
+                              className="p-2.5 bg-white border border-gray-200 text-gray-400 hover:text-purple-500 hover:border-purple-500 rounded-xl transition-all shadow-sm" 
                               title="Activities & Details"
                             >
-                               <List size={18} />
+                               <Clock size={18} />
                             </button>
                             <button 
                               type="button"
                               onClick={() => startEdit(p)} 
-                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-500 rounded-xl transition-all shadow-sm" 
+                              className="p-2.5 bg-white border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-500 rounded-xl transition-all shadow-sm" 
                               title="Edit Details"
                             >
                                <Pencil size={18} />
@@ -941,7 +941,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             <button 
                               type="button"
                               onClick={(e) => toggleArchive(e, p)} 
-                              className="p-3 bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 rounded-xl transition-all shadow-sm" 
+                              className="p-2.5 bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-500 rounded-xl transition-all shadow-sm" 
                               title={p.is_archived ? "Unarchive" : "Archive"}
                             >
                                <Archive size={18} />

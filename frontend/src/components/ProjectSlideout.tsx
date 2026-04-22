@@ -62,7 +62,7 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   const [newActivity, setNewActivity] = useState({ type: 'Call', notes: '', activity_date: new Date().toISOString().slice(0, 16) });
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'timeline'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'timeline'>('timeline');
 
   useEffect(() => {
     fetchProject();
@@ -156,16 +156,16 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
         {/* Tabs */}
         <div className="flex px-8 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
             <button 
-                onClick={() => setActiveTab('details')}
-                className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'details' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
-            >
-                {t('projects.slideout.details')}
-            </button>
-            <button 
                 onClick={() => setActiveTab('timeline')}
                 className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'timeline' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
             >
                 {t('leads.activities.title') || 'Activities'}
+            </button>
+            <button 
+                onClick={() => setActiveTab('details')}
+                className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'details' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+            >
+                {t('projects.slideout.details')}
             </button>
         </div>
 
