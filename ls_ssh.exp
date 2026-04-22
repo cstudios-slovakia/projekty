@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p29165
+expect "password:"
+send "06fbdda64d\r"
+expect "$ "
+send "ls -la web\r"
+expect "$ "
+send "exit\r"
+expect eof

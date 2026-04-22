@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil } from 'lucide-react';
+import { Save, Archive, Plus, ChevronDown, ChevronUp, Calendar, Info, Briefcase, User, Palette, Monitor, DollarSign, RefreshCw, Clock, Pencil, AlignJustify, List, Menu } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 import { ConfirmModal } from './ConfirmModal';
@@ -351,21 +351,24 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100 ml-auto mr-auto md:mr-0">
           <button 
             onClick={() => setViewMode('expanded')} 
-            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'expanded' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`p-2 rounded-xl transition-all ${viewMode === 'expanded' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+            title={t('nav.expanded') || 'Expanded'}
           >
-            {t('nav.expanded') || 'Expanded'}
+            <List size={16} />
           </button>
           <button 
             onClick={() => setViewMode('compact')} 
-            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`p-2 rounded-xl transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+            title={t('nav.compact') || 'Compact'}
           >
-            {t('nav.compact') || 'Compact'}
+            <Menu size={16} />
           </button>
           <button 
             onClick={() => setViewMode('supercompact')} 
-            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'supercompact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`p-2 rounded-xl transition-all ${viewMode === 'supercompact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+            title={t('nav.supercompact') || 'Super'}
           >
-            {t('nav.supercompact') || 'Super'}
+            <AlignJustify size={16} />
           </button>
         </div>
         {!isCreating && !archivedView && canEdit && (
@@ -489,12 +492,12 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
 
               const getSupercompactStatusColor = (s: string) => {
                 switch(s) {
-                  case 'New Lead': return 'border-l-blue-500 bg-blue-50/30';
-                  case 'Price Offer Sent': return 'border-l-amber-500 bg-amber-50/30';
-                  case 'Price Offer Accepted': return 'border-l-emerald-500 bg-emerald-50/30';
-                  case 'Price Offer Rejected': return 'border-l-red-500 bg-red-50/30';
-                  case 'Price Offer Closed': return 'border-l-slate-500 bg-slate-50/30';
-                  default: return 'border-l-gray-300 bg-gray-50/30';
+                  case 'New Lead': return 'border-l-blue-500 bg-blue-50';
+                  case 'Price Offer Sent': return 'border-l-amber-500 bg-amber-50';
+                  case 'Price Offer Accepted': return 'border-l-emerald-500 bg-emerald-50';
+                  case 'Price Offer Rejected': return 'border-l-red-500 bg-red-50';
+                  case 'Price Offer Closed': return 'border-l-slate-500 bg-slate-50';
+                  default: return 'border-l-gray-300 bg-gray-50';
                 }
               };
 
