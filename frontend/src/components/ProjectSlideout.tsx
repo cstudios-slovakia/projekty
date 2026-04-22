@@ -331,11 +331,11 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
                 )}
 
                 {/* Timeline Grid */}
-                <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-200 before:rounded-full">
+                <div className="relative pl-12 space-y-8 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-200 before:rounded-full">
                     {activities.map((act) => (
                         <div key={act.id} className="relative group/act">
                             {/* Dot Icon */}
-                            <div className={`absolute -left-[32px] top-0 w-6 h-6 rounded-lg flex items-center justify-center border-4 border-[#f8fafc] shadow-sm transition-all group-hover/act:scale-110 z-10 ${isFuture(act.activity_date) ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                            <div className={`absolute -left-[40px] top-0 w-6 h-6 rounded-lg flex items-center justify-center border-4 border-[#f8fafc] shadow-sm transition-all group-hover/act:scale-110 z-10 ${isFuture(act.activity_date) ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
                                 {act.type === 'Call' || act.type === 'Online Call' ? <Phone size={10} /> :
                                  act.type === 'Email' ? <Mail size={10} /> :
                                  act.type === 'Meeting' ? <Users size={10} /> :

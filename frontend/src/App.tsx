@@ -56,16 +56,16 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
     }`;
 
   return (
-    <div className="flex h-screen bg-[#f8fafc] font-sans selection:bg-[var(--color-primary)]/30 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen bg-[#f8fafc] font-sans selection:bg-[var(--color-primary)]/30 overflow-hidden">
       {/* Sidebar - Fixed Narrow */}
-      <aside className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-6 z-50">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] p-0.5 shadow-lg shadow-[var(--color-primary)]/10 mb-10">
+      <aside className="w-full h-16 md:w-20 md:h-auto flex-shrink-0 bg-white border-t md:border-t-0 md:border-r border-gray-200 flex flex-row md:flex-col items-center justify-around md:justify-start py-0 md:py-6 z-50 order-last md:order-first overflow-x-auto md:overflow-visible custom-scrollbar">
+        <div className="hidden md:flex w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] p-0.5 shadow-lg shadow-[var(--color-primary)]/10 mb-10">
           <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
             <span className="font-black text-[#0f172a] text-xs">CS</span>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-row md:flex-col items-center gap-1 md:gap-4 px-2 md:px-0">
           {canViewSystem && (
             <>
               <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title={t('nav.projects')}>
@@ -113,10 +113,10 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-8 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-8">
+        <header className="h-auto md:h-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-4 md:px-8 py-4 md:py-0 flex items-center justify-between flex-shrink-0">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8 w-full md:w-auto">
             <div className="flex flex-col">
-              <h1 className="text-xl font-black text-gray-900 tracking-tight leading-none uppercase">
+              <h1 className="text-lg md:text-xl font-black text-gray-900 tracking-tight leading-none uppercase">
                 {isProjectRoute ? t('nav.projects') : t(`nav.${location.pathname.replace('/', '').replace('-', '_')}`)}
               </h1>
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
@@ -125,23 +125,25 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
             </div>
 
             {/* Contextual Sub-Nav for Projects */}
-            {isProjectRoute && (
-              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 ml-4">
-                <Link to="/" className={subNavClass('/')}>{t('nav.active')}</Link>
-                <Link to="/archive" className={subNavClass('/archive')}>{t('nav.archived')}</Link>
-                {hasFullAccess && <Link to="/reorder" className={subNavClass('/reorder')}>{t('nav.order_view')}</Link>}
-              </div>
-            )}
+            <div className="overflow-x-auto w-full md:w-auto pb-1 md:pb-0 custom-scrollbar">
+              {isProjectRoute && (
+                <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 min-w-max">
+                  <Link to="/" className={subNavClass('/')}>{t('nav.active')}</Link>
+                  <Link to="/archive" className={subNavClass('/archive')}>{t('nav.archived')}</Link>
+                  {hasFullAccess && <Link to="/reorder" className={subNavClass('/reorder')}>{t('nav.order_view')}</Link>}
+                </div>
+              )}
 
-            {isLeadRoute && (
-              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 ml-4">
-                <Link to="/leads" className={subNavClass('/leads')}>{t('nav.active')}</Link>
-                <Link to="/leads-archive" className={subNavClass('/leads-archive')}>{t('nav.archived')}</Link>
-              </div>
-            )}
+              {isLeadRoute && (
+                <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 min-w-max">
+                  <Link to="/leads" className={subNavClass('/leads')}>{t('nav.active')}</Link>
+                  <Link to="/leads-archive" className={subNavClass('/leads-archive')}>{t('nav.archived')}</Link>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="text-sm font-black text-gray-300 uppercase tracking-[0.2em]">{systemTitle}</div>
+          <div className="hidden md:block text-sm font-black text-gray-300 uppercase tracking-[0.2em] whitespace-nowrap">{systemTitle}</div>
         </header>
 
         {/* Dynamic Content */}

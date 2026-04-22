@@ -594,37 +594,92 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                 <React.Fragment key={p.id}>
                   {isSupercompact ? (
                     <tr 
-                      className={`group transition-all block md:table-row border-b border-gray-200 cursor-pointer hover:bg-gray-100 border-l-4 ${getSupercompactStatusColor(p.status)}`} 
+                      className={`group transition-all block md:table-row border-b border-gray-200 cursor-pointer hover:bg-gray-100 border-l-4 ${getSupercompactStatusColor(p.status)} p-3 md:p-0`} 
                       onClick={() => toggleExpand(p.id)}
                     >
-                       <td className="p-1 md:p-1.5 text-center block md:table-cell w-10 border-b md:border-b-0 border-gray-100">
+                       {/* Mobile View */}
+                       <td className="md:hidden block w-full space-y-2">
+                         <div className="flex justify-between items-start">
+                           <div className="flex flex-col">
+                             <span className="font-bold text-sm text-gray-900 tracking-tight leading-tight">{p.name}</span>
+                             <span className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{p.status}</span>
+                           </div>
+                           <div className="flex items-center gap-3">
+                             <span className="text-xs font-black text-gray-500 bg-white border border-gray-100 px-2 py-1 rounded-md shadow-sm">
+                               {p.deadline ? new Date(p.deadline).toLocaleDateString('sk-SK') : '-'}
+                             </span>
+                             <ChevronDown size={18} className="text-gray-400 bg-gray-100 p-0.5 rounded-full" />
+                           </div>
+                         </div>
+                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500 pt-1 border-t border-gray-100/50">
+                           <span><b className="text-gray-400 mr-1">PM</b> {p.pm_name || '-'}</span>
+                           <span><b className="text-gray-400 mr-1">DEV</b> {p.dev_name || '-'}</span>
+                           <span><b className="text-gray-400 mr-1">DES</b> {p.designer_name || '-'}</span>
+                         </div>
+                       </td>
+
+                       {/* Desktop View */}
+                       <td className="hidden md:table-cell p-1.5 text-center w-10 border-b-0 border-gray-100">
                          <ChevronDown size={14} className="mx-auto text-gray-400 group-hover:text-gray-600" />
                        </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[200px]">
+                       <td className="hidden md:table-cell p-1.5 border-b-0 border-gray-100 truncate max-w-[200px]">
                          <span className="font-bold text-[12px] text-gray-900 truncate tracking-tight">{p.name}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 text-center block md:table-cell border-b md:border-b-0 border-gray-100">
+                       <td className="hidden md:table-cell p-1.5 text-center border-b-0 border-gray-100">
                          <span className="text-[11px] font-black text-gray-600">{p.deadline ? new Date(p.deadline).toLocaleDateString('sk-SK') : '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
+                       <td className="hidden md:table-cell p-1.5 border-b-0 border-gray-100 truncate max-w-[120px]">
                          <span className="text-[11px] font-medium text-gray-600 truncate">{p.pm_name || '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
+                       <td className="hidden md:table-cell p-1.5 border-b-0 border-gray-100 truncate max-w-[120px]">
                          <span className="text-[11px] font-medium text-gray-600 truncate">{p.dev_name || '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
+                       <td className="hidden md:table-cell p-1.5 border-b-0 border-gray-100 truncate max-w-[120px]">
                          <span className="text-[11px] font-medium text-gray-600 truncate">{p.designer_name || '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 text-center block md:table-cell border-b md:border-b-0 border-gray-100">
+                       <td className="hidden md:table-cell p-1.5 text-center border-b-0 border-gray-100">
                          <span className="text-[11px] font-bold text-gray-600">{p.design_end ? new Date(p.design_end).toLocaleDateString('sk-SK') : '-'}</span>
                        </td>
-                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[150px]">
+                       <td className="hidden md:table-cell p-1.5 border-b-0 border-gray-100 truncate max-w-[150px]">
                          <span className="text-[11px] text-gray-500 truncate" title={p.notes || ''}>{p.notes || '-'}</span>
                        </td>
                     </tr>
                   ) : (
-                    <tr className={`group transition-all block md:table-row ${rowColorClass} ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''} ${isCompact ? 'cursor-pointer hover:bg-gray-50' : ''}`} onClick={isCompact ? () => toggleExpand(p.id) : undefined}>
-                      <td className={`${cellPadding} text-left md:text-center block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : ''}`}>
+                    <tr className={`group transition-all block md:table-row ${rowColorClass} ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''} ${isCompact ? 'cursor-pointer md:hover:bg-gray-50' : ''}`} onClick={isCompact ? () => toggleExpand(p.id) : undefined}>
+                      {/* Mobile View Card (only when NOT editing) */}
+                      {!isEditing && (
+                         <td className="md:hidden block w-full space-y-3 p-4 border-b border-gray-200">
+                           <div className="flex justify-between items-start">
+                             <div className="flex flex-col" onClick={(e) => { e.stopPropagation(); setSlideoutProjectId(p.id); }}>
+                               <span className="font-bold text-lg text-gray-900 tracking-tight leading-tight">{p.name}</span>
+                               <span className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{p.status}</span>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <button 
+                                 type="button"
+                                 onClick={(e) => { e.stopPropagation(); setSlideoutProjectId(p.id); }} 
+                                 className="p-2 bg-gray-50 text-gray-400 rounded-xl shadow-sm border border-gray-200" 
+                               >
+                                 <Clock size={16} />
+                               </button>
+                               <button onClick={(e) => { e.stopPropagation(); toggleExpand(p.id); }} className="p-2 bg-gray-50 text-gray-400 rounded-xl shadow-sm border border-gray-200">
+                                 {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                               </button>
+                             </div>
+                           </div>
+                           <div className="flex justify-between items-end border-t border-gray-100/50 pt-3" onClick={() => toggleExpand(p.id)}>
+                             <div className="flex flex-col gap-1 text-[11px] text-gray-500">
+                               <span><b className="text-gray-400 mr-1">PM</b> {p.pm_name || '-'}</span>
+                               <span><b className="text-gray-400 mr-1">DEADLINE</b> {p.deadline ? new Date(p.deadline).toLocaleDateString('sk-SK') : '-'}</span>
+                             </div>
+                             <div className="flex flex-col text-right">
+                               <span className="text-gray-900 font-black text-lg block leading-none tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
+                               {Number(p.already_paid) > 0 && <span className="text-green-500 text-[10px] font-bold mt-1 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} {t('projects.paid')}</span>}
+                             </div>
+                           </div>
+                         </td>
+                      )}
+                      <td className={`${cellPadding} text-left md:text-center ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300 ${rowColorClass.includes('border-l-') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : ''}`}>
                       <div className="flex items-center justify-between md:justify-center">
                         <button onClick={() => toggleExpand(p.id)} className="p-2.5 rounded-xl bg-gray-50 md:bg-transparent hover:bg-gray-100 text-gray-500 md:text-gray-400 transition-all flex items-center gap-2">
                           <span className="md:hidden text-[10px] font-black uppercase tracking-wider">{t('projects.slideout.details')}</span>
@@ -643,7 +698,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         )}
                       </div>
                     </td>
-                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300`}>
+                    <td className={`${cellPadding} ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300`}>
                       {isEditing ? (
                         <input name="name" className="bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 w-full font-bold text-lg focus:bg-white transition-all shadow-sm" value={editForm.name || ''} onChange={handleChange} autoFocus />
                       ) : (
@@ -710,7 +765,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className={`${cellPadding} text-left md:text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
+                    <td className={`${cellPadding} text-left md:text-center ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                         <div className="flex items-center justify-between md:flex-col md:items-center">
                           <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('projects.deadline')}</span>
                           {isEditing ? (
@@ -724,7 +779,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         </div>
                     </td>
 
-                    <td className={`${cellPadding} space-y-2 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
+                    <td className={`${cellPadding} space-y-2 ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.workflow')}</div>
                       <div className="flex flex-col gap-1 cursor-pointer" onClick={() => startEdit(p)}>
                         <div className="flex justify-between items-center px-1">
@@ -761,7 +816,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         )}
                       </div>
                     </td>
-                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
+                    <td className={`${cellPadding} ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.pm') || 'Project Manager'}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -781,7 +836,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300`}>
+                    <td className={`${cellPadding} ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.designer') || 'Designer'}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -808,7 +863,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300`}>
+                    <td className={`${cellPadding} ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.developer') || 'Developer'}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -875,7 +930,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className={`${cellPadding} text-left md:text-right block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
+                    <td className={`${cellPadding} text-left md:text-right ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="flex items-center justify-between md:flex-col md:items-end">
                         <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('projects.financials')}</span>
                         {isEditing ? (
@@ -914,7 +969,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       </div>
                     </td>
 
-                    <td className={`${cellPadding} text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
+                    <td className={`${cellPadding} text-center ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="hidden md:flex justify-center gap-1.5">
                         {isEditing ? (
                           <button onClick={() => handleSave(p.id)} className="p-2.5 bg-[#00b800] hover:bg-green-600 text-white rounded-xl shadow-lg transition-all transform active:scale-95">
