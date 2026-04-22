@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, TrendingUp, TrendingDown, Search, RefreshCw, Clock } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Search, RefreshCw, Clock, List, Menu, AlignJustify, Filter } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ExpenseSlideout } from './ExpenseSlideout';
 
@@ -9,6 +9,7 @@ interface Project {
   total_value: number;
   total_spent: number;
   dev_budget: number;
+  already_paid: number;
   pm_name?: string;
   pm_color?: string;
   updated_at?: string;
@@ -24,6 +25,8 @@ export const ExpensesView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filterName, setFilterName] = useState('');
   const [filterPM, setFilterPM] = useState('');
+  const [viewMode, setViewMode] = useState<'expanded' | 'compact' | 'supercompact'>('expanded');
+  const [showFilters, setShowFilters] = useState(false);
   const [expenseProjectId, setExpenseProjectId] = useState<number | null>(null);
 
   const fetchData = async () => {
@@ -94,64 +97,143 @@ export const ExpensesView: React.FC = () => {
             </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 bg-white/50 p-4 rounded-3xl border border-gray-100 backdrop-blur-sm shadow-inner-sm">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+      {/* Search & Filters */}
+      <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm flex flex-wrap gap-4 items-center">
+        <div className="flex-1 min-w-[300px] relative">
           <input 
-            type="text" 
             placeholder={t('projects.search_placeholder')} 
-            className="w-full bg-white text-gray-900 rounded-2xl px-12 py-3 border border-gray-100 focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] outline-none transition-all"
+            className="w-full bg-gray-50 text-gray-900 rounded-2xl px-5 py-3 border border-gray-100 focus:bg-white transition-all outline-none"
             value={filterName}
             onChange={e => setFilterName(e.target.value)}
           />
         </div>
-        <select 
-          className="bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-100 outline-none hover:border-[var(--color-primary)]/30 transition-all cursor-pointer font-medium"
-          value={filterPM}
-          onChange={e => setFilterPM(e.target.value)}
+        <button 
+          onClick={() => setShowFilters(!showFilters)}
+          className={`p-3 rounded-2xl border transition-all flex items-center gap-2 font-bold text-sm ${showFilters ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-white active:scale-95'}`}
+          title="Toggle Filters"
         >
-          <option value="">{t('projects.all_pms') || 'All Managers'}</option>
-          {pms.map(pm => <option key={pm} value={pm!}>{pm}</option>)}
-        </select>
+          <Filter size={20} />
+        </button>
+        <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100 ml-auto mr-auto md:mr-0">
+          <button onClick={() => setViewMode('expanded')} className={`p-2 rounded-xl transition-all ${viewMode === 'expanded' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`} title={t('nav.expanded') || 'Expanded'}><List size={16} /></button>
+          <button onClick={() => setViewMode('compact')} className={`p-2 rounded-xl transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`} title={t('nav.compact') || 'Compact'}><Menu size={16} /></button>
+          <button onClick={() => setViewMode('supercompact')} className={`p-2 rounded-xl transition-all ${viewMode === 'supercompact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`} title={t('nav.supercompact') || 'Super'}><AlignJustify size={16} /></button>
+        </div>
       </div>
+
+      {showFilters && (
+        <div className="bg-gray-50/50 rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-wrap gap-4 items-center animate-fade-in relative -mt-3 z-0">
+          <select 
+            className="flex-1 min-w-[200px] bg-white text-gray-700 rounded-2xl px-5 py-3 border border-gray-200 outline-none hover:border-gray-300 transition-all cursor-pointer font-medium shadow-sm"
+            value={filterPM}
+            onChange={e => setFilterPM(e.target.value)}
+          >
+            <option value="">{t('projects.all_pms') || 'All Managers'}</option>
+            {pms.map(pm => <option key={pm} value={pm!}>{pm}</option>)}
+          </select>
+        </div>
+      )}
 
       {/* Main Table */}
       <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-visible">
         <table className="w-full text-left text-sm border-collapse">
-          <thead>
-            <tr className="italic uppercase text-[10px] font-black text-gray-400 tracking-[0.2em]">
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.title')}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100">{t('projects.pm')}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.value')}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.profit') || 'Profit'}</th>
-              <th className="p-6 sticky top-[72px] z-20 bg-[#f8fafc] border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
+          {viewMode === 'supercompact' ? (
+            <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[10px] tracking-[0.1em] font-bold text-gray-400">
+              <tr>
+                <th className="p-2 w-10 text-center"></th>
+                <th className="p-2">{t('projects.title')}</th>
+                <th className="p-2 w-32">{t('projects.pm')}</th>
+                <th className="p-2 w-32 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
+                <th className="p-2 w-32 text-right">{t('projects.value')}</th>
+                <th className="p-2 w-32 text-right">Invoiced</th>
+                <th className="p-2 w-32 text-right">{t('projects.profit') || 'Profit'}</th>
+                <th className="p-2 w-24 text-right">{t('projects.margin') || 'Margin'}</th>
+              </tr>
+            </thead>
+          ) : (
+            <thead>
+              <tr className="italic uppercase text-[10px] font-black text-gray-400 tracking-[0.2em] block md:table-row bg-[#f8fafc]">
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100">{t('projects.title')}</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100">{t('projects.pm')}</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.value')}</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">Invoiced</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.profit') || 'Profit'}</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
+              </tr>
+            </thead>
+          )}
+          <tbody className="divide-y divide-gray-50 block md:table-row-group">
             {filteredProjects.map(p => {
               const profit = p.total_value - p.total_spent;
               const margin = p.total_spent > 0 ? (profit / p.total_spent) * 100 : 0;
               const isLowMargin = margin < 20 && p.total_spent > 0;
+              const isSupercompact = viewMode === 'supercompact';
+              const isCompact = viewMode === 'compact';
+              const cellPadding = isCompact ? 'p-2 md:p-3' : 'p-4 md:p-6';
+
+              if (isSupercompact) {
+                return (
+                  <tr key={p.id} className="group transition-all block md:table-row border-b border-gray-100 hover:bg-gray-50">
+                    <td className="p-1 md:p-1.5 text-center block md:table-cell w-10 border-b md:border-b-0 border-gray-100">
+                      {canEdit && (
+                          <button 
+                              onClick={() => setExpenseProjectId(p.id)}
+                              className="opacity-0 group-hover:opacity-100 w-6 h-6 bg-[var(--color-primary)] text-white rounded-md flex items-center justify-center transition-all mx-auto"
+                              title={t('projects.slideout.add_expense')}
+                          >
+                              <Plus size={14} />
+                          </button>
+                      )}
+                    </td>
+                    <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[200px]">
+                      <span className="font-bold text-[12px] text-gray-900 truncate tracking-tight">{p.name}</span>
+                    </td>
+                    <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[120px]">
+                      <span className="text-[11px] font-medium text-gray-600 truncate">{p.pm_name || '-'}</span>
+                    </td>
+                    <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
+                      <span className="text-[11px] font-medium text-gray-500">€{Number(p.total_spent).toLocaleString()}</span>
+                    </td>
+                    <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
+                      <span className="text-[11px] font-black text-gray-900">€{Number(p.total_value).toLocaleString()}</span>
+                    </td>
+                    <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
+                      <span className="text-[11px] font-medium text-purple-600">€{Number(p.already_paid || 0).toLocaleString()}</span>
+                    </td>
+                    <td className={`p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100 text-[11px] font-black ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      €{profit.toLocaleString()}
+                    </td>
+                    <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                        profit < 0 ? 'bg-red-50 text-red-600' :
+                        isLowMargin ? 'bg-amber-50 text-amber-600' :
+                        'bg-green-50 text-green-600'
+                      }`}>
+                        {margin.toFixed(0)}%
+                      </span>
+                    </td>
+                  </tr>
+                );
+              }
 
               return (
-                <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors">
-                  <td className="p-6 relative">
+                <tr key={p.id} className="group hover:bg-gray-50/50 transition-colors block md:table-row border-b md:border-b-0 border-gray-200">
+                  <td className={`${cellPadding} relative block md:table-cell mb-2 md:mb-0`}>
                     <div className="flex flex-col">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-between md:justify-start gap-3">
                         <span className="text-base font-bold text-gray-900 tracking-tight">{p.name}</span>
                         {canEdit && (
                             <button 
                                 onClick={() => setExpenseProjectId(p.id)}
-                                className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
+                                className="md:opacity-0 group-hover:opacity-100 w-8 h-8 md:w-7 md:h-7 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
                                 title={t('projects.slideout.add_expense')}
                             >
                                 <Plus size={16} />
                             </button>
                         )}
                         </div>
-                        {p.updated_at && (
+                        {p.updated_at && !isCompact && (
                             <div className="flex items-center gap-1.5 mt-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                                 <Clock size={11} className="opacity-40" />
                                 {new Date(p.updated_at).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -159,29 +241,38 @@ export const ExpensesView: React.FC = () => {
                         )}
                     </div>
                   </td>
-                  <td className="p-6">
+                  <td className={`${cellPadding} block md:table-cell flex justify-between md:table-cell`}>
+                    <span className="md:hidden text-xs font-bold text-gray-400 uppercase">{t('projects.pm')}</span>
                     {p.pm_name ? (
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-2.5 h-2.5 rounded-full shadow-sm" 
                           style={{ backgroundColor: p.pm_color || '#94a3b8' }}
                         />
-                        <span className="font-semibold text-gray-700">{p.pm_name}</span>
+                        <span className="font-semibold text-gray-700 text-sm md:text-base">{p.pm_name}</span>
                       </div>
                     ) : (
-                      <span className="text-gray-300 italic">{t('leads.unassigned')}</span>
+                      <span className="text-gray-300 italic text-sm md:text-base">{t('leads.unassigned')}</span>
                     )}
                   </td>
-                  <td className="p-6 text-right text-gray-500 font-medium">
+                  <td className={`${cellPadding} md:text-right text-gray-500 font-medium block md:table-cell flex justify-between md:table-cell text-sm md:text-base`}>
+                    <span className="md:hidden text-xs font-bold text-gray-400 uppercase">{t('projects.slideout.expenses')}</span>
                     €{Number(p.total_spent).toLocaleString()}
                   </td>
-                  <td className="p-6 text-right text-gray-900 font-black">
+                  <td className={`${cellPadding} md:text-right text-gray-900 font-black block md:table-cell flex justify-between md:table-cell text-sm md:text-base`}>
+                    <span className="md:hidden text-xs font-bold text-gray-400 uppercase">{t('projects.value')}</span>
                     €{Number(p.total_value).toLocaleString()}
                   </td>
-                  <td className={`p-6 text-right font-black text-base ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <td className={`${cellPadding} md:text-right text-purple-600 font-medium block md:table-cell flex justify-between md:table-cell text-sm md:text-base`}>
+                    <span className="md:hidden text-xs font-bold text-gray-400 uppercase">Invoiced</span>
+                    €{Number(p.already_paid || 0).toLocaleString()}
+                  </td>
+                  <td className={`${cellPadding} md:text-right font-black text-base block md:table-cell flex justify-between md:table-cell text-sm md:text-base ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className="md:hidden text-xs font-bold text-gray-400 uppercase">{t('projects.profit')}</span>
                     €{profit.toLocaleString()}
                   </td>
-                  <td className="p-6 text-right">
+                  <td className={`${cellPadding} md:text-right block md:table-cell flex justify-between md:table-cell`}>
+                    <span className="md:hidden text-xs font-bold text-gray-400 uppercase">{t('projects.margin')}</span>
                     <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${
                       profit < 0 ? 'bg-red-50 text-red-600 border border-red-100' :
                       isLowMargin ? 'bg-amber-50 text-amber-600 border border-amber-100' :
