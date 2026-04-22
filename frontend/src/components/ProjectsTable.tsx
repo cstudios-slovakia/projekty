@@ -73,6 +73,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortColumn, setSortColumn] = useState('sort_order');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  const [viewMode, setViewMode] = useState<'expanded' | 'compact' | 'supercompact'>('expanded');
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   
   // Filters
@@ -347,9 +348,29 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
         >
           <RefreshCw size={20} />
         </button>
+        <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100 ml-auto mr-auto md:mr-0">
+          <button 
+            onClick={() => setViewMode('expanded')} 
+            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'expanded' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {t('nav.expanded') || 'Expanded'}
+          </button>
+          <button 
+            onClick={() => setViewMode('compact')} 
+            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'compact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {t('nav.compact') || 'Compact'}
+          </button>
+          <button 
+            onClick={() => setViewMode('supercompact')} 
+            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'supercompact' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            {t('nav.supercompact') || 'Super'}
+          </button>
+        </div>
         {!isCreating && !archivedView && canEdit && (
           <button 
-            className="flex items-center gap-2 bg-[#e78b01] hover:bg-[#c97500] text-white px-5 py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 ml-auto"
+            className="flex items-center gap-2 bg-[#e78b01] hover:bg-[#c97500] text-white px-5 py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 ml-auto md:ml-0"
             onClick={() => setIsCreating(true)}
           >
             <Plus size={20} />
@@ -461,12 +482,59 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
             {filteredProjects.map((p) => {
               const isEditing = editingId === p.id;
               const isExpanded = expandedId === p.id;
+              const isSupercompact = !isExpanded && !isEditing && viewMode === 'supercompact';
+              const isCompact = !isExpanded && !isEditing && viewMode === 'compact';
               const rowColorClass = getRowColor(p);
+              const cellPadding = isCompact ? 'p-2 md:p-3' : 'p-4 md:p-5';
+
+              const getSupercompactStatusColor = (s: string) => {
+                switch(s) {
+                  case 'New Lead': return 'border-l-blue-500 bg-blue-50/30';
+                  case 'Price Offer Sent': return 'border-l-amber-500 bg-amber-50/30';
+                  case 'Price Offer Accepted': return 'border-l-emerald-500 bg-emerald-50/30';
+                  case 'Price Offer Rejected': return 'border-l-red-500 bg-red-50/30';
+                  case 'Price Offer Closed': return 'border-l-slate-500 bg-slate-50/30';
+                  default: return 'border-l-gray-300 bg-gray-50/30';
+                }
+              };
 
               return (
                 <React.Fragment key={p.id}>
-                  <tr className={`group transition-all block md:table-row ${rowColorClass} ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''}`}>
-                    <td className={`p-3 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : ''}`}>
+                  {isSupercompact ? (
+                    <tr 
+                      className={`group transition-all block md:table-row border-b border-gray-200 cursor-pointer hover:bg-gray-100 border-l-4 ${getSupercompactStatusColor(p.status)}`} 
+                      onClick={() => toggleExpand(p.id)}
+                    >
+                       <td className="p-1 md:p-1.5 text-center block md:table-cell w-12 border-b md:border-b-0 border-gray-100">
+                         <ChevronDown size={14} className="mx-auto text-gray-400 group-hover:text-gray-600" />
+                       </td>
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[200px]">
+                         <span className="font-bold text-[12px] text-gray-900 truncate tracking-tight">{p.name}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 text-center block md:table-cell border-b md:border-b-0 border-gray-100">
+                         <span className="text-[11px] font-black text-gray-600">{p.deadline ? new Date(p.deadline).toLocaleDateString('sk-SK') : '-'}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[150px]">
+                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t(`leads.status_${p.status.toLowerCase().replace(/ /g, '_')}`) || p.status}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[100px]">
+                         <span className="text-[11px] font-medium text-gray-600 truncate">{p.pm_name || '-'}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[100px]">
+                         <span className="text-[11px] font-medium text-gray-600 truncate">{p.designer_name || '-'}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 block md:table-cell border-b md:border-b-0 border-gray-100 truncate max-w-[100px]">
+                         <span className="text-[11px] font-medium text-gray-600 truncate">{p.dev_name || '-'}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
+                         <span className="text-[13px] font-black text-gray-900 tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
+                       </td>
+                       <td className="p-1 md:p-1.5 text-center block md:table-cell border-b md:border-b-0 border-gray-100">
+                       </td>
+                    </tr>
+                  ) : (
+                    <tr className={`group transition-all block md:table-row ${rowColorClass} ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''} ${isCompact ? 'cursor-pointer hover:bg-gray-50' : ''}`} onClick={isCompact ? () => toggleExpand(p.id) : undefined}>
+                      <td className={`${cellPadding} text-left md:text-center block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : ''}`}>
                       <div className="flex items-center justify-between md:justify-center">
                         <button onClick={() => toggleExpand(p.id)} className="p-2.5 rounded-xl bg-gray-50 md:bg-transparent hover:bg-gray-100 text-gray-500 md:text-gray-400 transition-all flex items-center gap-2">
                           <span className="md:hidden text-[10px] font-black uppercase tracking-wider">{t('projects.slideout.details')}</span>
@@ -485,7 +553,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         )}
                       </div>
                     </td>
-                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300">
+                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300`}>
                       {isEditing ? (
                         <input name="name" className="bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 w-full font-bold text-lg focus:bg-white transition-all shadow-sm" value={editForm.name || ''} onChange={handleChange} autoFocus />
                       ) : (
@@ -505,7 +573,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               />
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             {(() => {
                               const getStatusColor = (s: string) => {
                                 switch(s) {
@@ -532,15 +600,16 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                       notifyUpdate();
                                     });
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 >
                                   {statusOptions.map(opt => <option key={opt} value={opt} className="bg-white text-gray-900 uppercase font-bold">{t(`leads.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                                 </select>
                               );
                             })()}
-                            {p.project_type_name && (
+                            {!isCompact && p.project_type_name && (
                               <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.project_type_color }} title={p.project_type_name}></span>
                             )}
-                            {p.updated_at && (
+                            {!isCompact && p.updated_at && (
                                 <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest flex items-center gap-1.5 ml-1">
                                     <Clock size={11} className="opacity-40" />
                                     {new Date(p.updated_at).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -551,7 +620,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 text-left md:text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
+                    <td className={`${cellPadding} text-left md:text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                         <div className="flex items-center justify-between md:flex-col md:items-center">
                           <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('projects.deadline')}</span>
                           {isEditing ? (
@@ -565,7 +634,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         </div>
                     </td>
 
-                    <td className="p-4 md:p-5 space-y-2 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
+                    <td className={`${cellPadding} space-y-2 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.workflow')}</div>
                       <div className="flex flex-col gap-1 cursor-pointer" onClick={() => startEdit(p)}>
                         <div className="flex justify-between items-center px-1">
@@ -577,9 +646,11 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             {progressOptions.map(opt => <option key={opt} value={opt}>{t(`projects.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                           </select>
                         ) : (
-                          <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 ${p.design_status === 'Finished' ? 'w-full bg-green-500' : p.design_status === 'In Progress' ? 'w-1/2 bg-[#e78b01]' : 'w-0'}`}></div>
-                          </div>
+                          !isCompact && (
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                              <div className={`h-full transition-all duration-500 ${p.design_status === 'Finished' ? 'w-full bg-green-500' : p.design_status === 'In Progress' ? 'w-1/2 bg-[#e78b01]' : 'w-0'}`}></div>
+                            </div>
+                          )
                         )}
                       </div>
                       <div className="flex flex-col gap-1">
@@ -592,13 +663,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             {progressOptions.map(opt => <option key={opt} value={opt}>{t(`projects.status_${opt.toLowerCase().replace(/ /g, '_')}`) || opt}</option>)}
                           </select>
                         ) : (
-                          <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 ${p.dev_status === 'Finished' ? 'w-full bg-green-500' : p.dev_status === 'In Progress' ? 'w-1/2 bg-[#e78b01]' : 'w-0'}`}></div>
-                          </div>
+                          !isCompact && (
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                              <div className={`h-full transition-all duration-500 ${p.dev_status === 'Finished' ? 'w-full bg-green-500' : p.dev_status === 'In Progress' ? 'w-1/2 bg-[#e78b01]' : 'w-0'}`}></div>
+                            </div>
+                          )
                         )}
                       </div>
                     </td>
-                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
+                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.pm') || 'Project Manager'}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -618,7 +691,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300">
+                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.designer') || 'Designer'}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -645,7 +718,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 block md:table-cell border-b border-gray-300">
+                    <td className={`${cellPadding} block md:table-cell border-b border-gray-300`}>
                       <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.developer') || 'Developer'}</div>
                       {isEditing ? (
                         <div className="flex flex-col gap-1">
@@ -712,7 +785,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
 
-                    <td className="p-4 md:p-5 text-left md:text-right block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
+                    <td className={`${cellPadding} text-left md:text-right block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="flex items-center justify-between md:flex-col md:items-end">
                         <span className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('projects.financials')}</span>
                         {isEditing ? (
@@ -725,7 +798,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             className="flex items-center justify-end gap-3 md:gap-4 cursor-pointer"
                             onClick={() => startEdit(p)}
                           >
-                            {(() => {
+                            {!isCompact && (() => {
                               const devBudget = Number(p.dev_budget) || 0;
                               const totalSpent = Number(p.total_spent) || 0;
                               const percentBurned = devBudget > 0 ? Math.round((totalSpent / devBudget) * 100) : 0;
@@ -743,15 +816,15 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               );
                             })()}
                             <div className="flex flex-col text-right">
-                              <span className="text-gray-900 font-black text-xl md:text-xl block leading-none tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
-                              {Number(p.already_paid) > 0 && <span className="text-green-500 text-[11px] font-bold mt-1.5 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} {t('projects.paid')}</span>}
+                              <span className={`text-gray-900 font-black ${isCompact ? 'text-md md:text-lg' : 'text-xl md:text-xl'} block leading-none tracking-tight`}>€{Number(p.total_value).toLocaleString()}</span>
+                              {!isCompact && Number(p.already_paid) > 0 && <span className="text-green-500 text-[11px] font-bold mt-1.5 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} {t('projects.paid')}</span>}
                             </div>
                           </div>
                         )}
                       </div>
                     </td>
 
-                    <td className="p-4 md:p-5 text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0">
+                    <td className={`${cellPadding} text-center block md:table-cell border-b border-gray-300 border-t border-gray-300 md:border-t-0`}>
                       <div className="hidden md:flex justify-center gap-2">
                         {isEditing ? (
                           <button onClick={() => handleSave(p.id)} className="p-3 bg-[#00b800] hover:bg-green-600 text-white rounded-xl shadow-lg transition-all transform active:scale-95">
@@ -788,6 +861,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                       )}
                     </td>
                   </tr>
+                  )}
 
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
