@@ -147,13 +147,14 @@ export const ExpensesView: React.FC = () => {
             <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[10px] tracking-[0.1em] font-bold text-gray-400">
               <tr>
                 <th className="p-2 w-10 text-center"></th>
-                <th className="p-2 w-[22%]">{t('projects.title')}</th>
-                <th className="p-2 w-[15%]">{t('projects.pm')}</th>
+                <th className="p-2 w-[20%]">{t('projects.title')}</th>
+                <th className="p-2 w-[14%]">{t('projects.pm')}</th>
                 <th className="p-2 w-[12%] text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
                 <th className="p-2 w-[12%] text-right">{t('projects.value')}</th>
                 <th className="p-2 w-[12%] text-right">Invoiced</th>
-                <th className="p-2 w-[15%] text-right">{t('projects.profit') || 'Profit'}</th>
-                <th className="p-2 w-24 text-right">{t('projects.margin') || 'Margin'}</th>
+                <th className="p-2 w-[13%] text-right">{t('projects.profit') || 'Profit'}</th>
+                <th className="p-2 w-[10%] text-right">{t('projects.margin') || 'Margin'}</th>
+                <th className="p-2 w-[7%] text-center"></th>
               </tr>
             </thead>
           ) : (
@@ -166,6 +167,7 @@ export const ExpensesView: React.FC = () => {
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">Invoiced</th>
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.profit') || 'Profit'}</th>
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 w-24 text-center"></th>
               </tr>
             </thead>
           )}
@@ -220,6 +222,14 @@ export const ExpensesView: React.FC = () => {
                       }`}>
                         {margin.toFixed(0)}%
                       </span>
+                    </td>
+                    <td className="p-1 md:p-1.5 text-center block md:table-cell border-b md:border-b-0 border-gray-100">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setExpenseProjectId(p.id); }}
+                        className="px-2 py-1 bg-gray-100 hover:bg-[var(--color-primary)] text-gray-600 hover:text-white rounded-md font-black text-[9px] uppercase tracking-widest transition-all"
+                      >
+                        Detail
+                      </button>
                     </td>
                   </tr>
                 );
@@ -289,6 +299,14 @@ export const ExpensesView: React.FC = () => {
                       {profit >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                       {margin.toFixed(1)}%
                     </div>
+                  </td>
+                  <td className={`${cellPadding} md:text-center block md:table-cell flex justify-between md:table-cell`}>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); setExpenseProjectId(p.id); }}
+                        className="px-3 py-1.5 bg-gray-100 hover:bg-[var(--color-primary)] text-gray-600 hover:text-white rounded-lg font-black text-[10px] uppercase tracking-widest transition-all shadow-sm"
+                    >
+                        Detail
+                    </button>
                   </td>
                 </tr>
               );
