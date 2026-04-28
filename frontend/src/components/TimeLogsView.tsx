@@ -51,10 +51,11 @@ export const TimeLogsView: React.FC = () => {
   const token = localStorage.getItem('token');
   const user = token ? JSON.parse(atob(token)) : null;
   const canEdit = user?.role !== 'viewer';
+  const canViewAll = user?.role === 'admin' || user?.role === 'manager' || user?.role === 'viewer';
 
-  // Admin/Manager Multi-User Logging
+  // Admin/Manager/Viewer Multi-User Logging
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [targetUserId, setTargetUserId] = useState<number | 'all'>(user?.id);
+  const [targetUserId, setTargetUserId] = useState<number | 'all'>(canViewAll ? 'all' : (user?.id || 'all'));
 
   // Edit Mode state
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
@@ -62,7 +63,7 @@ export const TimeLogsView: React.FC = () => {
 
   useEffect(() => {
     if (user?.id) {
-      if (user.role === 'admin' || user.role === 'manager') {
+      if (canViewAll) {
         fetch('/api/users.php')
           .then(r => r.json())
           .then(res => {
@@ -70,7 +71,7 @@ export const TimeLogsView: React.FC = () => {
           });
       }
     }
-  }, [user?.id, user?.role]);
+  }, [user?.id, canViewAll]);
 
   useEffect(() => {
     if (targetUserId) {
@@ -224,9 +225,9 @@ export const TimeLogsView: React.FC = () => {
             <Clock className="text-[var(--color-primary)]" size={32} />
             {t('timelogs.title') || 'Time Logging'}
           </h2>
-          {(user?.role === 'admin' || user?.role === 'manager') && allUsers.length > 0 && (
+          {canViewAll && allUsers.length > 0 && (
             <div className="flex items-center gap-2 ml-auto lg:ml-4 bg-white border-2 border-[var(--color-primary)] ring-4 ring-[var(--color-primary)]/10 px-4 py-2 rounded-2xl shadow-sm transition-all hover:scale-[1.02]">
-              <span className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest whitespace-nowrap">Logging as:</span>
+              <span className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest whitespace-nowrap">Viewing as:</span>
               <select
                 className="bg-transparent text-gray-900 focus:outline-none font-black transition-all text-sm cursor-pointer"
                 value={targetUserId}
