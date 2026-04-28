@@ -309,104 +309,116 @@ export const TimeLogsView: React.FC = () => {
 
         {/* Existing Logs for this date */}
         {activeDateLogs.length > 0 && (
-          <div className="mb-8 space-y-3">
+          <div className="mb-8 space-y-6">
             <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Saved Logs</h4>
-            {activeDateLogs.map(log => (
-              editingLogId === log.id ? (
-                <div key={log.id} className="flex flex-col lg:flex-row items-end gap-4 bg-white border-2 border-[var(--color-primary)]/50 rounded-2xl p-5 relative shadow-[0_8px_30px_rgb(0,0,0,0.08)] scale-[1.01] transition-all my-6 fade-in">
-                  <div className="w-full lg:flex-1">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Project</label>
-                    <select
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all"
-                      value={editForm?.project_id || ''}
-                      onChange={e => setEditForm(prev => prev ? {...prev, project_id: Number(e.target.value)} : null)}
-                    >
-                      {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </div>
-                  
-                  <div className="w-full lg:flex-[2]">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Notes</label>
-                    <div data-color-mode="light" className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
-                      <MDEditor
-                        value={editForm?.notes || ''}
-                        onChange={(val) => setEditForm(prev => prev ? {...prev, notes: val || ''} : null)}
-                        height={250}
-                        preview="edit"
-                        hideToolbar={false}
-                      />
+            {Object.entries(
+               activeDateLogs.reduce((acc, log) => {
+                 const key = log.username || 'Unknown User';
+                 if (!acc[key]) acc[key] = [];
+                 acc[key].push(log);
+                 return acc;
+               }, {} as Record<string, TimeLog[]>)
+            ).map(([userGroup, userLogs]) => (
+              <div key={userGroup} className="space-y-3">
+                <div className="text-sm font-black text-gray-800 border-b border-gray-100 pb-2">{userGroup}</div>
+                {userLogs.map(log => (
+                  editingLogId === log.id ? (
+                    <div key={log.id} className="flex flex-col lg:flex-row items-end gap-4 bg-white border-2 border-[var(--color-primary)]/50 rounded-2xl p-5 relative shadow-[0_8px_30px_rgb(0,0,0,0.08)] scale-[1.01] transition-all my-6 fade-in">
+                      <div className="w-full lg:flex-1">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Project</label>
+                        <select
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] font-bold transition-all"
+                          value={editForm?.project_id || ''}
+                          onChange={e => setEditForm(prev => prev ? {...prev, project_id: Number(e.target.value)} : null)}
+                        >
+                          {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      
+                      <div className="w-full lg:flex-[2]">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Notes</label>
+                        <div data-color-mode="light" className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
+                          <MDEditor
+                            value={editForm?.notes || ''}
+                            onChange={(val) => setEditForm(prev => prev ? {...prev, notes: val || ''} : null)}
+                            height={250}
+                            preview="edit"
+                            hideToolbar={false}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="w-full lg:w-32">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Hours</label>
+                        <input
+                          type="number"
+                          step="0.25"
+                          min="0.25"
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-lg text-center"
+                          value={editForm?.hours || ''}
+                          onChange={e => setEditForm(prev => prev ? {...prev, hours: Number(e.target.value)} : null)}
+                        />
+                      </div>
+
+                      <div className="flex gap-2 h-full pb-0 mt-3 lg:mt-0">
+                        <button 
+                          onClick={() => { setEditingLogId(null); setEditForm(null); }}
+                          className="px-4 py-3 text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold transition-all"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={handleUpdateLog}
+                          className="flex items-center gap-2 bg-[var(--color-primary)] text-white px-5 py-3 rounded-xl font-black shadow-lg shadow-[var(--color-primary)]/20 hover:scale-105 active:scale-95 transition-all"
+                        >
+                          <Save size={18} /> Save
+                        </button>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="w-full lg:w-32">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Hours</label>
-                    <input
-                      type="number"
-                      step="0.25"
-                      min="0.25"
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-lg text-center"
-                      value={editForm?.hours || ''}
-                      onChange={e => setEditForm(prev => prev ? {...prev, hours: Number(e.target.value)} : null)}
-                    />
-                  </div>
-
-                  <div className="flex gap-2 h-full pb-0 mt-3 lg:mt-0">
-                    <button 
-                      onClick={() => { setEditingLogId(null); setEditForm(null); }}
-                      className="px-4 py-3 text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      onClick={handleUpdateLog}
-                      className="flex items-center gap-2 bg-[var(--color-primary)] text-white px-5 py-3 rounded-xl font-black shadow-lg shadow-[var(--color-primary)]/20 hover:scale-105 active:scale-95 transition-all"
-                    >
-                      <Save size={18} /> Save
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div key={log.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-gray-50 border border-gray-100 hover:bg-white rounded-2xl p-4 group hover:border-[var(--color-primary)]/40 hover:shadow-sm transition-all duration-300">
-                  <div className="w-full md:w-1/3">
-                    <div className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-wider mb-1">Project</div>
-                    <div className="font-bold text-gray-900 truncate">{log.project_name || `Project #${log.project_id}`}</div>
-                  </div>
-                  <div className="w-full md:w-1/2">
-                    <div className="text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">Notes</div>
-                    <div className="text-sm text-gray-600 markdown-body-override" data-color-mode="light">
-                      {log.notes ? (
-                        <MDEditor.Markdown source={log.notes} style={{ backgroundColor: 'transparent' }} />
-                      ) : (
-                        <em className="text-gray-300 font-medium">No notes provided</em>
+                  ) : (
+                    <div key={log.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-gray-50 border border-gray-100 hover:bg-white rounded-2xl p-4 group hover:border-[var(--color-primary)]/40 hover:shadow-sm transition-all duration-300">
+                      <div className="w-full md:w-1/3">
+                        <div className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-wider mb-1">Project</div>
+                        <div className="font-bold text-gray-900 truncate">{log.project_name || `Project #${log.project_id}`}</div>
+                      </div>
+                      <div className="w-full md:w-1/2">
+                        <div className="text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">Notes</div>
+                        <div className="text-sm text-gray-600 markdown-body-override" data-color-mode="light">
+                          {log.notes ? (
+                            <MDEditor.Markdown source={log.notes} style={{ backgroundColor: 'transparent' }} />
+                          ) : (
+                            <em className="text-gray-300 font-medium">No notes provided</em>
+                          )}
+                        </div>
+                      </div>
+                      <div className="w-full md:w-auto flex flex-col items-center justify-between gap-4 md:ml-auto">
+                        <div>
+                          <div className="text-xs font-bold text-gray-400 uppercase text-center mb-1 tracking-wider">Hours</div>
+                          <div className="font-black focus:outline-none text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-4 py-1.5 rounded-xl text-center min-w-[4rem]">{log.hours}h</div>
+                        </div>
+                      </div>
+                      {canEdit && (
+                        <div className="flex md:flex-col gap-2 mt-4 md:mt-0 md:opacity-0 group-hover:opacity-100 transition-all duration-300 w-full md:w-auto justify-end">
+                          <button 
+                            onClick={() => startEditLog(log)}
+                            className="p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all"
+                            title="Edit Log"
+                          >
+                            <Edit3 size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteLog(log.id)}
+                            className="p-2 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                            title={t('common.delete') || 'Delete Log'}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       )}
                     </div>
-                  </div>
-                  <div className="w-full md:w-auto flex flex-col items-center justify-between gap-4 md:ml-auto">
-                    <div>
-                      <div className="text-xs font-bold text-gray-400 uppercase text-center mb-1 tracking-wider">Hours</div>
-                      <div className="font-black focus:outline-none text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-4 py-1.5 rounded-xl text-center min-w-[4rem]">{log.hours}h</div>
-                    </div>
-                  </div>
-                  {canEdit && (
-                    <div className="flex md:flex-col gap-2 mt-4 md:mt-0 md:opacity-0 group-hover:opacity-100 transition-all duration-300 w-full md:w-auto justify-end">
-                      <button 
-                        onClick={() => startEditLog(log)}
-                        className="p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all"
-                        title="Edit Log"
-                      >
-                        <Edit3 size={18} />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteLog(log.id)}
-                        className="p-2 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                        title={t('common.delete') || 'Delete Log'}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )
+                  )
+                ))}
+              </div>
             ))}
           </div>
         )}
