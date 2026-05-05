@@ -673,7 +673,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                                <span><b className="text-gray-400 mr-1">DEADLINE</b> {p.deadline ? new Date(p.deadline).toLocaleDateString('sk-SK') : '-'}</span>
                              </div>
                              <div className="flex flex-col text-right">
-                               <span className="text-gray-900 font-black text-lg block leading-none tracking-tight">€{Number(p.total_value).toLocaleString()}</span>
+                               <span className="text-gray-900 font-black text-lg block leading-none tracking-tight">€{Number(p.total_value - (p.already_paid || 0)).toLocaleString()}</span>
                                {Number(p.already_paid) > 0 && <span className="text-green-500 text-[10px] font-bold mt-1 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} {t('projects.paid')}</span>}
                              </div>
                            </div>
@@ -961,7 +961,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               );
                             })()}
                             <div className="flex flex-col text-right">
-                              <span className={`text-gray-900 font-black ${isCompact ? 'text-md md:text-lg' : 'text-xl md:text-xl'} block leading-none tracking-tight`}>€{Number(p.total_value).toLocaleString()}</span>
+                              <span className={`text-gray-900 font-black ${isCompact ? 'text-md md:text-lg' : 'text-xl md:text-xl'} block leading-none tracking-tight`}>€{Number(p.total_value - (p.already_paid || 0)).toLocaleString()}</span>
                               {!isCompact && Number(p.already_paid) > 0 && <span className="text-green-500 text-[11px] font-bold mt-1.5 uppercase tracking-wider">€{Number(p.already_paid).toLocaleString()} {t('projects.paid')}</span>}
                             </div>
                           </div>
