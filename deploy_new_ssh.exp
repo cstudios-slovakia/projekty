@@ -1,12 +1,12 @@
 #!/usr/bin/expect -f
 set timeout -1
-spawn ssh -o StrictHostKeyChecking=no uid2136377@shell.r2.websupport.sk -p26755
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p29100
 expect "password:"
-send "2f0cdf0099\r"
+send "2598d10291\r"
 expect "$ "
-send "cd softwaresolutions.sk/sub/projekt\r"
+send "cd cstudios.sk/sub/projektyerik\r"
 expect "$ "
-send "composer require cstudios-slovakia/projekty:1.9.16\r"
+send "composer require cstudios-slovakia/projekty:1.9.17\r"
 expect "$ "
 send "php vendor/cstudios-slovakia/projekty/publish.php\r"
 expect "$ "
