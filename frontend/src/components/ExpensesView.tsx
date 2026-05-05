@@ -147,13 +147,14 @@ export const ExpensesView: React.FC = () => {
             <thead className="hidden md:table-header-group bg-[#f8fafc] border-b border-gray-100 uppercase text-[10px] tracking-[0.1em] font-bold text-gray-400">
               <tr>
                 <th className="p-2 w-10 text-center"></th>
-                <th className="p-2 w-[20%]">{t('projects.title')}</th>
-                <th className="p-2 w-[14%]">{t('projects.pm')}</th>
-                <th className="p-2 w-[12%] text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
-                <th className="p-2 w-[12%] text-right">{t('projects.value')}</th>
-                <th className="p-2 w-[12%] text-right">Invoiced</th>
-                <th className="p-2 w-[13%] text-right">{t('projects.profit') || 'Profit'}</th>
-                <th className="p-2 w-[10%] text-right">{t('projects.margin') || 'Margin'}</th>
+                <th className="p-2 w-[18%]">{t('projects.title')}</th>
+                <th className="p-2 w-[11%]">{t('projects.pm')}</th>
+                <th className="p-2 w-[11%] text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
+                <th className="p-2 w-[11%] text-right">{t('projects.value')}</th>
+                <th className="p-2 w-[11%] text-right">Invoiced</th>
+                <th className="p-2 w-[11%] text-right">To Invoice</th>
+                <th className="p-2 w-[11%] text-right">{t('projects.profit') || 'Profit'}</th>
+                <th className="p-2 w-[9%] text-right">{t('projects.margin') || 'Margin'}</th>
                 <th className="p-2 w-[7%] text-center"></th>
               </tr>
             </thead>
@@ -165,6 +166,7 @@ export const ExpensesView: React.FC = () => {
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.slideout.expenses') || 'Expenses'}</th>
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.value')}</th>
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">Invoiced</th>
+                <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">To Invoice</th>
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.profit') || 'Profit'}</th>
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 text-right">{t('projects.margin') || 'Margin %'}</th>
                 <th className="hidden md:table-cell p-6 sticky top-[72px] z-20 border-b border-gray-100 w-24 text-center"></th>
@@ -210,6 +212,9 @@ export const ExpensesView: React.FC = () => {
                     </td>
                     <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
                       <span className="text-[11px] font-medium text-purple-600">€{Number(p.already_paid || 0).toLocaleString()}</span>
+                    </td>
+                    <td className="p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100">
+                      <span className="text-[11px] font-bold text-amber-600">€{Number(p.total_value - (p.already_paid || 0)).toLocaleString()}</span>
                     </td>
                     <td className={`p-1 md:p-1.5 text-right block md:table-cell border-b md:border-b-0 border-gray-100 text-[11px] font-black ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       €{profit.toLocaleString()}
@@ -284,6 +289,10 @@ export const ExpensesView: React.FC = () => {
                   <td className={`${cellPadding} md:text-right text-purple-600 font-medium block md:table-cell flex justify-between md:table-cell text-sm md:text-base`}>
                     <span className="md:hidden text-xs font-bold text-gray-400 uppercase">Invoiced</span>
                     €{Number(p.already_paid || 0).toLocaleString()}
+                  </td>
+                  <td className={`${cellPadding} md:text-right text-amber-600 font-bold block md:table-cell flex justify-between md:table-cell text-sm md:text-base`}>
+                    <span className="md:hidden text-xs font-bold text-gray-400 uppercase">To Invoice</span>
+                    €{Number(p.total_value - (p.already_paid || 0)).toLocaleString()}
                   </td>
                   <td className={`${cellPadding} md:text-right font-black text-base block md:table-cell flex justify-between md:table-cell text-sm md:text-base ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     <span className="md:hidden text-xs font-bold text-gray-400 uppercase">{t('projects.profit')}</span>
