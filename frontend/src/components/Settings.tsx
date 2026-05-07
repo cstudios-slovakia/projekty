@@ -725,7 +725,7 @@ export const Settings: React.FC = () => {
                     </div>
 
                     <div className="space-y-2 md:col-span-3 pt-0">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">OpenAI API Key (ChatGPT 5.5)</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">RolAI API Key (OpenAI)</label>
                         <div className="flex flex-col md:flex-row gap-3">
                             <input 
                                 type="password" 
@@ -735,7 +735,7 @@ export const Settings: React.FC = () => {
                                 placeholder="sk-..."
                             />
                         </div>
-                        <p className="text-[10px] text-gray-400 font-bold ml-1">If set, the AI Chatbot will be enabled globally.</p>
+                        <p className="text-[10px] text-gray-400 font-bold ml-1">If set, RolAI will be enabled globally.</p>
                     </div>
                 </div>
                 <div className="mt-8 pt-8 border-t border-gray-100 flex justify-end relative z-10">
