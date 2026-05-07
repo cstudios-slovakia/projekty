@@ -26,7 +26,7 @@ if (!$openaiKey) {
 $userMessage = $input['message'];
 
 // Fetch project data to feed to the LLM (Simple implementation of Phase 1)
-$projectsStmt = $pdo->query("SELECT name, status, total_value, already_paid, pm_name, dev_name, deadline FROM projects WHERE is_archived = 0");
+$projectsStmt = $pdo->query("SELECT name, status, total_value, already_paid, deadline FROM projects WHERE is_archived = 0");
 $projects = $projectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $systemPrompt = "You are RolAI, a highly intelligent and professional AI assistant for a digital agency's project management system. 
