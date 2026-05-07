@@ -42,9 +42,34 @@ $projectsStmt = $pdo->query("
 ");
 $projects = $projectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch recent project activities (follow-ups)
+$activitiesStmt = $pdo->query("
+    SELECT pa.type, pa.notes, pa.activity_date, p.name as project_name
+    FROM project_activities pa
+    JOIN projects p ON pa.project_id = p.id
+    ORDER BY pa.activity_date DESC LIMIT 30
+");
+$recentActivities = $activitiesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch recent time logs
+$timeLogsStmt = $pdo->query("
+    SELECT tl.hours, tl.notes, tl.log_date, p.name as project_name, u.username as logged_by
+    FROM time_logs tl
+    JOIN projects p ON tl.project_id = p.id
+    LEFT JOIN users u ON tl.user_id = u.id
+    ORDER BY tl.log_date DESC, tl.created_at DESC LIMIT 30
+");
+$recentTimeLogs = $timeLogsStmt->fetchAll(PDO::FETCH_ASSOC);
+
 $systemPrompt = ($customPrompt ? $customPrompt . "\n\n" : "You are RolAI, a highly intelligent and professional AI assistant for a digital agency's project management system.\nYou answer questions accurately based ONLY on the provided data. Do not make up numbers.\nIf asked to sum up budgets or remaining values, do the exact math based on this data.\nIMPORTANT: Ignore projects whose status is 'Closed', 'Completed', 'Rejected', or 'Done' when answering questions about 'active', 'upcoming', or 'future' projects or deadlines, unless the user explicitly asks for closed projects.\n\n") . 
 "CURRENT ACTIVE PROJECTS DATA (JSON Format):
 " . json_encode($projects) . "
+
+RECENT PROJECT FOLLOW-UPS (Last 30):
+" . json_encode($recentActivities) . "
+
+RECENT TIME LOGS (Last 30):
+" . json_encode($recentTimeLogs) . "
 
 When returning financials, format them nicely with the € symbol.";
 
