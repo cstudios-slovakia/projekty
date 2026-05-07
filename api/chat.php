@@ -11,14 +11,64 @@ if (!isset($input['message'])) {
     exit;
 }
 
+// Fetch OpenAI API Key
+$is_mysql = (defined('DB_TYPE') && (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
+$quote = $is_mysql ? '`' : '';
+$stmt = $pdo->prepare("SELECT {$quote}value{$quote} FROM {$quote}system_settings{$quote} WHERE {$quote}key{$quote} = 'openai_api_key'");
+$stmt->execute();
+$openaiKey = $stmt->fetchColumn();
+
+if (!$openaiKey) {
+    echo json_encode(['status' => 'error', 'message' => 'OpenAI API key is not configured in System Settings.']);
+    exit;
+}
+
 $userMessage = $input['message'];
 
-// TODO: Integrate OpenAI API and Vector Database
-// For now, return a mock response
+// Fetch project data to feed to the LLM (Simple implementation of Phase 1)
+$projectsStmt = $pdo->query("SELECT name, status, total_value, already_paid, pm_name, dev_name, deadline FROM projects WHERE is_archived = 0");
+$projects = $projectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-$response = [
-    'status' => 'success',
-    'reply' => 'This is a mock response from the Chat API. The AI engine is currently being configured.',
-];
+$systemPrompt = "You are RolAI, a highly intelligent and professional AI assistant for a digital agency's project management system. 
+You answer questions accurately based ONLY on the provided data. Do not make up numbers.
+If asked to sum up budgets or remaining values, do the exact math based on this data.
 
-echo json_encode($response);
+CURRENT ACTIVE PROJECTS DATA (JSON Format):
+" . json_encode($projects) . "
+
+When returning financials, format them nicely with the € symbol.";
+
+// Call OpenAI API
+$ch = curl_init('https://api.openai.com/v1/chat/completions');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'model' => 'gpt-4o',
+    'messages' => [
+        ['role' => 'system', 'content' => $systemPrompt],
+        ['role' => 'user', 'content' => $userMessage]
+    ],
+    'temperature' => 0.2
+]));
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . $openaiKey
+]);
+
+$responseRaw = curl_exec($ch);
+curl_close($ch);
+
+$openAiData = json_decode($responseRaw, true);
+
+if (isset($openAiData['choices'][0]['message']['content'])) {
+    echo json_encode([
+        'status' => 'success',
+        'reply' => $openAiData['choices'][0]['message']['content']
+    ]);
+} else {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Failed to get response from OpenAI.',
+        'debug' => $openAiData
+    ]);
+}
