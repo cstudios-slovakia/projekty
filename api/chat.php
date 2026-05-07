@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once 'db.php';
 header('Content-Type: application/json');
 
 // Get the POST payload
