@@ -27,6 +27,7 @@ if (!$openaiKey) {
 }
 
 $userMessage = $input['message'];
+$history = $input['history'] ?? [];
 
 // Fetch project data to feed to the LLM (Simple implementation of Phase 1)
 $archivedCondition = $is_mysql ? "is_archived = 0" : "is_archived = FALSE";
@@ -39,16 +40,26 @@ $systemPrompt = ($customPrompt ? $customPrompt . "\n\n" : "You are RolAI, a high
 
 When returning financials, format them nicely with the € symbol.";
 
+// Build messages array
+$messagesPayload = [
+    ['role' => 'system', 'content' => $systemPrompt]
+];
+
+foreach ($history as $msg) {
+    if (isset($msg['role']) && isset($msg['content']) && in_array($msg['role'], ['user', 'assistant'])) {
+        $messagesPayload[] = ['role' => $msg['role'], 'content' => $msg['content']];
+    }
+}
+
+$messagesPayload[] = ['role' => 'user', 'content' => $userMessage];
+
 // Call OpenAI API
 $ch = curl_init('https://api.openai.com/v1/chat/completions');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
     'model' => 'gpt-4o',
-    'messages' => [
-        ['role' => 'system', 'content' => $systemPrompt],
-        ['role' => 'user', 'content' => $userMessage]
-    ],
+    'messages' => $messagesPayload,
     'temperature' => 0.2
 ]));
 curl_setopt($ch, CURLOPT_HTTPHEADER, [

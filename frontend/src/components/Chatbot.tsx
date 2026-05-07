@@ -33,10 +33,14 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, setIsOpen }) => {
     setIsLoading(true);
 
     try {
+      // Exclude the initial intro message if we want to save tokens, but sending it is fine too.
+      // We send the current state of messages as history.
+      const history = messages.filter(m => m.content !== t('common.chatbot_intro') && m.content !== 'Hello! I am your AI assistant. You can ask me about projects, leads, or financial standings.');
+      
       const response = await fetch('/api/chat.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg })
+        body: JSON.stringify({ message: userMsg, history })
       });
       const data = await response.json();
       
