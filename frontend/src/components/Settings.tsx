@@ -32,6 +32,7 @@ export const Settings: React.FC = () => {
     accent_color_primary: '#e78b01', 
     accent_color_secondary: '#00b800',
     lead_api_key: '',
+    openai_api_key: '',
     default_language: 'en',
     sent_unaccepted_warning: 0,
     remaining_invoicable_warning: 0
@@ -71,6 +72,7 @@ export const Settings: React.FC = () => {
             accent_color_primary: d.accent_color_primary || '#e78b01',
             accent_color_secondary: d.accent_color_secondary || '#00b800',
             lead_api_key: d.lead_api_key || '',
+            openai_api_key: d.openai_api_key || '',
             default_language: d.default_language || 'en',
             sent_unaccepted_warning: Number(d.sent_unaccepted_warning) || 0,
             remaining_invoicable_warning: Number(d.remaining_invoicable_warning) || 0
@@ -720,6 +722,20 @@ export const Settings: React.FC = () => {
                                 {t('settings.system.generate_new') || 'Generate New'}
                             </button>
                         </div>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-3 pt-0">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">OpenAI API Key (ChatGPT 5.5)</label>
+                        <div className="flex flex-col md:flex-row gap-3">
+                            <input 
+                                type="password" 
+                                value={sysSettings.openai_api_key}
+                                onChange={e => setSysSettings({...sysSettings, openai_api_key: e.target.value})}
+                                className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-sm"
+                                placeholder="sk-..."
+                            />
+                        </div>
+                        <p className="text-[10px] text-gray-400 font-bold ml-1">If set, the AI Chatbot will be enabled globally.</p>
                     </div>
                 </div>
                 <div className="mt-8 pt-8 border-t border-gray-100 flex justify-end relative z-10">

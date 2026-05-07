@@ -10,6 +10,7 @@ import { SetupWizard } from './components/SetupWizard';
 import { LeadsView } from './components/LeadsView';
 import { CalendarView } from './components/CalendarView';
 import { TimeLogsView } from './components/TimeLogsView';
+import { Chatbot } from './components/Chatbot';
 import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
 import { Clock } from 'lucide-react';
 
@@ -17,9 +18,10 @@ interface LayoutProps {
   systemTitle: string;
   version: string;
   user: any;
+  hasOpenAiKey?: boolean;
 }
 
-function Layout({ systemTitle, version, user }: LayoutProps) {
+function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
   const { t } = useTranslation();
   const location = useLocation();
 
@@ -168,13 +170,14 @@ function Layout({ systemTitle, version, user }: LayoutProps) {
             </Routes>
           </div>
         </main>
+        {hasOpenAiKey && <Chatbot />}
       </div>
     </div>
   );
 }
 
 interface AppContentProps {
-  systemSettings: { title: string; primary: string; secondary: string };
+  systemSettings: { title: string; primary: string; secondary: string; hasOpenAiKey?: boolean };
   version: string;
   token: string | null;
   setToken: (t: string | null) => void;
@@ -229,14 +232,14 @@ function AppContent({ systemSettings, version, token, loginForm, setLoginForm, h
     );
   }
 
-  return <Layout systemTitle={systemSettings.title} version={version} user={user} />;
+  return <Layout systemTitle={systemSettings.title} version={version} user={user} hasOpenAiKey={systemSettings.hasOpenAiKey} />;
 }
 
 function App() {
   const [isInstalled, setIsInstalled] = useState<boolean | null>(null);
   const [version, setVersion] = useState('1.4.3');
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  const [systemSettings, setSystemSettings] = useState({ title: 'Lead Tracker', primary: '#e78b01', secondary: '#00b800' });
+  const [systemSettings, setSystemSettings] = useState({ title: 'Lead Tracker', primary: '#e78b01', secondary: '#00b800', hasOpenAiKey: false });
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
 
@@ -264,7 +267,8 @@ function App() {
           setSystemSettings({
             title: s.system_title || 'Lead Tracker',
             primary: s.accent_color_primary || '#e78b01',
-            secondary: s.accent_color_secondary || '#00b800'
+            secondary: s.accent_color_secondary || '#00b800',
+            hasOpenAiKey: !!s.has_openai_key
           });
           
           // Apply globally
