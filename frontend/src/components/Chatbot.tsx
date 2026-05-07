@@ -1,10 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+import MDEditor from '@uiw/react-md-editor';
 
-export const Chatbot: React.FC = () => {
+interface ChatbotProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, setIsOpen }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
     { role: 'assistant', content: t('common.chatbot_intro') || 'Hello! I am your AI assistant. You can ask me about projects, leads, or financial standings.' }
   ]);
@@ -49,27 +54,33 @@ export const Chatbot: React.FC = () => {
 
   return (
     <>
-      {/* Floating Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 p-4 rounded-full shadow-2xl transition-all z-50 flex items-center justify-center
-          ${isOpen ? 'bg-gray-900 text-white rotate-90 scale-90' : 'bg-[#00b800] text-white hover:scale-105 hover:shadow-[#00b800]/40'}`}
-      >
-        {isOpen ? <X size={24} className="-rotate-90" /> : <MessageSquare size={24} />}
-      </button>
+      {/* Floating Button (when closed) */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 p-4 rounded-full shadow-2xl transition-all z-50 flex items-center justify-center bg-[#00b800] text-white hover:scale-105 hover:shadow-[#00b800]/40"
+        >
+          <MessageSquare size={24} />
+        </button>
+      )}
 
-      {/* Chat Window */}
+      {/* Chat Window Sidebar */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[350px] md:w-[400px] h-[500px] max-h-[70vh] bg-white rounded-3xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden animate-fade-in scale-in origin-bottom-right">
+        <aside className="w-full md:w-[400px] h-full bg-white border-l border-gray-200 z-40 flex flex-col overflow-hidden animate-slide-in-right flex-shrink-0 shadow-2xl relative">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#00b800] to-emerald-500 p-4 text-white flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <MessageSquare size={20} className="text-white" />
+          <div className="bg-gradient-to-r from-[#00b800] to-emerald-500 p-4 text-white flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <MessageSquare size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm">RolAI</h3>
+                <p className="text-[10px] text-white/80 uppercase tracking-widest font-black">AI Assistant</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-sm">RolAI</h3>
-              <p className="text-[10px] text-white/80 uppercase tracking-widest font-black">AI Assistant</p>
-            </div>
+            <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X size={20} className="text-white" />
+            </button>
           </div>
 
           {/* Messages Area */}
@@ -77,13 +88,18 @@ export const Chatbot: React.FC = () => {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div 
-                  className={`max-w-[80%] rounded-2xl p-3 text-sm shadow-sm ${
+                  className={`max-w-[85%] rounded-2xl p-3 text-sm shadow-sm overflow-hidden ${
                     msg.role === 'user' 
                       ? 'bg-gray-900 text-white rounded-br-sm' 
-                      : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm'
+                      : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-bold [&_strong]:text-gray-900 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2'
                   }`}
+                  data-color-mode="light"
                 >
-                  {msg.content}
+                  {msg.role === 'assistant' ? (
+                    <MDEditor.Markdown source={msg.content} style={{ whiteSpace: 'pre-wrap', backgroundColor: 'transparent', fontSize: '14px', color: 'inherit' }} />
+                  ) : (
+                    msg.content
+                  )}
                 </div>
               </div>
             ))}
@@ -118,7 +134,7 @@ export const Chatbot: React.FC = () => {
               </button>
             </div>
           </form>
-        </div>
+        </aside>
       )}
     </>
   );

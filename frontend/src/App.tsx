@@ -24,6 +24,7 @@ interface LayoutProps {
 function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
   const { t } = useTranslation();
   const location = useLocation();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -170,8 +171,8 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
             </Routes>
           </div>
         </main>
-        {hasOpenAiKey && <Chatbot />}
       </div>
+      {hasOpenAiKey && <Chatbot isOpen={isChatOpen} setIsOpen={setIsChatOpen} />}
     </div>
   );
 }
