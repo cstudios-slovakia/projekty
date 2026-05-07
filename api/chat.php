@@ -11,12 +11,15 @@ if (!isset($input['message'])) {
     exit;
 }
 
-// Fetch OpenAI API Key
+// Fetch OpenAI API Key and System Prompt
 $is_mysql = (defined('DB_TYPE') && (DB_TYPE === 'mysql' || DB_TYPE === 'mariadb'));
 $quote = $is_mysql ? '`' : '';
-$stmt = $pdo->prepare("SELECT {$quote}value{$quote} FROM {$quote}system_settings{$quote} WHERE {$quote}key{$quote} = 'openai_api_key'");
+$stmt = $pdo->prepare("SELECT {$quote}key{$quote}, {$quote}value{$quote} FROM {$quote}system_settings{$quote} WHERE {$quote}key{$quote} IN ('openai_api_key', 'openai_system_prompt')");
 $stmt->execute();
-$openaiKey = $stmt->fetchColumn();
+$settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+$openaiKey = $settings['openai_api_key'] ?? null;
+$customPrompt = $settings['openai_system_prompt'] ?? '';
 
 if (!$openaiKey) {
     echo json_encode(['status' => 'error', 'message' => 'OpenAI API key is not configured in System Settings.']);
@@ -30,11 +33,8 @@ $archivedCondition = $is_mysql ? "is_archived = 0" : "is_archived = FALSE";
 $projectsStmt = $pdo->query("SELECT name, status, total_value, already_paid, deadline FROM projects WHERE $archivedCondition");
 $projects = $projectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-$systemPrompt = "You are RolAI, a highly intelligent and professional AI assistant for a digital agency's project management system. 
-You answer questions accurately based ONLY on the provided data. Do not make up numbers.
-If asked to sum up budgets or remaining values, do the exact math based on this data.
-
-CURRENT ACTIVE PROJECTS DATA (JSON Format):
+$systemPrompt = ($customPrompt ? $customPrompt . "\n\n" : "You are RolAI, a highly intelligent and professional AI assistant for a digital agency's project management system.\nYou answer questions accurately based ONLY on the provided data. Do not make up numbers.\nIf asked to sum up budgets or remaining values, do the exact math based on this data.\n\n") . 
+"CURRENT ACTIVE PROJECTS DATA (JSON Format):
 " . json_encode($projects) . "
 
 When returning financials, format them nicely with the € symbol.";

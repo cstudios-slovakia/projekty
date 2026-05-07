@@ -24,7 +24,7 @@ export const Settings: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
   const [newUser, setNewUser] = useState<{username: string, password: string, email?: string, role?: string}>({ username: '', password: '', email: '', role: 'viewer' });
-  const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'roles' | 'system'>('project');
+  const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'roles' | 'system' | 'ai'>('project');
   
   // System Settings
   const [sysSettings, setSysSettings] = useState({ 
@@ -33,6 +33,7 @@ export const Settings: React.FC = () => {
     accent_color_secondary: '#00b800',
     lead_api_key: '',
     openai_api_key: '',
+    openai_system_prompt: '',
     default_language: 'en',
     sent_unaccepted_warning: 0,
     remaining_invoicable_warning: 0
@@ -73,6 +74,7 @@ export const Settings: React.FC = () => {
             accent_color_secondary: d.accent_color_secondary || '#00b800',
             lead_api_key: d.lead_api_key || '',
             openai_api_key: d.openai_api_key || '',
+            openai_system_prompt: d.openai_system_prompt || '',
             default_language: d.default_language || 'en',
             sent_unaccepted_warning: Number(d.sent_unaccepted_warning) || 0,
             remaining_invoicable_warning: Number(d.remaining_invoicable_warning) || 0
@@ -343,6 +345,12 @@ export const Settings: React.FC = () => {
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'system' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
               {t('settings.tabs.system')}
+          </button>
+          <button 
+              onClick={() => setActiveTab('ai')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'ai' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
+          >
+              AI & RolAI
           </button>
       </div>
 
@@ -724,19 +732,7 @@ export const Settings: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-2 md:col-span-3 pt-0">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">RolAI API Key (OpenAI)</label>
-                        <div className="flex flex-col md:flex-row gap-3">
-                            <input 
-                                type="password" 
-                                value={sysSettings.openai_api_key}
-                                onChange={e => setSysSettings({...sysSettings, openai_api_key: e.target.value})}
-                                className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-sm"
-                                placeholder="sk-..."
-                            />
-                        </div>
-                        <p className="text-[10px] text-gray-400 font-bold ml-1">If set, RolAI will be enabled globally.</p>
-                    </div>
+
                 </div>
                 <div className="mt-8 pt-8 border-t border-gray-100 flex justify-end relative z-10">
                     <button 
@@ -796,6 +792,51 @@ export const Settings: React.FC = () => {
                       </ul>
                   </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: AI Settings */}
+        {activeTab === 'ai' && (
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">AI Configuration</h3>
+              <p className="text-gray-500 text-sm">Manage the behavior and connection settings for RolAI.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-2 md:col-span-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">RolAI API Key (OpenAI)</label>
+                    <div className="flex flex-col md:flex-row gap-3">
+                        <input 
+                            type="password" 
+                            value={sysSettings.openai_api_key || ''}
+                            onChange={e => setSysSettings({...sysSettings, openai_api_key: e.target.value})}
+                            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-mono text-sm"
+                            placeholder="sk-..."
+                        />
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-bold ml-1">If set, RolAI will be enabled globally.</p>
+                </div>
+
+                <div className="space-y-2 md:col-span-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">System Prompt / Persona</label>
+                    <textarea 
+                        value={sysSettings.openai_system_prompt || ''}
+                        onChange={e => setSysSettings({...sysSettings, openai_system_prompt: e.target.value})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-sm min-h-[150px] custom-scrollbar"
+                        placeholder="You are RolAI, a highly intelligent and professional AI assistant..."
+                    />
+                    <p className="text-[10px] text-gray-400 font-bold ml-1">Instruct RolAI on how to behave, what tone to use, and how to format responses. Live data will automatically be injected below this prompt.</p>
+                </div>
+            </div>
+            <div className="mt-8 pt-8 border-t border-gray-100 flex justify-end relative z-10">
+              <button 
+                  onClick={saveSysSettings}
+                  className="bg-gray-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95"
+              >
+                {t('settings.system.save_button') || 'Save System Configuration'}
+              </button>
             </div>
           </div>
         )}
