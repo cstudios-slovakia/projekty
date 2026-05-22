@@ -11,12 +11,14 @@ interface Props {
 
 export const TimeLogModal: React.FC<Props> = ({ projectId, projectName, onClose, onSave }) => {
     const { t } = useTranslation();
-    const [hours, setHours] = useState<number>(0);
+    const [inputHours, setInputHours] = useState<string>('');
+    const [inputMinutes, setInputMinutes] = useState<string>('');
     const [notes, setNotes] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = () => {
-        if (hours <= 0) return alert('Please enter valid hours');
+        const hours = parseFloat(inputHours || '0') + parseFloat(inputMinutes || '0') / 60;
+        if (hours <= 0) return alert('Please enter valid hours or minutes');
         setIsSaving(true);
         
         const userId = localStorage.getItem('userId');
@@ -69,17 +71,33 @@ export const TimeLogModal: React.FC<Props> = ({ projectId, projectName, onClose,
 
                 <div className="p-8 space-y-6 overflow-y-auto flex-1">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hours Logged</label>
-                        <input 
-                            type="number"
-                            min="0.1"
-                            step="0.1"
-                            className="bg-gray-50 text-gray-900 font-bold text-xl rounded-2xl px-5 py-4 w-full border border-gray-100 focus:outline-none focus:border-[#e78b01] transition-all"
-                            value={hours || ''}
-                            onChange={(e) => setHours(parseFloat(e.target.value))}
-                            placeholder="e.g. 2.5"
-                            autoFocus
-                        />
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Time Logged</label>
+                        <div className="flex gap-4">
+                            <div className="flex-1 space-y-1">
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Hours</span>
+                                <input 
+                                    type="number"
+                                    min="0"
+                                    className="bg-gray-50 text-gray-900 font-bold text-xl rounded-2xl px-5 py-4 w-full border border-gray-100 focus:outline-none focus:border-[#e78b01] transition-all text-center"
+                                    value={inputHours}
+                                    onChange={(e) => setInputHours(e.target.value)}
+                                    placeholder="0"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Minutes</span>
+                                <input 
+                                    type="number"
+                                    min="0"
+                                    max="59"
+                                    className="bg-gray-50 text-gray-900 font-bold text-xl rounded-2xl px-5 py-4 w-full border border-gray-100 focus:outline-none focus:border-[#e78b01] transition-all text-center"
+                                    value={inputMinutes}
+                                    onChange={(e) => setInputMinutes(e.target.value)}
+                                    placeholder="0"
+                                />
+                            </div>
+                        </div>
                     </div>
                     
                     <div className="space-y-2">

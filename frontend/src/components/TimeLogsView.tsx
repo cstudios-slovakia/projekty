@@ -33,6 +33,15 @@ const getLocalISODate = (d: Date = new Date()) => {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 };
 
+const formatHours = (hours: number): string => {
+  const totalMinutes = Math.round(hours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0 && m > 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+};
+
 export const TimeLogsView: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<TimeLog[]>([]);
@@ -293,7 +302,7 @@ export const TimeLogsView: React.FC = () => {
             <div>
               <h3 className="text-2xl font-black text-gray-900">{new Date(activeDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
               <div className="text-sm font-bold text-gray-400">
-                Total Logged: <span className="text-[var(--color-secondary)]">{currentTotalHours}h</span>
+                Total Logged: <span className="text-[var(--color-secondary)]">{formatHours(currentTotalHours)}</span>
               </div>
             </div>
           </div>
@@ -348,16 +357,47 @@ export const TimeLogsView: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="w-full lg:w-32">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Hours</label>
-                        <input
-                          type="number"
-                          step="0.25"
-                          min="0.25"
-                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-lg text-center"
-                          value={editForm?.hours || ''}
-                          onChange={e => setEditForm(prev => prev ? {...prev, hours: Number(e.target.value)} : null)}
-                        />
+                      <div className="w-full lg:w-48">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Time Logged</label>
+                        <div className="flex gap-2">
+                          <div className="flex-1 space-y-1">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Hrs</span>
+                            <input
+                              type="number"
+                              min="0"
+                              className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-2 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-base text-center"
+                              value={editForm ? Math.floor(editForm.hours) : ''}
+                              onChange={e => {
+                                const val = parseInt(e.target.value) || 0;
+                                setEditForm(prev => {
+                                  if (!prev) return null;
+                                  const currentMins = Math.round((prev.hours - Math.floor(prev.hours)) * 60);
+                                  return { ...prev, hours: val + currentMins / 60 };
+                                });
+                              }}
+                              placeholder="0"
+                            />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Mins</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="59"
+                              className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-2 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-base text-center"
+                              value={editForm ? Math.round((editForm.hours - Math.floor(editForm.hours)) * 60) : ''}
+                              onChange={e => {
+                                const val = parseInt(e.target.value) || 0;
+                                setEditForm(prev => {
+                                  if (!prev) return null;
+                                  const currentHrs = Math.floor(prev.hours);
+                                  return { ...prev, hours: currentHrs + val / 60 };
+                                });
+                              }}
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex gap-2 h-full pb-0 mt-3 lg:mt-0">
@@ -394,7 +434,7 @@ export const TimeLogsView: React.FC = () => {
                       <div className="w-full md:w-auto flex flex-col items-center justify-between gap-4 md:ml-auto">
                         <div>
                           <div className="text-xs font-bold text-gray-400 uppercase text-center mb-1 tracking-wider">Hours</div>
-                          <div className="font-black focus:outline-none text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-4 py-1.5 rounded-xl text-center min-w-[4rem]">{log.hours}h</div>
+                          <div className="font-black focus:outline-none text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-4 py-1.5 rounded-xl text-center min-w-[4rem]">{formatHours(log.hours)}</div>
                         </div>
                       </div>
                       {canEdit && (
@@ -462,21 +502,46 @@ export const TimeLogsView: React.FC = () => {
                    </div>
                  </div>
 
-                 <div className="w-full lg:w-32">
-                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Hours</label>
-                   <input
-                     type="number"
-                     step="0.25"
-                     min="0.25"
-                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-lg text-center"
-                     value={row.hours}
-                     onChange={e => {
-                       const nr = [...draftRows];
-                       nr[index].hours = Number(e.target.value);
-                       setDraftRows(nr);
-                     }}
-                   />
-                 </div>
+                  <div className="w-full lg:w-48">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Time Logged</label>
+                    <div className="flex gap-2">
+                      <div className="flex-1 space-y-1">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Hrs</span>
+                        <input
+                          type="number"
+                          min="0"
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-2 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-base text-center"
+                          value={Math.floor(row.hours)}
+                          onChange={e => {
+                            const val = parseInt(e.target.value) || 0;
+                            const nr = [...draftRows];
+                            const currentMins = Math.round((row.hours - Math.floor(row.hours)) * 60);
+                            nr[index].hours = val + currentMins / 60;
+                            setDraftRows(nr);
+                          }}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Mins</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="59"
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-2 py-3 focus:outline-none focus:border-[var(--color-primary)] transition-all font-black text-base text-center"
+                          value={Math.round((row.hours - Math.floor(row.hours)) * 60)}
+                          onChange={e => {
+                            const val = parseInt(e.target.value) || 0;
+                            const nr = [...draftRows];
+                            const currentHrs = Math.floor(row.hours);
+                            nr[index].hours = currentHrs + val / 60;
+                            setDraftRows(nr);
+                          }}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
                  <button 
                     onClick={() => removeDraftRow(row.id)}
@@ -532,7 +597,7 @@ export const TimeLogsView: React.FC = () => {
                   <div className="col-span-2 text-sm text-gray-600 truncate" title={log.username}>{log.username}</div>
                   <div className="col-span-4 text-xs text-gray-500 line-clamp-2 pr-4">{log.notes ? log.notes.replace(/[#*`_~]/g, '') : '-'}</div>
                   <div className="col-span-1 text-right text-sm font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-1 rounded-lg flex-shrink-0 inline-flex items-center justify-center self-center ml-auto relative">
-                      {log.hours}h
+                      {formatHours(log.hours)}
                       {canEdit && (
                         <button 
                           onClick={() => handleDeleteLog(log.id)}

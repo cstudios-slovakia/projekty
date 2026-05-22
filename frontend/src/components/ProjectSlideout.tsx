@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, Briefcase, Users, Palette, Monitor, Euro, Link as LinkIcon,
-  Plus, Phone, Mail, Clock, MessageSquare
+  Plus, Phone, Mail, Clock, MessageSquare, Trash2
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { createPortal } from 'react-dom';
+import MDEditor from '@uiw/react-md-editor';
 
 interface Activity {
   id: number;
@@ -51,6 +52,210 @@ interface Props {
   onUpdate: () => void;
 }
 
+interface TimeLog {
+  id: number;
+  project_id: number;
+  project_name: string;
+  user_id: number;
+  username: string;
+  hours: number;
+  notes: string;
+  log_date: string;
+  created_at: string;
+}
+
+const ProjectTimeLogs: React.FC<{ id: number; canEdit: boolean; t: any }> = ({ id, canEdit, t }) => {
+  const [logs, setLogs] = useState<TimeLog[]>([]);
+  const [inputHours, setInputHours] = useState<string>('');
+  const [inputMinutes, setInputMinutes] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const fetchLogs = () => {
+    fetch(`/api/time_logs.php?project_id=${id}`)
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          setLogs(res.data || []);
+        }
+      });
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, [id]);
+
+  const handleSaveLog = (e: React.FormEvent) => {
+    e.preventDefault();
+    const hours = parseFloat(inputHours || '0') + parseFloat(inputMinutes || '0') / 60;
+    if (hours <= 0) return alert('Please enter valid hours or minutes');
+    setIsSaving(true);
+    
+    const userId = localStorage.getItem('userId');
+    
+    fetch('/api/time_logs.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project_id: id,
+        user_id: userId,
+        hours: hours,
+        notes: notes,
+        log_date: new Date().toISOString().split('T')[0]
+      })
+    })
+    .then(r => r.json())
+    .then(res => {
+      setIsSaving(false);
+      if (res.status === 'success') {
+        setInputHours('');
+        setInputMinutes('');
+        setNotes('');
+        fetchLogs();
+      } else {
+        alert('Failed to save time log: ' + res.message);
+      }
+    })
+    .catch(err => {
+      setIsSaving(false);
+      alert('Error logging time');
+      console.error(err);
+    });
+  };
+
+  const handleDeleteLog = async (logId: number) => {
+    if (!window.confirm(t('common.confirm_delete') || 'Are you sure you want to delete this log?')) return;
+    try {
+      await fetch(`/api/time_logs.php?id=${logId}`, { method: 'DELETE' });
+      fetchLogs();
+    } catch (e) {
+      alert('Error deleting log');
+    }
+  };
+
+  const formatHours = (hours: number): string => {
+    const totalMinutes = Math.round(hours * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    if (h === 0 && m > 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+  };
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      {canEdit && (
+        <div className="bg-white border border-gray-100 rounded-[32px] p-6 shadow-sm">
+          <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+            <Plus size={16} className="text-[var(--color-primary)]" /> Log Time for Project
+          </h3>
+          <form onSubmit={handleSaveLog} className="space-y-4">
+            <div className="flex gap-4">
+              <div className="flex-1 space-y-1">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Hours</span>
+                <input 
+                  type="number"
+                  min="0"
+                  className="bg-gray-50 text-gray-900 font-bold text-base rounded-2xl px-4 py-3 w-full border border-gray-100 focus:outline-none focus:border-[var(--color-primary)] transition-all text-center"
+                  value={inputHours}
+                  onChange={(e) => setInputHours(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block ml-1">Minutes</span>
+                <input 
+                  type="number"
+                  min="0"
+                  max="59"
+                  className="bg-gray-50 text-gray-900 font-bold text-base rounded-2xl px-4 py-3 w-full border border-gray-100 focus:outline-none focus:border-[var(--color-primary)] transition-all text-center"
+                  value={inputMinutes}
+                  onChange={(e) => setInputMinutes(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 flex justify-between">
+                <span>Work Notes</span>
+                <span className="text-[#00b800] opacity-80 border border-[#00b800]/20 px-1.5 py-0.5 rounded-[4px] text-[8px] tracking-[0.2em]">MARKDOWN READY</span>
+              </label>
+              <div data-color-mode="light" className="border border-gray-100 rounded-2xl overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
+                <MDEditor 
+                  value={notes}
+                  onChange={(val) => setNotes(val || '')}
+                  height={150}
+                  preview="edit"
+                  hideToolbar={true}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button 
+                type="submit" 
+                disabled={isSaving}
+                className="bg-gray-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95 disabled:opacity-50"
+              >
+                {isSaving ? 'Saving...' : 'Submit Log'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Logs List */}
+      <div className="space-y-4">
+        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Logged Time History</h3>
+        <div className="space-y-3">
+          {logs.map((log) => (
+            <div key={log.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-gray-900">{log.username}</span>
+                  <span className="text-[10px] font-bold text-gray-400">
+                    {new Date(log.log_date).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600 markdown-body-override" data-color-mode="light">
+                  {log.notes ? (
+                    <MDEditor.Markdown source={log.notes} style={{ backgroundColor: 'transparent' }} />
+                  ) : (
+                    <em className="text-gray-300 font-medium">No notes provided</em>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 ml-auto md:ml-0">
+                <span className="font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1.5 rounded-xl text-center text-sm min-w-[4rem]">
+                  {formatHours(log.hours)}
+                </span>
+                {canEdit && (
+                  <button 
+                    onClick={() => handleDeleteLog(log.id)}
+                    className="p-2 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                    title="Delete Log"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {logs.length === 0 && (
+            <div className="bg-transparent py-8 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-3xl">
+              <Clock size={24} className="text-gray-300 mb-2" />
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No time logged for this project yet</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpdate }) => {
   const { t } = useTranslation();
   const userToken = localStorage.getItem('token');
@@ -62,7 +267,7 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   const [newActivity, setNewActivity] = useState({ type: 'Call', notes: '', activity_date: new Date().toISOString().slice(0, 16) });
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'timeline'>('timeline');
+  const [activeTab, setActiveTab] = useState<'details' | 'timeline' | 'timelogs'>('timeline');
 
   useEffect(() => {
     fetchProject();
@@ -167,11 +372,17 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
             >
                 {t('projects.slideout.details')}
             </button>
+            <button 
+                onClick={() => setActiveTab('timelogs')}
+                className={`py-4 px-6 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'timelogs' ? 'border-[var(--color-primary)] text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+            >
+                {t('timelogs.title') || 'Time Logging'}
+            </button>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gray-50/50">
-           {activeTab === 'details' ? (
+           {activeTab === 'details' && (
              <form id="project-form" onSubmit={handleSave} className="space-y-8">
               
               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
@@ -286,7 +497,9 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
               </div>
 
            </form>
-           ) : (
+           )}
+
+           {activeTab === 'timeline' && (
              <div className="space-y-10">
                 {/* Log Activity Form */}
                 {canEdit && (
@@ -376,6 +589,10 @@ export const ProjectSlideout: React.FC<Props> = ({ id, entities, onClose, onUpda
                     )}
                 </div>
              </div>
+           )}
+
+           {activeTab === 'timelogs' && (
+              <ProjectTimeLogs id={id} canEdit={canEdit} t={t} />
            )}
         </div>
 
