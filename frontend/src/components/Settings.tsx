@@ -45,6 +45,11 @@ export const Settings: React.FC = () => {
   
   const [roles, setRoles] = useState<any[]>([]);
 
+  // WhatsApp Integration State
+  const [waStatus, setWaStatus] = useState<string>('DISCONNECTED');
+  const [waQr, setWaQr] = useState<string | null>(null);
+  const [waIsLoading, setWaIsLoading] = useState(false);
+
   useEffect(() => {
     fetchEntities();
     fetchUsers();
@@ -60,6 +65,51 @@ export const Settings: React.FC = () => {
           setRoles(res.data || []);
         }
       });
+  };
+
+  useEffect(() => {
+    let interval: any;
+    if (activeTab === 'ai') {
+      const checkWaStatus = async () => {
+        try {
+          const res = await fetch('http://localhost:3001/status');
+          const data = await res.json();
+          setWaStatus(data.status);
+          
+          if (data.status === 'AWAITING_SCAN') {
+            const qrRes = await fetch('http://localhost:3001/qr');
+            const qrData = await qrRes.json();
+            if (qrData.qr) setWaQr(qrData.qr);
+          } else {
+            setWaQr(null);
+          }
+        } catch (e) {
+          setWaStatus('DISCONNECTED');
+          setWaQr(null);
+        }
+      };
+      
+      checkWaStatus();
+      interval = setInterval(checkWaStatus, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
+  const toggleWaService = async () => {
+    setWaIsLoading(true);
+    try {
+      if (waStatus === 'DISCONNECTED' || waStatus === 'ERROR') {
+        await fetch('http://localhost:3001/start', { method: 'POST' });
+        setWaStatus('AWAITING_SCAN');
+      } else {
+        await fetch('http://localhost:3001/stop', { method: 'POST' });
+        setWaStatus('DISCONNECTED');
+        setWaQr(null);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setWaIsLoading(false);
   };
 
   const fetchSysSettings = () => {
@@ -830,6 +880,41 @@ export const Settings: React.FC = () => {
                     <p className="text-[10px] text-gray-400 font-bold ml-1">Instruct RolAI on how to behave, what tone to use, and how to format responses. Live data will automatically be injected below this prompt.</p>
                 </div>
             </div>
+
+            {/* WhatsApp Integration Section */}
+            <div className="mt-8 pt-8 border-t border-gray-100">
+                <h4 className="text-lg font-bold text-gray-900 mb-2">WhatsApp Integration (Local Node.js)</h4>
+                <p className="text-gray-500 text-sm mb-6">Connect RolAI to WhatsApp Web using the local Node.js microservice. This allows you to chat with RolAI directly from your phone.</p>
+                
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className={`w-3 h-3 rounded-full ${waStatus === 'CONNECTED' ? 'bg-green-500' : waStatus === 'AWAITING_SCAN' ? 'bg-yellow-500' : 'bg-red-500'}`}></span>
+                            <span className="font-bold text-gray-900">{waStatus}</span>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            {waStatus === 'DISCONNECTED' && "Service is offline. Ensure Node.js is running on port 3001."}
+                            {waStatus === 'AWAITING_SCAN' && "Scan the QR code to authenticate WhatsApp Web."}
+                            {waStatus === 'CONNECTED' && "WhatsApp is connected and listening for messages!"}
+                            {waStatus === 'ERROR' && "An error occurred starting the service."}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {waStatus === 'AWAITING_SCAN' && waQr && (
+                            <img src={waQr} alt="WhatsApp QR Code" className="w-32 h-32 rounded-xl bg-white p-2 border border-gray-200 shadow-sm" />
+                        )}
+                        <button 
+                            onClick={toggleWaService}
+                            disabled={waIsLoading}
+                            className={`px-6 py-3 rounded-xl font-bold text-sm text-white transition-all ${waStatus === 'DISCONNECTED' || waStatus === 'ERROR' ? 'bg-[#00b800] hover:bg-[#00a000]' : 'bg-red-500 hover:bg-red-600'} disabled:opacity-50`}
+                        >
+                            {waIsLoading ? 'Processing...' : (waStatus === 'DISCONNECTED' || waStatus === 'ERROR' ? 'Start Service' : 'Stop Service')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div className="mt-8 pt-8 border-t border-gray-100 flex justify-end relative z-10">
               <button 
                   onClick={saveSysSettings}
