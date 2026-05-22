@@ -11,19 +11,23 @@ $root = $is_vendor ? dirname(dirname(dirname(__DIR__))) : __DIR__;
 echo "\n> Bootstrapping application environment at root: $root\n";
 
 // 1. Publish API Proxy Shells
-$api_dir = $root . '/api';
-if (!file_exists($api_dir)) {
-    mkdir($api_dir, 0755, true);
-    echo "Created API proxy destination: $api_dir\n";
+if ($is_vendor) {
+    $api_dir = $root . '/api';
+    if (!file_exists($api_dir)) {
+        mkdir($api_dir, 0755, true);
+        echo "Created API proxy destination: $api_dir\n";
+    }
+    $files = ['db.php', 'projects.php', 'pipeline.php', 'settings.php', 'users.php', 'migrate.php', 'status.php', 'dashboard.php', 'expenses.php', 'comments.php', 'system_settings.php', 'reorder.php', 'install.php', 'roles.php', 'time_logs.php', 'calendar.php', 'login.php', 'lead_activities.php', 'project_activities.php', 'chat.php'];
+    echo "Publishing API endpoints...\n";
+    foreach ($files as $f) {
+        if ($f === 'config.php.example') continue;
+        $proxy = "<?php require_once dirname(__DIR__) . '/vendor/cstudios-slovakia/projekty/api/$f'; ?>";
+        file_put_contents("$api_dir/$f", $proxy);
+    }
+    echo "API endpoint proxies generated successfully.\n";
+} else {
+    echo "Skipping API proxy generation (Development/Source mode detected).\n";
 }
-$files = ['db.php', 'projects.php', 'pipeline.php', 'settings.php', 'users.php', 'migrate.php', 'status.php', 'dashboard.php', 'expenses.php', 'comments.php', 'system_settings.php', 'reorder.php', 'install.php', 'roles.php', 'time_logs.php', 'calendar.php', 'login.php', 'lead_activities.php', 'project_activities.php', 'chat.php'];
-echo "Publishing API endpoints...\n";
-foreach ($files as $f) {
-    if ($f === 'config.php.example') continue;
-    $proxy = "<?php require_once dirname(__DIR__) . '/vendor/cstudios-slovakia/projekty/api/$f'; ?>";
-    file_put_contents("$api_dir/$f", $proxy);
-}
-echo "API endpoint proxies generated successfully.\n";
 
 // Ensure 'uploads' temp space exists.
 $uploads_dir = $root . '/assets/uploads';
