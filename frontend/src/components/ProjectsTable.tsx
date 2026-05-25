@@ -880,35 +880,41 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                             </div>
                           )}
                           
-                          {roles.map(role => {
-                            const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
-                            const assign = customArr.find((ca: any) => ca.role_id === role.id) || { member_id: '', start_date: '', end_date: '' };
-                            const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
+                          {roles.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-gray-100 flex flex-col gap-1">
+                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">{t('projects.team') || 'Roles'}</span>
+                              <div className="flex flex-col gap-1.5">
+                                {roles.map(role => {
+                                  const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
+                                  const assign = customArr.find((ca: any) => ca.role_id === role.id) || { member_id: '', start_date: '', end_date: '' };
+                                  const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
 
-                            return (
-                              <div key={role.id} className="bg-white rounded-lg p-2 border border-gray-100 flex flex-col gap-1 mt-1">
-                                <select 
-                                  className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-1.5"
-                                  value={assign.member_id || ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    const newCustomArr = [...customArr];
-                                    const exIdx = newCustomArr.findIndex((ca: any) => ca.role_id === role.id);
-                                    if (exIdx >= 0) {
-                                      if (!val) newCustomArr.splice(exIdx, 1);
-                                      else newCustomArr[exIdx].member_id = Number(val);
-                                    } else if (val) {
-                                      newCustomArr.push({ role_id: role.id, member_id: Number(val), start_date: null, end_date: null });
-                                    }
-                                    setEditForm({ ...editForm, custom_assignments: newCustomArr } as any);
-                                  }}
-                                >
-                                  <option value="">{role.label}</option>
-                                  {roleMembers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                                </select>
+                                  return (
+                                    <select 
+                                      key={role.id}
+                                      className="bg-gray-50 border border-gray-200 text-gray-700 text-[11px] rounded-xl px-2.5 py-1 w-full font-medium"
+                                      value={assign.member_id || ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        const newCustomArr = [...customArr];
+                                        const exIdx = newCustomArr.findIndex((ca: any) => ca.role_id === role.id);
+                                        if (exIdx >= 0) {
+                                          if (!val) newCustomArr.splice(exIdx, 1);
+                                          else newCustomArr[exIdx].member_id = Number(val);
+                                        } else if (val) {
+                                          newCustomArr.push({ role_id: role.id, member_id: Number(val), start_date: null, end_date: null });
+                                        }
+                                        setEditForm({ ...editForm, custom_assignments: newCustomArr } as any);
+                                      }}
+                                    >
+                                      <option value="">{role.label}</option>
+                                      {roleMembers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                                    </select>
+                                  );
+                                })}
                               </div>
-                            );
-                          })}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
