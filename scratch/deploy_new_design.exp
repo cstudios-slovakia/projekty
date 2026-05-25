@@ -1,0 +1,32 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "ea453634da"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "25507"
+
+set local_dist "/Users/erik/Documents/vibe coding/projekty/frontend/dist/"
+set remote_dest "uid1102122@shell.r5.websupport.sk:cstudios.sk/sub/projektyerik/vendor/cstudios-slovakia/projekty/frontend/dist/"
+
+# Deploy frontend dist folder directly
+spawn rsync -avz --delete -e "ssh -p $port -o StrictHostKeyChecking=no" $local_dist $remote_dest
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
+
+# Run SSH to clear any caches and verify
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+# Clear OPcache on staging if possible or touch index.php to force refresh
+send "touch cstudios.sk/sub/projektyerik/index.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

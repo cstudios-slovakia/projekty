@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 60
+set password "ea453634da"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "25507"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+# 1. Run the publisher script on staging
+send "cd cstudios.sk/sub/projektyerik && php vendor/cstudios-slovakia/projekty/publish.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

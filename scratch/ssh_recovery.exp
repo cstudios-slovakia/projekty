@@ -1,0 +1,46 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "b1d761eb3e"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "28985"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    -re {.*[\$#] } {
+        send "cd $dest_dir\r"
+    }
+}
+
+expect -re {.*[\$#] }
+send "echo '{\"require\":{\"cstudios-slovakia/projekty\":\"dev-v1.7.0-new#28f2c0b\"\}\}' > composer.json\r"
+
+expect -re {.*[\$#] }
+send "composer install --no-interaction\r"
+
+expect -re {.*[\$#] }
+send "echo 'APP_INSTALLED=true' > .env\r"
+
+expect -re {.*[\$#] }
+send "cat << 'EOF' > api/config.php
+<?php
+define('DB_HOST', 'db.r5.websupport.sk');
+define('DB_NAME', '16AYwX6g_composerUpdateTest');
+define('DB_USER', 'kFT04vWO');
+define('DB_PASS', '&SF2\[vL+SF1(Jb7UAPK*');
+define('DB_TYPE', 'pgsql');
+EOF\r"
+
+expect -re {.*[\$#] }
+send "php vendor/cstudios-slovakia/projekty/publish.php && php vendor/cstudios-slovakia/projekty/api/migrate.php\r"
+
+expect -re {.*[\$#] }
+send "exit\r"
+
+expect eof

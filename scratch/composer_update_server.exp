@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "ea453634da"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "25507"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+# 1. Update composer.json to point to the new commit hash: fd66225
+send "sed -i 's|\"cstudios-slovakia/projekty\"\\s*:\\s*\".*\"|\"cstudios-slovakia/projekty\":\"dev-v1.7.0-new#fd66225\"|g' cstudios.sk/sub/projektyerik/composer.json\r"
+expect "$ "
+
+# 2. Re-verify the updated composer.json content
+send "cat cstudios.sk/sub/projektyerik/composer.json\r"
+expect "$ "
+
+# 3. Enter directory and run composer update to pull the new commit and deploy
+send "cd cstudios.sk/sub/projektyerik && composer update cstudios-slovakia/projekty --no-interaction\r"
+expect {
+    timeout { puts "Composer update timed out!"; exit 1 }
+    "$ "
+}
+
+send "exit\r"
+expect eof

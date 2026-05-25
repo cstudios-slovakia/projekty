@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "b1d761eb3e"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "28985"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd $dest_dir && php vendor/cstudios-slovakia/projekty/publish.php && php vendor/cstudios-slovakia/projekty/api/migrate.php"
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

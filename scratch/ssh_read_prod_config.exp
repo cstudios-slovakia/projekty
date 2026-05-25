@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+set timeout 15
+set password "c408c0abc6"
+spawn ssh -o StrictHostKeyChecking=no -p 27900 uid2136377@shell.r2.websupport.sk
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "$ " {
+        send "echo '--- ENV FILE ---'\r"
+        send "cat softwaresolutions.sk/sub/projekt/.env 2>/dev/null || echo 'No .env'\r"
+        send "echo '--- CONFIG FILE ---'\r"
+        send "cat softwaresolutions.sk/sub/projekt/api/config.php 2>/dev/null || echo 'No config.php'\r"
+        send "echo '--- DONE ---'\r"
+        send "exit\r"
+    }
+}
+expect eof

@@ -98,7 +98,8 @@ try {
             LEFT JOIN settings_entities dev ON p.dev_id = dev.id
             WHERE p.is_archived = FALSE 
               AND p.deadline IS NOT NULL 
-              AND p.status NOT IN ('Price Offer Rejected', 'Closed', 'Price Offer Sent', 'New Lead')
+              AND p.status NOT IN ('Price Offer Rejected', 'Closed', 'Price Offer Sent', 'New Lead', 'Finished', 'Price Offer Closed', 'Completed', 'Done')
+              AND NOT (p.design_status = 'Finished' AND p.dev_status = 'Finished')
             ORDER BY p.deadline ASC
             LIMIT 50
         ");

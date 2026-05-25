@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no uid2136377@shell.r2.websupport.sk -p25588
+expect "password:"
+send "462f151dcd\r"
+expect "$ "
+
+send "cd softwaresolutions.sk/sub/projekt\r"
+expect "$ "
+
+send "echo '=== EXECUTING API/STATUS.PHP VIA PHP ==='\r"
+expect "$ "
+send "php api/status.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

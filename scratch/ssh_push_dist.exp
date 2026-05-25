@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "b1d761eb3e"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "28985"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+# Move local files to clean upload_tmp
+system "rm -rf upload_tmp && mkdir -p upload_tmp && cp -a frontend/dist/. upload_tmp/ && cp -r api upload_tmp/ && cp .htaccess upload_tmp/"
+
+# Sync to server
+spawn rsync -avz --delete -e "ssh -p $port -o StrictHostKeyChecking=no" upload_tmp/ $user@$host:$dest_dir/
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

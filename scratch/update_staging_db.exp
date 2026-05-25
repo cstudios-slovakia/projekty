@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "ea453634da"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "25507"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+# 1. Output current configurations to verify
+send "echo '--- CURRENT ENV ---' && cat cstudios.sk/sub/projektyerik/.env\r"
+expect "$ "
+send "echo '--- CURRENT CONFIG ---' && cat cstudios.sk/sub/projektyerik/api/config.php\r"
+expect "$ "
+
+# 2. Update api/config.php with live database details
+send "cat << 'EOF' > cstudios.sk/sub/projektyerik/api/config.php\r
+<?php\r
+define('DB_HOST', 'db.r5.websupport.sk');\r
+define('DB_NAME', '16AYwX6g');\r
+define('DB_USER', 'EHL9hL8w');\r
+define('DB_PASS', 'g&S/vp:E5;393L?h%W(\$');\r
+define('DB_TYPE', 'pgsql');\r
+EOF\r"
+expect "$ "
+
+# 3. Check if we need to remove or set DB_NAME in .env to prevent override
+send "sed -i 's/DB_NAME=.*/DB_NAME=16AYwX6g/' cstudios.sk/sub/projektyerik/.env || true\r"
+expect "$ "
+
+# 4. Run migration to ensure everything is synced
+send "php cstudios.sk/sub/projektyerik/vendor/cstudios-slovakia/projekty/api/migrate.php || php cstudios.sk/sub/projektyerik/api/migrate.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

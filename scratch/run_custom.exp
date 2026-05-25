@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set password "b1d761eb3e"
+set cmd [lindex $argv 0]
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p28985 "$cmd"
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

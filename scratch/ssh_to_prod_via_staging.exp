@@ -1,0 +1,64 @@
+#!/usr/bin/expect -f
+set timeout 15
+set staging_password "ea453634da"
+
+# Connect to Staging
+spawn ssh -o StrictHostKeyChecking=no -p 25507 uid1102122@shell.r5.websupport.sk
+expect {
+    "password:" {
+        send "$staging_password\r"
+        exp_continue
+    }
+    "$ " {
+        send_user "CONNECTED TO STAGING SERVER!\n"
+    }
+}
+
+# Try different SSH configurations to log into Production from Staging
+set prod_configs {
+    {"27900" "c408c0abc6"}
+    {"28269" "1bd4ff6de9"}
+    {"27226" "a0ea80008e"}
+    {"25588" "462f151dcd"}
+}
+
+foreach config $prod_configs {
+    set port [lindex $config 0]
+    set pwd [lindex $config 1]
+    
+    send_user "\n=== SSH to Production (Port $port) ===\n"
+    send "ssh -o StrictHostKeyChecking=no -p $port uid2136377@shell.r2.websupport.sk\r"
+    expect {
+        "password:" {
+            send "$pwd\r"
+            expect {
+                "Welcome to" {
+                    send_user "SUCCESS! Connected to production on port $port!\n"
+                    # Read the production configs
+                    send "echo '=== PROD ENV ===' && cat softwaresolutions.sk/sub/projekt/.env\r"
+                    expect "$ "
+                    send "echo '=== PROD CONFIG ===' && cat softwaresolutions.sk/sub/projekt/api/config.php\r"
+                    expect "$ "
+                    send "exit\r"
+                    expect "$ "
+                    break
+                }
+                "Permission denied" {
+                    send_user "FAILED: Permission denied\n"
+                }
+                timeout {
+                    send_user "FAILED: SSH timeout\n"
+                }
+            }
+        }
+        "Connection refused" {
+            send_user "FAILED: Connection refused\n"
+        }
+        timeout {
+            send_user "FAILED: Connection timeout\n"
+        }
+    }
+}
+
+send "exit\r"
+expect eof

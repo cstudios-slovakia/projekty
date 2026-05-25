@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "ea453634da"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "25507"
+
+# Upload index.php directly to the web root
+spawn scp -o StrictHostKeyChecking=no -P $port index.php $user@$host:cstudios.sk/sub/projektyerik/index.php
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

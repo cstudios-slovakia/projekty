@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "b1d761eb3e"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "28985"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "echo '=== ENV ===' && cat cstudios.sk/sub/projektyerik/.env && echo '=== CONFIG ===' && cat cstudios.sk/sub/projektyerik/api/config.php"
+expect "password:"
+send "$password\r"
+expect eof

@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set password "b1d761eb3e"
+spawn ssh -o StrictHostKeyChecking=no uid1102122@shell.r5.websupport.sk -p28985 "cat cstudios.sk/sub/projektyerik-backup-260416163344/.env || cat cstudios.sk/sub/projektyerik-backup-260416155414/.env || cat cstudios.sk/sub/projektyerik-backup-260413134421/.env"
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

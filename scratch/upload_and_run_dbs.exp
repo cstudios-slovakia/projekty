@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "ea453634da"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "25507"
+
+# Upload file
+spawn scp -o StrictHostKeyChecking=no -P $port scratch/list_all_dbs.php $user@$host:cstudios.sk/sub/projektyerik/list_all_dbs.php
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
+
+# Run SSH and execute
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+send "php cstudios.sk/sub/projektyerik/list_all_dbs.php\r"
+expect "$ "
+
+send "rm cstudios.sk/sub/projektyerik/list_all_dbs.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

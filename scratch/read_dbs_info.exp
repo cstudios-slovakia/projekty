@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "ea453634da"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "25507"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host
+expect "password:"
+send "$password\r"
+expect "$ "
+
+# Write a quick DB test script without brackets that confuse expect
+send "cat << 'EOF' > cstudios.sk/sub/projektyerik/db_test.php\r
+<?php\r
+header('Content-Type: text/plain');\r
+try {\r
+    \$pdo = new PDO('pgsql:host=db.r5.websupport.sk;port=5432;dbname=16AYwX6g', 'EHL9hL8w', 'g&S/vp:E5;393L?h%W(\$');\r
+    \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);\r
+    \r
+    echo \"Projects in 16AYwX6g:\\n\";\r
+    \$stmt = \$pdo->query('SELECT id, name, status, created_at FROM projects ORDER BY id DESC');\r
+    while (\$row = \$stmt->fetch(PDO::FETCH_ASSOC)) {\r
+        echo \"ID: \" . \$row\\\[\"id\"\\\] . \" | Name: \" . \$row\\\[\"name\"\\\] . \" | Status: \" . \$row\\\[\"status\"\\\] . \" | Created: \" . \$row\\\[\"created_at\"\\\] . \"\\n\";\r
+    }\r
+} catch (Exception \$e) {\r
+    echo \"Error: \" . \$e->getMessage() . \"\\n\";\r
+}\r
+EOF\r"
+expect "$ "
+
+send "php cstudios.sk/sub/projektyerik/db_test.php\r"
+expect "$ "
+
+send "rm cstudios.sk/sub/projektyerik/db_test.php\r"
+expect "$ "
+
+send "exit\r"
+expect eof

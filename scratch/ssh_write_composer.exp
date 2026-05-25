@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+set timeout 300
+set password "b1d761eb3e"
+set user "uid1102122"
+set host "shell.r5.websupport.sk"
+set port "28985"
+set dest_dir "cstudios.sk/sub/projektyerik"
+
+spawn ssh -p $port -o StrictHostKeyChecking=no $user@$host "cd $dest_dir && echo '{\"repositories\":\[{\"type\":\"vcs\",\"url\":\"https://github.com/cstudios-slovakia/projekty.git\"\}\],\"require\":{\"cstudios-slovakia/projekty\":\"1.11.4\"\}\}' > composer.json && composer clear-cache && composer update cstudios-slovakia/projekty --no-interaction"
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
