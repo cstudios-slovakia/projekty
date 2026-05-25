@@ -475,6 +475,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                 <th className="p-5 w-32">{t('projects.pm') || 'PM'}</th>
                 <th className="p-5 w-44">{t('projects.designer') || 'Designer'}</th>
                 <th className="p-5 w-44">{t('projects.developer') || 'Developer'}</th>
+                <th className="p-5 w-48">{t('projects.additional_roles') || 'Dynamic & Additional Roles'}</th>
                 <th className="p-5 w-40 text-right cursor-pointer group hover:text-gray-900 transition-colors" onClick={() => handleSort('total_value')}>
                   <div className="flex items-center justify-end">{t('projects.financials') || 'Financials'} <SortIcon col="total_value" /></div>
                 </th>
@@ -533,6 +534,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                     {developers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                   </select>
                 </td>
+                <td className="p-4 md:p-5 flex flex-col gap-2 block md:table-cell border-t md:border-none">
+                  <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('projects.additional_roles') || 'Dynamic & Additional Roles'}</div>
+                </td>
                 <td className="p-4 md:p-5 space-y-4 block md:table-cell border-t md:border-none">
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('projects.financials') || 'Financials'}</label>
@@ -563,7 +567,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
               if (item.type === 'group') {
                 return (
                   <tr key={`group-${item.status}-${idx}`} className="bg-slate-50/80 block md:table-row">
-                    <td colSpan={10} className="px-5 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest border-y border-gray-200 shadow-sm">
+                    <td colSpan={11} className="px-5 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest border-y border-gray-200 shadow-sm">
                       {t(`leads.status_${item.status.toLowerCase().replace(/ /g, '_')}`) || item.status} 
                       <span className="ml-3 bg-white px-2.5 py-1 rounded-full text-[10px] text-gray-500 shadow-sm border border-gray-200">{item.count}</span>
                     </td>
@@ -879,60 +883,68 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                               <input type="date" name="dev_end" className="bg-gray-50 border border-gray-200 text-gray-700 rounded text-[10px] px-1 py-1 w-full" value={editForm.dev_end ? editForm.dev_end.split(' ')[0] : ''} onChange={handleChange} title="Dev End" />
                             </div>
                           )}
-                          
-                          {roles.length > 0 && (
-                            <div className="mt-2 pt-2 border-t border-gray-100 flex flex-col gap-1">
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">{t('projects.team') || 'Roles'}</span>
-                              <div className="flex flex-col gap-1.5">
-                                {roles.map(role => {
-                                  const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
-                                  const assign = customArr.find((ca: any) => ca.role_id === role.id) || { member_id: '', start_date: '', end_date: '' };
-                                  const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
-
-                                  return (
-                                    <select 
-                                      key={role.id}
-                                      className="bg-gray-50 border border-gray-200 text-gray-700 text-[11px] rounded-xl px-2.5 py-1 w-full font-medium"
-                                      value={assign.member_id || ''}
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        const newCustomArr = [...customArr];
-                                        const exIdx = newCustomArr.findIndex((ca: any) => ca.role_id === role.id);
-                                        if (exIdx >= 0) {
-                                          if (!val) newCustomArr.splice(exIdx, 1);
-                                          else newCustomArr[exIdx].member_id = Number(val);
-                                        } else if (val) {
-                                          newCustomArr.push({ role_id: role.id, member_id: Number(val), start_date: null, end_date: null });
-                                        }
-                                        setEditForm({ ...editForm, custom_assignments: newCustomArr } as any);
-                                      }}
-                                    >
-                                      <option value="">{role.label}</option>
-                                      {roleMembers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                                    </select>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
-                          {p.dev_name && (
+                          {p.dev_name ? (
                             <span className="bg-emerald-50 text-emerald-600 text-[12px] font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5" title={t('projects.developer')}>
                               <Monitor size={12} /> {p.dev_name}
                             </span>
-                          )}
+                          ) : <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
+                        </div>
+                      )}
+                    </td>
+
+                    <td className={`${cellPadding} ${!isEditing ? 'hidden md:table-cell' : 'block md:table-cell'} border-b border-gray-300`}>
+                      <div className="md:hidden text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('projects.additional_roles') || 'Dynamic & Additional Roles'}</div>
+                      {isEditing ? (
+                        roles.length > 0 && (
+                          <div className="flex flex-col gap-1.5">
+                            {roles.filter(role => {
+                              const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
+                              return roleMembers.length > 0;
+                            }).map(role => {
+                              const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
+                              const assign = customArr.find((ca: any) => ca.role_id === role.id) || { member_id: '', start_date: '', end_date: '' };
+                              const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
+
+                              return (
+                                <select 
+                                  key={role.id}
+                                  className="bg-gray-50 border border-gray-200 text-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 w-full font-medium"
+                                  value={assign.member_id || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const newCustomArr = [...customArr];
+                                    const exIdx = newCustomArr.findIndex((ca: any) => ca.role_id === role.id);
+                                    if (exIdx >= 0) {
+                                      if (!val) newCustomArr.splice(exIdx, 1);
+                                      else newCustomArr[exIdx].member_id = Number(val);
+                                    } else if (val) {
+                                      newCustomArr.push({ role_id: role.id, member_id: Number(val), start_date: null, end_date: null });
+                                    }
+                                    setEditForm({ ...editForm, custom_assignments: newCustomArr } as any);
+                                  }}
+                                >
+                                  <option value="">{role.label}</option>
+                                  {roleMembers.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                                </select>
+                              );
+                            })}
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex flex-wrap gap-2 cursor-pointer" onClick={() => startEdit(p)}>
                           {(() => {
                             let custom = [];
                             try { if (p.custom_assignments) custom = typeof p.custom_assignments === 'string' ? JSON.parse(p.custom_assignments) : p.custom_assignments; } catch (e) {}
+                            if (custom.length === 0) return <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>;
                             return custom.map((ca: any, i: number) => (
                               <span key={i} className="text-[12px] font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 opacity-90 shadow-sm" style={{ backgroundColor: ca.member_color ? ca.member_color + '20' : '#f8fafc', color: ca.member_color || '#475569', borderColor: ca.member_color ? ca.member_color + '40' : '#e2e8f0' }} title={ca.role_label}>
                                 <User size={12} /> {ca.member_name}
                               </span>
                             ));
                           })()}
-                          {!p.dev_name && (!p.custom_assignments || p.custom_assignments === 'null') && <span className="text-gray-300 italic text-xs">{t('leads.unassigned')}</span>}
                         </div>
                       )}
                     </td>
@@ -1027,7 +1039,7 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                   {/* Accordion Row / Expanded View */}
                   {isExpanded && (
                     <tr className={`${rowColorClass} border-b border-gray-300 block md:table-row ${isExpanded && !rowColorClass.includes('border-l-') ? 'bg-slate-50' : ''}`}>
-                      <td colSpan={7} className={`p-4 md:p-8 pt-0 block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-4') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : (isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : '')}`}>
+                      <td colSpan={11} className={`p-4 md:p-8 pt-0 block md:table-cell border-b border-gray-300 ${rowColorClass.includes('border-l-4') ? 'border-l-4' : ''} ${rowColorClass.includes('border-l-orange-400') ? 'border-l-orange-400' : rowColorClass.includes('border-l-red-500') ? 'border-l-red-500' : (isExpanded && !rowColorClass.includes('border-l-') ? 'border-l-4 border-l-[#e78b01]' : '')}`}>
                         <div className="bg-white/60 border border-gray-100 rounded-[28px] p-5 md:p-8 shadow-inner-sm animate-fade-in">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                             {/* Project Type & Complexity */}
