@@ -901,7 +901,9 @@ export const ProjectsTable: React.FC<Props> = ({ archivedView = false }) => {
                         roles.length > 0 && (
                           <div className="flex flex-col gap-1.5">
                             {roles.filter(role => {
-                              const roleMembers = entities.filter(e => e.type === role.label.toLowerCase());
+                              const labelLower = role.label.toLowerCase();
+                              if (['developer', 'designer'].includes(labelLower)) return false;
+                              const roleMembers = entities.filter(e => e.type === labelLower);
                               return roleMembers.length > 0;
                             }).map(role => {
                               const customArr = Array.isArray(editForm.custom_assignments) ? editForm.custom_assignments : [];
