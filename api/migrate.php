@@ -51,10 +51,46 @@ try {
         }
     }
 
-    // 2. Add sort_order to projects if missing
-    if (!column_exists($pdo, 'projects', 'sort_order')) {
-        echo "Adding sort_order to projects...\n";
-        $pdo->exec("ALTER TABLE projects ADD COLUMN sort_order INTEGER DEFAULT 0");
+    // 2c. Add daily_salary, is_fixed_salary, monthly_salary, target_hours_per_day to settings_entities if missing
+    if (!column_exists($pdo, 'settings_entities', 'daily_salary')) {
+        echo "Adding daily_salary to settings_entities...\n";
+        $pdo->exec("ALTER TABLE settings_entities ADD COLUMN daily_salary DECIMAL(10,2) DEFAULT 0.00");
+    }
+    if (!column_exists($pdo, 'settings_entities', 'is_fixed_salary')) {
+        echo "Adding is_fixed_salary to settings_entities...\n";
+        $pdo->exec("ALTER TABLE settings_entities ADD COLUMN is_fixed_salary INTEGER DEFAULT 0");
+    }
+    if (!column_exists($pdo, 'settings_entities', 'monthly_salary')) {
+        echo "Adding monthly_salary to settings_entities...\n";
+        $pdo->exec("ALTER TABLE settings_entities ADD COLUMN monthly_salary DECIMAL(10,2) DEFAULT 0.00");
+    }
+    if (!column_exists($pdo, 'settings_entities', 'target_hours_per_day')) {
+        echo "Adding target_hours_per_day to settings_entities...\n";
+        $pdo->exec("ALTER TABLE settings_entities ADD COLUMN target_hours_per_day DECIMAL(4,2) DEFAULT 8.00");
+    }
+
+    // 2b. Add project_category to projects if missing
+    if (!column_exists($pdo, 'projects', 'project_category')) {
+        echo "Adding project_category to projects...\n";
+        $pdo->exec("ALTER TABLE projects ADD COLUMN project_category VARCHAR(50) DEFAULT 'project'");
+    }
+
+    // 2c. Add project_category to active_development_projects if missing
+    if (table_exists($pdo, 'active_development_projects') && !column_exists($pdo, 'active_development_projects', 'project_category')) {
+        echo "Adding project_category to active_development_projects...\n";
+        $pdo->exec("ALTER TABLE active_development_projects ADD COLUMN project_category VARCHAR(50) DEFAULT 'project'");
+    }
+
+    // 2d. Add is_completed to projects if missing
+    if (!column_exists($pdo, 'projects', 'is_completed')) {
+        echo "Adding is_completed to projects...\n";
+        $pdo->exec("ALTER TABLE projects ADD COLUMN is_completed INTEGER DEFAULT 0");
+    }
+
+    // 2e. Add is_completed to active_development_projects if missing
+    if (table_exists($pdo, 'active_development_projects') && !column_exists($pdo, 'active_development_projects', 'is_completed')) {
+        echo "Adding is_completed to active_development_projects...\n";
+        $pdo->exec("ALTER TABLE active_development_projects ADD COLUMN is_completed INTEGER DEFAULT 0");
     }
 
     // 3. Add timestamps to projects if missing
@@ -280,6 +316,161 @@ try {
     if (!column_exists($pdo, 'time_logs', 'expense_id')) {
         echo "Adding expense_id to time_logs...\n";
         $pdo->exec("ALTER TABLE time_logs ADD COLUMN expense_id INTEGER REFERENCES project_expenses(id) ON DELETE SET NULL");
+    }
+
+    // 14. Active Development Projects
+    if (!table_exists($pdo, 'active_development_projects')) {
+        echo "Creating active_development_projects table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE active_development_projects (
+            id $pk,
+            project_id INTEGER UNIQUE NOT NULL,
+            client_id INTEGER NULL,
+            pm_id INTEGER NULL,
+            dev_id INTEGER NULL,
+            budget NUMERIC(15,2) DEFAULT 0,
+            dev_budget NUMERIC(15,2) DEFAULT 0,
+            clickup_source_type VARCHAR(20) DEFAULT 'list',
+            clickup_space_id VARCHAR(100) NULL,
+            clickup_folder_id VARCHAR(100) NULL,
+            clickup_list_id VARCHAR(100) NULL,
+            clickup_task_id VARCHAR(100) NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    }
+
+    // 15. ClickUp User Mappings
+    if (!table_exists($pdo, 'clickup_user_mappings')) {
+        echo "Creating clickup_user_mappings table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE clickup_user_mappings (
+            id $pk,
+            clickup_user_id VARCHAR(100) UNIQUE NOT NULL,
+            clickup_username VARCHAR(255) NULL,
+            clickup_email VARCHAR(255) NULL,
+            clickup_avatar VARCHAR(500) NULL,
+            developer_id INTEGER NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    }
+
+    // 16. Project Invoices
+    if (!table_exists($pdo, 'project_invoices')) {
+        echo "Creating project_invoices table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE project_invoices (
+            id $pk,
+            project_id INTEGER NOT NULL,
+            invoice_number VARCHAR(100) NULL,
+            amount NUMERIC(15,2) DEFAULT 0,
+            pdf_path VARCHAR(500) NULL,
+            status VARCHAR(50) DEFAULT 'not_issued',
+            issued_date DATE NULL,
+            paid_date DATE NULL,
+            notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    } else {
+        try { $pdo->exec("ALTER TABLE project_invoices ADD COLUMN pdf_path VARCHAR(500) NULL"); } catch (Exception $e) {}
+        try { $pdo->exec("ALTER TABLE project_invoices ADD COLUMN issued_date DATE NULL"); } catch (Exception $e) {}
+        try { $pdo->exec("ALTER TABLE project_invoices ADD COLUMN paid_date DATE NULL"); } catch (Exception $e) {}
+        try { $pdo->exec("ALTER TABLE project_invoices ADD COLUMN due_date DATE NULL"); } catch (Exception $e) {}
+        try { $pdo->exec("ALTER TABLE project_invoices ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"); } catch (Exception $e) {}
+    }
+
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN soft_deadline DATE NULL"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN hard_deadline DATE NULL"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN start_date DATE NULL"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE active_development_projects ADD COLUMN soft_deadline DATE NULL"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE active_development_projects ADD COLUMN hard_deadline DATE NULL"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE active_development_projects ADD COLUMN start_date DATE NULL"); } catch (Exception $e) {}
+
+    // 17. Project Manual Expenses
+    if (!table_exists($pdo, 'project_manual_expenses')) {
+        echo "Creating project_manual_expenses table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE project_manual_expenses (
+            id $pk,
+            project_id INTEGER NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            cost NUMERIC(15,2) NOT NULL DEFAULT 0,
+            expense_date DATE NOT NULL,
+            entity_id INTEGER NULL,
+            notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    }
+
+    // 18. Project Subtasks
+    if (!table_exists($pdo, 'project_subtasks')) {
+        echo "Creating project_subtasks table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE project_subtasks (
+            id $pk,
+            project_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            status VARCHAR(100) DEFAULT 'to do',
+            clickup_id VARCHAR(100) NULL,
+            clickup_assignee_id VARCHAR(100) NULL,
+            assignee_id INTEGER NULL,
+            due_date DATE NULL,
+            sort_order INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    } else {
+        try {
+            if (IS_MYSQL) {
+                $pdo->exec("ALTER TABLE project_subtasks MODIFY COLUMN title TEXT NOT NULL");
+            } else {
+                $pdo->exec("ALTER TABLE project_subtasks ALTER COLUMN title TYPE TEXT");
+            }
+        } catch (Exception $e) {}
+    }
+
+    // 10. Company Expenses (Other Expenses) Table
+    if (!table_exists($pdo, 'company_expenses')) {
+        echo "Creating company_expenses table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE company_expenses (
+            id $pk,
+            title VARCHAR(255) NOT NULL,
+            category VARCHAR(100) DEFAULT 'Other',
+            amount NUMERIC(15,2) DEFAULT 0,
+            expense_type VARCHAR(20) DEFAULT 'one_time',
+            expense_date DATE NULL,
+            recurrence_interval INTEGER DEFAULT 1,
+            recurrence_unit VARCHAR(20) DEFAULT 'month',
+            recurrence_days VARCHAR(255) NULL,
+            recurrence_ends_type VARCHAR(20) DEFAULT 'never',
+            recurrence_ends_date DATE NULL,
+            recurrence_ends_occurrences INTEGER NULL,
+            notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    }
+
+    // 11. Bank Cash Adjustments Table
+    if (!table_exists($pdo, 'bank_cash_adjustments')) {
+        echo "Creating bank_cash_adjustments table...\n";
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = ($driver === 'pgsql') ? "SERIAL PRIMARY KEY" : "INTEGER AUTO_INCREMENT PRIMARY KEY";
+        $pdo->exec("CREATE TABLE bank_cash_adjustments (
+            id $pk,
+            adjustment_date DATE NOT NULL,
+            balance_amount NUMERIC(15,2) NOT NULL DEFAULT 0,
+            notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
     }
 
     // Ensure default admin user has admin role

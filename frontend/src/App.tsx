@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LogOut, Settings as SettingsIcon, Euro, Briefcase, Users, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { LogOut, Settings as SettingsIcon, Euro, Briefcase, Users, Loader2, Calendar as CalendarIcon, Code, UserCheck, ListTodo, LayoutDashboard } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
 import { DashboardKPIs } from './components/DashboardKPIs';
 import { ExpensesView } from './components/ExpensesView';
@@ -10,6 +10,10 @@ import { SetupWizard } from './components/SetupWizard';
 import { LeadsView } from './components/LeadsView';
 import { CalendarView } from './components/CalendarView';
 import { TimeLogsView } from './components/TimeLogsView';
+import { ActiveDevelopmentView } from './components/ActiveDevelopmentView';
+import { ExecutiveDashboardView } from './components/ExecutiveDashboardView';
+import { ClientsView } from './components/ClientsView';
+import { TasksView } from './components/TasksView';
 import { Chatbot } from './components/Chatbot';
 import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
 import { Clock } from 'lucide-react';
@@ -38,10 +42,12 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
   useEffect(() => {
     if (!canViewSystem && location.pathname !== '/timelogs') {
       window.location.hash = '#/timelogs';
+    } else if (hasFullAccess && location.pathname === '/') {
+      window.location.hash = '#/dashboard';
     }
-  }, [canViewSystem, location.pathname]);
+  }, [canViewSystem, hasFullAccess, location.pathname]);
 
-  const isProjectRoute = location.pathname === '/' || location.pathname === '/archive' || location.pathname === '/reorder';
+  const isProjectRoute = location.pathname === '/' || location.pathname === '/active-development' || location.pathname === '/tasks' || location.pathname === '/clients' || location.pathname === '/archive' || location.pathname === '/reorder';
   const isLeadRoute = location.pathname === '/leads' || location.pathname === '/leads-archive';
 
   const sidebarLinkClass = (paths: string[]) => 
@@ -74,6 +80,24 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
               <Link to="/" className={sidebarLinkClass(['/', '/archive', '/reorder'])} title={t('nav.projects')}>
                 <Briefcase size={24} />
                 <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.projects')}</span>
+              </Link>
+              {hasFullAccess && (
+                <Link to="/dashboard" className={sidebarLinkClass(['/dashboard'])} title="Executive Dashboard">
+                  <LayoutDashboard size={24} />
+                  <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">Executive Dashboard</span>
+                </Link>
+              )}
+              <Link to="/active-development" className={sidebarLinkClass(['/active-development'])} title={t('nav.active_development')}>
+                <Code size={24} />
+                <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.active_development')}</span>
+              </Link>
+              <Link to="/tasks" className={sidebarLinkClass(['/tasks'])} title={t('nav.tasks') || 'Tasks'}>
+                <ListTodo size={24} />
+                <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.tasks') || 'Tasks'}</span>
+              </Link>
+              <Link to="/clients" className={sidebarLinkClass(['/clients'])} title={t('nav.clients') || 'Clients'}>
+                <UserCheck size={24} />
+                <span className="absolute left-16 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-bold">{t('nav.clients') || 'Clients'}</span>
               </Link>
               <Link to="/leads" className={sidebarLinkClass(['/leads', '/leads-archive'])} title={t('nav.leads')}>
                 <Users size={24} />
@@ -132,6 +156,9 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
               {isProjectRoute && (
                 <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-2xl border border-gray-100 min-w-max">
                   <Link to="/" className={subNavClass('/')}>{t('nav.active')}</Link>
+                  <Link to="/active-development" className={subNavClass('/active-development')}>{t('nav.active_development')}</Link>
+                  <Link to="/tasks" className={subNavClass('/tasks')}>{t('nav.tasks') || 'Tasks'}</Link>
+                  <Link to="/clients" className={subNavClass('/clients')}>{t('nav.clients') || 'Clients'}</Link>
                   <Link to="/archive" className={subNavClass('/archive')}>{t('nav.archived')}</Link>
                   {hasFullAccess && <Link to="/reorder" className={subNavClass('/reorder')}>{t('nav.order_view')}</Link>}
                 </div>
@@ -156,6 +183,10 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
               {canViewSystem ? (
                 <>
                   <Route path="/" element={<><DashboardKPIs /><ProjectsTable archivedView={false} /></>} />
+                  {hasFullAccess && <Route path="/dashboard" element={<ExecutiveDashboardView user={user} />} />}
+                  <Route path="/active-development" element={<ActiveDevelopmentView />} />
+                  <Route path="/tasks" element={<TasksView />} />
+                  <Route path="/clients" element={<ClientsView />} />
                   <Route path="/expenses" element={<ExpensesView />} />
                   <Route path="/reorder" element={<LeadReorder />} />
                   <Route path="/archive" element={<><h2 className="text-2xl text-gray-900 font-bold mb-4">{t('nav.archived')} {t('nav.projects')}</h2><ProjectsTable archivedView={true} /></>} />

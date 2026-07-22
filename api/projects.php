@@ -93,12 +93,22 @@ try {
         }
     } elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("INSERT INTO projects (name, status, total_value, complexity) VALUES (?, ?, ?, ?)");
+        $hardDead = $input['hard_deadline'] ?? $input['deadline'] ?? null;
+        $softDead = $input['soft_deadline'] ?? null;
+
+        $stmt = $pdo->prepare("INSERT INTO projects (name, status, total_value, dev_budget, complexity, client_id, pm_id, dev_id, deadline, hard_deadline, soft_deadline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $input['name'] ?? 'New Project',
             $input['status'] ?? 'New Lead',
             $input['total_value'] ?? 0,
-            $input['complexity'] ?? 3
+            $input['dev_budget'] ?? 0,
+            $input['complexity'] ?? 3,
+            $input['client_id'] ?? null,
+            $input['pm_id'] ?? null,
+            $input['dev_id'] ?? null,
+            $hardDead,
+            $hardDead,
+            $softDead
         ]);
         $newId = IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('projects_id_seq');
         

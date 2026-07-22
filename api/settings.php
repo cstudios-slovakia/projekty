@@ -26,14 +26,18 @@ try {
         
     } elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
-        $stmt = $pdo->prepare("INSERT INTO settings_entities (type, name, color, contact_person, email_phone, hourly_rate) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO settings_entities (type, name, color, contact_person, email_phone, hourly_rate, daily_salary, is_fixed_salary, monthly_salary, target_hours_per_day) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $input['type'],
             $input['name'],
             $input['color'] ?? '#8a8c89',
             $input['contact_person'] ?? null,
             $input['email_phone'] ?? null,
-            $input['hourly_rate'] ?? 0
+            $input['hourly_rate'] ?? 0,
+            $input['daily_salary'] ?? 0,
+            !empty($input['is_fixed_salary']) ? 1 : 0,
+            $input['monthly_salary'] ?? 0,
+            $input['target_hours_per_day'] ?? 8.00
         ]);
         echo json_encode(["status" => "success", "id" => $pdo->lastInsertId('settings_entities_id_seq')]);
     } elseif ($method === 'PUT') {
@@ -44,11 +48,15 @@ try {
             echo json_encode(["status" => "error", "message" => "Missing ID"]);
             exit;
         }
-        $stmt = $pdo->prepare("UPDATE settings_entities SET name = ?, color = ?, hourly_rate = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE settings_entities SET name = ?, color = ?, hourly_rate = ?, daily_salary = ?, is_fixed_salary = ?, monthly_salary = ?, target_hours_per_day = ? WHERE id = ?");
         $stmt->execute([
             $input['name'],
             $input['color'] ?? '#8a8c89',
             $input['hourly_rate'] ?? 0,
+            $input['daily_salary'] ?? 0,
+            !empty($input['is_fixed_salary']) ? 1 : 0,
+            $input['monthly_salary'] ?? 0,
+            $input['target_hours_per_day'] ?? 8.00,
             $id
         ]);
         echo json_encode(["status" => "success"]);

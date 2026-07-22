@@ -17,9 +17,15 @@ if ($method === 'OPTIONS') {
 
 try {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT id, username, email, role, member_id, language FROM users ORDER BY id ASC");
+        $stmt = $pdo->query("
+            SELECT u.id, u.username, u.email, u.role, u.member_id, u.language,
+                   COALESCE(se.hourly_rate, 0) as hourly_rate,
+                   se.color
+            FROM users u
+            LEFT JOIN settings_entities se ON u.member_id = se.id
+            ORDER BY u.id ASC
+        ");
         echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
-        
     } elseif ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         if ($action === 'reset') {

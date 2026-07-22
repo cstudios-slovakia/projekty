@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
-import { Clock, Plus, Trash2, Calendar as CalendarIcon, ArrowLeft, Save, CheckCircle2, Edit3 } from 'lucide-react';
+import { Clock, Plus, Trash2, Calendar as CalendarIcon, ArrowLeft, Save, CheckCircle2, Edit3, Play, Square, Timer, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MDEditor from '@uiw/react-md-editor';
 
@@ -29,6 +29,8 @@ interface NewLogRow {
   notes: string;
 }
 
+import { TeamExpensesMatrix } from './TeamExpensesMatrix';
+
 const getLocalISODate = (d: Date = new Date()) => {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 };
@@ -52,7 +54,7 @@ export const TimeLogsView: React.FC = () => {
   const [draftRows, setDraftRows] = useState<NewLogRow[]>([]);
   
   // View mode
-  const [viewMode, setViewMode] = useState<'day' | 'list'>('day');
+  const [viewMode, setViewMode] = useState<'day' | 'list' | 'matrix'>('day');
   const [listPage, setListPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
 
@@ -70,17 +72,56 @@ export const TimeLogsView: React.FC = () => {
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<TimeLog | null>(null);
 
+  // --- ClickUp Live Timer Stopwatch State ---
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timerProjectId, setTimerProjectId] = useState<string>('');
+  const [timerNotes, setTimerNotes] = useState<string>('');
+
+  // --- ClickUp Manual "Record Time" Modal State ---
+  const [showRecordModal, setShowRecordModal] = useState(false);
+  const [recordProjectId, setRecordProjectId] = useState<string>('');
+  const [recordDate, setRecordDate] = useState(getLocalISODate());
+  const [recordHours, setRecordHours] = useState<number>(1);
+  const [recordMinutes, setRecordMinutes] = useState<number>(0);
+  const [recordNotes, setRecordNotes] = useState<string>('');
+  const [isSavingRecord, setIsSavingRecord] = useState(false);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (isTimerRunning) {
+      interval = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning]);
+
+  const formatStopwatch = (sec: number) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     if (user?.id) {
-      if (canViewAll) {
-        fetch('/api/users.php')
-          .then(r => r.json())
-          .then(res => {
-            if (res.status === 'success') setAllUsers(res.data);
-          });
-      }
+      fetch('/api/users.php')
+        .then(r => r.json())
+        .then(res => {
+          if (res.status === 'success' && res.data && res.data.length > 0) {
+            setAllUsers(res.data);
+          } else {
+            setAllUsers([user]);
+          }
+        })
+        .catch(() => {
+          setAllUsers([user]);
+        });
     }
-  }, [user?.id, canViewAll]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (targetUserId) {
@@ -90,7 +131,6 @@ export const TimeLogsView: React.FC = () => {
 
   const fetchData = async (uid: number | 'all') => {
     try {
-      // Fetch specifically chosen user's logs
       const url = uid === 'all' ? '/api/time_logs.php' : `/api/time_logs.php?user_id=${uid}`;
       const logsRes = await fetch(url);
       const logsData = await logsRes.json();
@@ -98,12 +138,16 @@ export const TimeLogsView: React.FC = () => {
         setLogs(logsData.data);
       }
 
-      // Fetch active projects
       const projRes = await fetch('/api/projects.php');
       const projData = await projRes.json();
       if (projData.status === 'success') {
         const activeStatuses = ['In Progress', 'Price Offer Accepted', 'Signed', 'Invoiced', 'Paid', 'Price Offer Closed'];
-        setProjects(projData.data.filter((p: Project) => activeStatuses.includes(p.status)));
+        const list = projData.data.filter((p: Project) => activeStatuses.includes(p.status));
+        setProjects(list);
+        if (list.length > 0 && !timerProjectId) {
+          setTimerProjectId(String(list[0].id));
+          setRecordProjectId(String(list[0].id));
+        }
       }
     } catch (e) {
       console.error(e);
@@ -115,7 +159,6 @@ export const TimeLogsView: React.FC = () => {
     const days = [];
     const today = new Date();
     today.setHours(0,0,0,0);
-    // Start from 13 days ago up to today
     for (let i = 13; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
@@ -136,7 +179,7 @@ export const TimeLogsView: React.FC = () => {
   }, [logs, activeDate]);
 
   const addDraftRow = () => {
-    setDraftRows([...draftRows, { id: Math.random().toString(), project_id: '', hours: 1, notes: '' }]);
+    setDraftRows([...draftRows, { id: Math.random().toString(), project_id: projects.length > 0 ? String(projects[0].id) : '', hours: 1, notes: '' }]);
   };
 
   const removeDraftRow = (id: string) => {
@@ -149,10 +192,101 @@ export const TimeLogsView: React.FC = () => {
     return historical + drafted;
   }, [activeDateLogs, draftRows]);
 
+  const handleStartTimer = () => {
+    if (!timerProjectId) {
+      alert('Please select a project before starting the timer.');
+      return;
+    }
+    setIsTimerRunning(true);
+  };
+
+  const handleStopTimer = async () => {
+    if (!timerProjectId) return;
+    if (timerSeconds < 5) {
+      if (!window.confirm('Timer ran for less than 5 seconds. Save this log anyway?')) {
+        setIsTimerRunning(false);
+        setTimerSeconds(0);
+        return;
+      }
+    }
+
+    const hoursLogged = Math.max(0.01, parseFloat((timerSeconds / 3600).toFixed(2)));
+
+    try {
+      const res = await fetch('/api/time_logs.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          logs: [{
+            project_id: timerProjectId,
+            user_id: user.id,
+            hours: hoursLogged,
+            notes: timerNotes || 'Tracked via live ClickUp timer',
+            log_date: getLocalISODate()
+          }]
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setIsTimerRunning(false);
+        setTimerSeconds(0);
+        setTimerNotes('');
+        fetchData(targetUserId);
+      } else {
+        alert(data.message || 'Failed to save live timer log');
+      }
+    } catch (err) {
+      alert('Error saving live timer log');
+    }
+  };
+
+  const handleSaveRecordModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recordProjectId) {
+      alert('Please select a project');
+      return;
+    }
+    const totalHrs = parseFloat((recordHours + recordMinutes / 60).toFixed(2));
+    if (totalHrs <= 0) {
+      alert('Please enter logged time greater than 0');
+      return;
+    }
+
+    try {
+      setIsSavingRecord(true);
+      const res = await fetch('/api/time_logs.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          logs: [{
+            project_id: recordProjectId,
+            user_id: targetUserId === 'all' ? user.id : targetUserId,
+            hours: totalHrs,
+            notes: recordNotes,
+            log_date: recordDate
+          }]
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setShowRecordModal(false);
+        setRecordNotes('');
+        setRecordHours(1);
+        setRecordMinutes(0);
+        fetchData(targetUserId);
+      } else {
+        alert(data.message || 'Failed to record time');
+      }
+    } catch (err) {
+      alert('Error recording time');
+    } finally {
+      setIsSavingRecord(false);
+    }
+  };
+
   const handleSaveBulk = async () => {
     if (draftRows.length === 0) return;
     
-    // Filter invalid rows
     const validRows = draftRows.filter(r => r.project_id && r.hours > 0);
     if (validRows.length === 0) {
       alert("Please fill out the selected projects.");
@@ -162,7 +296,7 @@ export const TimeLogsView: React.FC = () => {
     try {
       const payloadLogs = validRows.map(r => ({
         project_id: r.project_id,
-        user_id: targetUserId === 'all' ? user.id : targetUserId, // Use target user or self!
+        user_id: targetUserId === 'all' ? user.id : targetUserId,
         hours: r.hours,
         notes: r.notes,
         log_date: activeDate
@@ -175,7 +309,7 @@ export const TimeLogsView: React.FC = () => {
       });
       const data = await res.json();
       if (data.status === 'success') {
-        setDraftRows([]); // clear scratchpad
+        setDraftRows([]);
         fetchData(targetUserId);
       } else {
         alert(data.message || 'Failed to save logs');
@@ -225,20 +359,21 @@ export const TimeLogsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="flex items-center gap-4 mb-4">
-        <Link to="/" className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 transition-all shadow-sm">
-          <ArrowLeft size={20} />
-        </Link>
+      {/* Top Header & Actions */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-2">
         <div className="flex items-center gap-4 flex-wrap">
+          <Link to="/" className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 transition-all shadow-sm">
+            <ArrowLeft size={20} />
+          </Link>
           <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            <Clock className="text-[var(--color-primary)]" size={32} />
+            <Clock className="text-purple-600" size={32} />
             {t('timelogs.title') || 'Time Logging'}
           </h2>
           {canViewAll && allUsers.length > 0 && (
-            <div className="flex items-center gap-2 ml-auto lg:ml-4 bg-white border-2 border-[var(--color-primary)] ring-4 ring-[var(--color-primary)]/10 px-4 py-2 rounded-2xl shadow-sm transition-all hover:scale-[1.02]">
-              <span className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest whitespace-nowrap">Viewing as:</span>
+            <div className="flex items-center gap-2 bg-white border border-purple-200 ring-4 ring-purple-500/10 px-3.5 py-1.5 rounded-2xl shadow-sm">
+              <span className="text-[10px] font-black text-purple-700 uppercase tracking-widest whitespace-nowrap">Viewing as:</span>
               <select
-                className="bg-transparent text-gray-900 focus:outline-none font-black transition-all text-sm cursor-pointer"
+                className="bg-transparent text-gray-900 focus:outline-none font-black text-xs cursor-pointer"
                 value={targetUserId}
                 onChange={e => {
                   setTargetUserId(e.target.value === 'all' ? 'all' : Number(e.target.value));
@@ -253,11 +388,81 @@ export const TimeLogsView: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Record Time Button (ClickUp Style) */}
+        {canEdit && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowRecordModal(true)}
+              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-700 hover:to-indigo-800 text-white text-xs font-black shadow-lg shadow-purple-500/25 transition-all flex items-center gap-2 active:scale-95"
+            >
+              <Plus size={16} />
+              <span>Record Time</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="flex gap-2">
+      {/* CLICKUP LIVE TIMER BAR */}
+      {canEdit && (
+        <div className="bg-gradient-to-r from-gray-900 via-purple-950 to-gray-900 rounded-3xl p-4 text-white shadow-xl border border-purple-500/20 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className={`p-2.5 rounded-2xl ${isTimerRunning ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-purple-500/20 text-purple-300'}`}>
+              <Timer size={22} />
+            </div>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-purple-300 block">CRM Time Tracking</span>
+              <span className="text-xl font-black font-mono tracking-wider">
+                {formatStopwatch(timerSeconds)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+            <select
+              value={timerProjectId}
+              onChange={e => setTimerProjectId(e.target.value)}
+              disabled={isTimerRunning}
+              className="bg-white/10 border border-white/20 text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:bg-white/20 disabled:opacity-50"
+            >
+              {projects.map(p => <option key={p.id} value={p.id} className="text-gray-900">{p.name}</option>)}
+            </select>
+
+            <textarea
+              placeholder="What are you working on?"
+              value={timerNotes}
+              onChange={e => setTimerNotes(e.target.value)}
+              rows={2}
+              className="bg-white/10 border border-white/20 text-white placeholder-purple-300/60 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:bg-white/20 resize-y min-h-[42px] custom-scrollbar leading-snug"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!isTimerRunning ? (
+              <button
+                onClick={handleStartTimer}
+                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black transition-all flex items-center gap-2 shadow-md shadow-emerald-500/20 active:scale-95"
+              >
+                <Play size={14} className="fill-current" />
+                <span>Start Timer</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleStopTimer}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black transition-all flex items-center gap-2 shadow-md shadow-red-600/30 animate-bounce active:scale-95"
+              >
+                <Square size={14} className="fill-current" />
+                <span>Stop &amp; Save ({formatHours(timerSeconds / 3600)})</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-2 flex-wrap">
          <button onClick={() => setViewMode('day')} className={`px-5 py-2 font-black tracking-widest uppercase text-[11px] rounded-xl transition-all ${viewMode === 'day' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50'}`}>Daily Timeline</button>
          <button onClick={() => setViewMode('list')} className={`px-5 py-2 font-black tracking-widest uppercase text-[11px] rounded-xl transition-all ${viewMode === 'list' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50'}`}>Full List View</button>
+         <button onClick={() => setViewMode('matrix')} className={`px-5 py-2 font-black tracking-widest uppercase text-[11px] rounded-xl transition-all ${viewMode === 'matrix' ? 'bg-purple-900 text-white shadow-md shadow-purple-900/20' : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'}`}>Team Work &amp; Expenses</button>
       </div>
 
       {viewMode === 'day' ? (
@@ -349,7 +554,7 @@ export const TimeLogsView: React.FC = () => {
                         <div data-color-mode="light" className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
                           <MDEditor
                             value={editForm?.notes || ''}
-                            onChange={(val) => setEditForm(prev => prev ? {...prev, notes: val || ''} : null)}
+                            onChange={(val: any) => setEditForm(prev => prev ? {...prev, notes: val || ''} : null)}
                             height={250}
                             preview="edit"
                             hideToolbar={false}
@@ -558,7 +763,7 @@ export const TimeLogsView: React.FC = () => {
         {draftRows.length === 0 && activeDateLogs.length === 0 && (
           <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-gray-200 rounded-[32px] bg-gray-50">
              <CheckCircle2 size={48} className="text-gray-300 mb-4" />
-             <p className="text-gray-400 font-bold max-w-sm">You haven't tracked any time on this day. Click 'Add Row' to start logging work!</p>
+             <p className="text-gray-400 font-bold max-w-sm">You haven't tracked any time on this day. Click 'Record Time' or 'Add Row' to start logging work!</p>
           </div>
         )}
 
@@ -574,7 +779,7 @@ export const TimeLogsView: React.FC = () => {
         )}
       </div>
       </>
-      ) : (
+      ) : viewMode === 'list' ? (
       <div className="bg-white rounded-[32px] border border-gray-200 shadow-sm p-6 overflow-hidden min-h-[500px]">
         <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">All Tracked Logs ({logs.length})</h3>
         
@@ -628,8 +833,128 @@ export const TimeLogsView: React.FC = () => {
           </div>
         )}
       </div>
+      ) : (
+        <TeamExpensesMatrix
+          users={allUsers}
+          logs={logs}
+          projects={projects}
+          showFinancials={user?.role === 'admin' || user?.role === 'manager'}
+          userRole={user?.role}
+          currentUserId={user?.id}
+          currentUsername={user?.username}
+        />
+      )}
+
+      {/* CLICKUP STYLE "RECORD TIME" MODAL */}
+      {showRecordModal && (
+        <div className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100">
+            <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Timer size={20} className="text-purple-300" />
+                <h3 className="text-base font-black tracking-tight">Record Time (ClickUp Style)</h3>
+              </div>
+              <button onClick={() => setShowRecordModal(false)} className="p-1 text-purple-300 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveRecordModal} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Project *</label>
+                <select
+                  required
+                  value={recordProjectId}
+                  onChange={e => setRecordProjectId(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">-- Select Project --</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={recordDate}
+                    onChange={e => setRecordDate(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Duration Logged *</label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="Hours"
+                        value={recordHours}
+                        onChange={e => setRecordHours(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 text-center"
+                      />
+                      <span className="text-[9px] font-bold text-gray-400 block text-center mt-0.5">Hours</span>
+                    </div>
+                    <span className="font-black text-gray-400">:</span>
+                    <div className="flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        placeholder="Mins"
+                        value={recordMinutes}
+                        onChange={e => setRecordMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 text-center"
+                      />
+                      <span className="text-[9px] font-bold text-gray-400 block text-center mt-0.5">Mins</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Description / Notes</label>
+                <div data-color-mode="light" className="border border-gray-200 rounded-xl overflow-hidden">
+                  <MDEditor
+                    value={recordNotes}
+                    onChange={(val) => setRecordNotes(val || '')}
+                    height={180}
+                    preview="edit"
+                    hideToolbar={false}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <span className="text-xs font-bold text-purple-700">
+                  Total Time: {formatHours(recordHours + recordMinutes / 60)}
+                </span>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRecordModal(false)}
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingRecord}
+                    className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md shadow-purple-500/20 disabled:opacity-50"
+                  >
+                    {isSavingRecord ? 'Saving...' : 'Save Time Entry'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
 };
-

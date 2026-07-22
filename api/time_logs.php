@@ -78,7 +78,7 @@ try {
                         $log['project_id'],
                         $user['member_id'],
                         $weekStr,
-                        'Time Log: ' . ($log['notes'] ?? 'Work'),
+                        mb_substr('Time Log: ' . ($log['notes'] ?? 'Work'), 0, 240),
                         $log['hours']
                     ]);
                     $expenseId = defined('IS_MYSQL') && IS_MYSQL ? $pdo->lastInsertId() : $pdo->lastInsertId('project_expenses_id_seq');

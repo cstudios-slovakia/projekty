@@ -184,7 +184,7 @@ const ProjectTimeLogs: React.FC<{ id: number; canEdit: boolean; t: any }> = ({ i
               <div data-color-mode="light" className="border border-gray-100 rounded-2xl overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
                 <MDEditor 
                   value={notes}
-                  onChange={(val) => setNotes(val || '')}
+                  onChange={(val: any) => setNotes(val || '')}
                   height={150}
                   preview="edit"
                   hideToolbar={true}

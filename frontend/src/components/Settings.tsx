@@ -8,6 +8,10 @@ interface Entity {
   name: string;
   color: string;
   hourly_rate: number;
+  daily_salary?: number;
+  is_fixed_salary?: number;
+  monthly_salary?: number;
+  target_hours_per_day?: number;
 }
 
 interface User {
@@ -24,7 +28,7 @@ export const Settings: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [newEntity, setNewEntity] = useState({ type: 'developer', name: '', color: '#3b82f6' });
   const [newUser, setNewUser] = useState<{username: string, password: string, email?: string, role?: string}>({ username: '', password: '', email: '', role: 'viewer' });
-  const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'roles' | 'system' | 'ai'>('project');
+  const [activeTab, setActiveTab] = useState<'project' | 'lead' | 'users' | 'roles' | 'system' | 'ai' | 'clickup'>('project');
   
   // System Settings
   const [sysSettings, setSysSettings] = useState({ 
@@ -34,10 +38,19 @@ export const Settings: React.FC = () => {
     lead_api_key: '',
     openai_api_key: '',
     openai_system_prompt: '',
+    clickup_api_token: '',
+    clickup_team_id: '',
     default_language: 'en',
     sent_unaccepted_warning: 0,
     remaining_invoicable_warning: 0
   });
+
+  // ClickUp Settings & Mapping State
+  const [clickupTeams, setClickupTeams] = useState<any[]>([]);
+  const [clickupMembers, setClickupMembers] = useState<any[]>([]);
+  const [clickupUserMappings, setClickupUserMappings] = useState<Record<string, number | string>>({});
+  const [clickupTesting, setClickupTesting] = useState(false);
+  const [clickupStatusMsg, setClickupStatusMsg] = useState<string | null>(null);
   
   const [userSettings, setUserSettings] = useState({
     language: localStorage.getItem('lang') || 'en'
@@ -125,12 +138,92 @@ export const Settings: React.FC = () => {
             lead_api_key: d.lead_api_key || '',
             openai_api_key: d.openai_api_key || '',
             openai_system_prompt: d.openai_system_prompt || '',
+            clickup_api_token: d.clickup_api_token || '',
+            clickup_team_id: d.clickup_team_id || '',
             default_language: d.default_language || 'en',
             sent_unaccepted_warning: Number(d.sent_unaccepted_warning) || 0,
             remaining_invoicable_warning: Number(d.remaining_invoicable_warning) || 0
           });
         }
       });
+  };
+
+  const fetchClickupData = async () => {
+    try {
+      const teamsRes = await fetch('/api/clickup.php?action=teams');
+      const teamsData = await teamsRes.json();
+      if (teamsData.status === 'success') {
+        setClickupTeams(teamsData.teams || []);
+      }
+
+      const membersRes = await fetch('/api/clickup.php?action=members');
+      const membersData = await membersRes.json();
+      if (membersData.status === 'success') {
+        setClickupMembers(membersData.members || []);
+      }
+
+      const mapRes = await fetch('/api/clickup.php?action=user_mappings');
+      const mapData = await mapRes.json();
+      if (mapData.status === 'success' && Array.isArray(mapData.data)) {
+        const mapObj: Record<string, number | string> = {};
+        mapData.data.forEach((row: any) => {
+          mapObj[row.clickup_user_id] = row.developer_id || '';
+        });
+        setClickupUserMappings(mapObj);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'clickup') {
+      fetchClickupData();
+    }
+  }, [activeTab]);
+
+  const testClickupConnection = async () => {
+    try {
+      setClickupTesting(true);
+      setClickupStatusMsg(null);
+      const res = await fetch(`/api/clickup.php?action=test&token=${encodeURIComponent(sysSettings.clickup_api_token || '')}`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        setClickupStatusMsg(`Connected successfully as ${data.user?.username} (${data.user?.email || 'API User'})!`);
+        fetchClickupData();
+      } else {
+        setClickupStatusMsg(`Connection failed: ${data.message}`);
+      }
+    } catch (e: any) {
+      setClickupStatusMsg(`Connection failed: ${e.message}`);
+    } finally {
+      setClickupTesting(false);
+    }
+  };
+
+  const saveClickupUserMappings = async () => {
+    try {
+      const mappingsArray = Object.entries(clickupUserMappings).map(([clickup_user_id, developer_id]) => {
+        const member = clickupMembers.find(m => String(m.id) === String(clickup_user_id));
+        return {
+          clickup_user_id,
+          clickup_username: member?.username || '',
+          clickup_email: member?.email || '',
+          clickup_avatar: member?.profilePicture || '',
+          developer_id: developer_id ? Number(developer_id) : null
+        };
+      });
+
+      await fetch('/api/clickup.php?action=user_mappings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mappings: mappingsArray })
+      });
+
+      saveSysSettings();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const generateApiKey = () => {
@@ -218,11 +311,21 @@ export const Settings: React.FC = () => {
     }).then(() => fetchRoles());
   };
 
-  const handleUpdateRate = (entity: Entity, rate: number) => {
+  const handleUpdateEntitySalary = (entity: Entity, fields: Partial<Entity>) => {
+    const payload = {
+      name: entity.name,
+      color: entity.color,
+      hourly_rate: fields.hourly_rate !== undefined ? fields.hourly_rate : (entity.hourly_rate || 0),
+      daily_salary: fields.daily_salary !== undefined ? fields.daily_salary : (entity.daily_salary || 0),
+      is_fixed_salary: fields.is_fixed_salary !== undefined ? (fields.is_fixed_salary ? 1 : 0) : (entity.is_fixed_salary ? 1 : 0),
+      monthly_salary: fields.monthly_salary !== undefined ? fields.monthly_salary : (entity.monthly_salary || 0),
+      target_hours_per_day: fields.target_hours_per_day !== undefined ? fields.target_hours_per_day : (entity.target_hours_per_day || 8.0)
+    };
+
     fetch(`/api/settings.php?id=${entity.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: entity.name, color: entity.color, hourly_rate: rate })
+      body: JSON.stringify(payload)
     }).then(() => fetchEntities());
   };
 
@@ -338,17 +441,85 @@ export const Settings: React.FC = () => {
                  </div>
                </div>
                {hasHourlyRate && (
-                 <div className="flex items-center gap-1 mx-2 flex-shrink-0">
-                   <span className="text-[10px] text-gray-400 font-bold">€</span>
-                   <input
-                     type="number"
-                     className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-700 outline-none focus:border-[var(--color-primary)] text-right"
-                     defaultValue={e.hourly_rate || 0}
-                     onBlur={(ev) => handleUpdateRate(e, Number(ev.target.value))}
-                     placeholder="/h"
-                     min="0"
-                   />
-                   <span className="text-[10px] text-gray-400 font-bold">/h</span>
+                 <div className="flex flex-col gap-2 my-1 mx-2 flex-shrink-0 bg-white p-2.5 rounded-xl border border-gray-200/80 shadow-2xs">
+                   {/* Fixed Salary Checkbox Toggle & Target Hours */}
+                   <div className="flex items-center justify-between gap-3">
+                     <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-black text-purple-700 select-none">
+                       <input
+                         type="checkbox"
+                         className="rounded text-purple-600 focus:ring-purple-500 w-3.5 h-3.5"
+                         checked={!!e.is_fixed_salary}
+                         onChange={(ev) => handleUpdateEntitySalary(e, { is_fixed_salary: ev.target.checked ? 1 : 0 })}
+                       />
+                       Fixed Salary
+                     </label>
+
+                     <div className="flex items-center gap-1">
+                       <span className="text-[10px] text-gray-400 font-bold">Target:</span>
+                       <input
+                         type="number"
+                         className="w-12 bg-gray-50 border border-gray-200 rounded px-1 py-0.5 text-xs font-bold text-gray-700 text-center"
+                         defaultValue={e.target_hours_per_day || 8.0}
+                         onBlur={(ev) => handleUpdateEntitySalary(e, { target_hours_per_day: Number(ev.target.value) || 8.0 })}
+                         placeholder="8.0"
+                         min="1"
+                         max="24"
+                         step="0.5"
+                         title="Daily Target Hours"
+                       />
+                       <span className="text-[10px] text-gray-400 font-bold">h/day</span>
+                     </div>
+                   </div>
+
+                   {/* Rate / Salary Inputs */}
+                   {e.is_fixed_salary ? (
+                     <div className="flex items-center gap-1.5 pt-1.5 border-t border-gray-100">
+                       <span className="text-xs text-emerald-700 font-black">Monthly Salary: €</span>
+                       <input
+                         type="number"
+                         className="w-24 bg-emerald-50/60 border border-emerald-200 rounded-lg px-2 py-1 text-xs font-black text-emerald-800 outline-none focus:border-emerald-500 text-right"
+                         defaultValue={e.monthly_salary || 0}
+                         onBlur={(ev) => handleUpdateEntitySalary(e, { monthly_salary: Number(ev.target.value) })}
+                         placeholder="2000"
+                         min="0"
+                         step="10"
+                         title="Fixed Monthly Salary"
+                       />
+                       <span className="text-[10px] text-emerald-600 font-bold">/mo</span>
+                     </div>
+                   ) : (
+                     <div className="flex items-center gap-3 pt-1.5 border-t border-gray-100">
+                       <div className="flex items-center gap-1">
+                         <span className="text-[10px] text-gray-400 font-bold">€</span>
+                         <input
+                           type="number"
+                           className="w-14 bg-gray-50 border border-gray-200 rounded-lg px-1.5 py-1 text-xs font-bold text-gray-700 outline-none focus:border-[var(--color-primary)] text-right"
+                           defaultValue={e.hourly_rate || 0}
+                           onBlur={(ev) => handleUpdateEntitySalary(e, { hourly_rate: Number(ev.target.value) })}
+                           placeholder="/h"
+                           min="0"
+                           step="0.01"
+                           title="Hourly Rate"
+                         />
+                         <span className="text-[10px] text-gray-400 font-bold">/h</span>
+                       </div>
+
+                       <div className="flex items-center gap-1">
+                         <span className="text-[10px] text-gray-400 font-bold">€</span>
+                         <input
+                           type="number"
+                           className="w-16 bg-gray-50 border border-gray-200 rounded-lg px-1.5 py-1 text-xs font-bold text-emerald-700 outline-none focus:border-[var(--color-primary)] text-right"
+                           defaultValue={e.daily_salary || 0}
+                           onBlur={(ev) => handleUpdateEntitySalary(e, { daily_salary: Number(ev.target.value) })}
+                           placeholder="/day"
+                           min="0"
+                           step="0.01"
+                           title="Daily Salary"
+                         />
+                         <span className="text-[10px] text-gray-400 font-bold">/day</span>
+                       </div>
+                     </div>
+                   )}
                  </div>
                )}
                <button onClick={() => handleDeleteEntity(e.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
@@ -401,6 +572,12 @@ export const Settings: React.FC = () => {
               className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'ai' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
           >
               AI & RolAI
+          </button>
+          <button 
+              onClick={() => setActiveTab('clickup')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'clickup' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
+          >
+              ClickUp
           </button>
       </div>
 
@@ -921,6 +1098,125 @@ export const Settings: React.FC = () => {
                   className="bg-gray-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95"
               >
                 {t('settings.system.save_button') || 'Save System Configuration'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'clickup' && (
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-8">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('clickup.title')}</h3>
+              <p className="text-gray-500 text-sm">{t('clickup.subtitle')}</p>
+            </div>
+
+            {/* ClickUp Token & Workspace Config */}
+            <div className="bg-gray-50/80 rounded-2xl p-6 border border-gray-200 space-y-4">
+              <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">API Connection &amp; Workspace</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('clickup.api_token')}</label>
+                  <div className="flex gap-2 mt-1">
+                    <input
+                      type="password"
+                      value={sysSettings.clickup_api_token || ''}
+                      onChange={e => setSysSettings({ ...sysSettings, clickup_api_token: e.target.value })}
+                      className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 font-mono text-sm"
+                      placeholder={t('clickup.token_placeholder')}
+                    />
+                    <button
+                      onClick={testClickupConnection}
+                      disabled={clickupTesting}
+                      className="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+                    >
+                      {clickupTesting ? t('common.loading') : t('clickup.test_connection')}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{t('clickup.workspace')}</label>
+                  <select
+                    value={sysSettings.clickup_team_id || ''}
+                    onChange={e => setSysSettings({ ...sysSettings, clickup_team_id: e.target.value })}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold mt-1"
+                  >
+                    <option value="">-- {t('clickup.select_workspace')} --</option>
+                    {clickupTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {clickupStatusMsg && (
+                <div className={`p-3 rounded-xl text-xs font-bold ${clickupStatusMsg.includes('failed') ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                  {clickupStatusMsg}
+                </div>
+              )}
+            </div>
+
+            {/* ClickUp User to Developer Pairings */}
+            <div className="bg-gray-50/80 rounded-2xl p-6 border border-gray-200 space-y-4">
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-gray-700">{t('clickup.user_mapping_title')}</h4>
+                <p className="text-xs text-gray-500 mt-0.5">{t('clickup.user_mapping_subtitle')}</p>
+              </div>
+
+              <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase">
+                    <tr>
+                      <th className="px-4 py-3">{t('clickup.clickup_user')}</th>
+                      <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3">{t('clickup.system_dev')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {clickupMembers.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-4 py-6 text-center text-gray-400 font-bold">
+                          No ClickUp members loaded yet. Click &quot;Test Connection&quot; above to fetch team members.
+                        </td>
+                      </tr>
+                    ) : (
+                      clickupMembers.map((member) => (
+                        <tr key={member.id} className="hover:bg-gray-50/80">
+                          <td className="px-4 py-3 font-bold text-gray-900 flex items-center gap-2">
+                            {member.profilePicture ? (
+                              <img src={member.profilePicture} alt={member.username} className="w-6 h-6 rounded-full border border-gray-200" />
+                            ) : (
+                              <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 font-black text-[10px] flex items-center justify-center">
+                                {(member.username || 'U')[0].toUpperCase()}
+                              </span>
+                            )}
+                            <span>{member.username}</span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 font-medium">{member.email || '-'}</td>
+                          <td className="px-4 py-3">
+                            <select
+                              value={clickupUserMappings[member.id] || ''}
+                              onChange={(e) => setClickupUserMappings({ ...clickupUserMappings, [member.id]: e.target.value })}
+                              className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              <option value="">-- {t('clickup.unmapped')} --</option>
+                              {entities.filter(ent => ent.type === 'developer' || ent.type === 'member').map(dev => (
+                                <option key={dev.id} value={dev.id}>{dev.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-gray-100">
+              <button
+                onClick={saveClickupUserMappings}
+                className="bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[var(--color-primary)] transition-all shadow-lg active:scale-95"
+              >
+                {t('clickup.save_mappings')} &amp; Settings
               </button>
             </div>
           </div>

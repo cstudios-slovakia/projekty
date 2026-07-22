@@ -11,5 +11,16 @@ export default defineConfig({
     rollupOptions: {
       treeshake: false
     }
+  },
+  server: {
+    host: true,
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://web:80',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 })
