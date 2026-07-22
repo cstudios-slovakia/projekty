@@ -126035,26 +126035,23 @@ const DeveloperCalendarView = ({
         /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "px-4 py-3.5 text-center bg-purple-950 text-purple-200 min-w-[130px]", children: "Week Total" })
       ] }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { className: "divide-y divide-gray-200", children: calendarWeeks.map((week, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "divide-x divide-gray-100 hover:bg-gray-50/50 transition-colors", children: [
-        week.days.map((day, dIdx) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        week.days.map((day, dIdx) => /* @__PURE__ */ jsxRuntimeExports.jsx(
           "td",
           {
             className: `p-3 align-top h-24 transition-colors ${day.isCurrentMonth ? "bg-white" : "bg-gray-50/60 opacity-40"}`,
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between mb-1.5", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "span",
-                  {
-                    className: `text-xs font-black px-2 py-0.5 rounded-lg ${day.isCurrentMonth ? "bg-gray-100 text-gray-800" : "text-gray-400"}`,
-                    children: day.dayNum
-                  }
-                ),
-                day.hours > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-black text-[11px]", children: [
-                  day.hours.toFixed(1),
-                  " h"
-                ] })
-              ] }),
-              day.notes.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1 overflow-hidden max-h-12", children: day.notes.map((note, nIdx) => /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] text-gray-500 font-medium truncate", title: note, children: note }, nIdx)) })
-            ]
+            children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between mb-1.5", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "span",
+                {
+                  className: `text-xs font-black px-2 py-0.5 rounded-lg ${day.isCurrentMonth ? "bg-gray-100 text-gray-800" : "text-gray-400"}`,
+                  children: day.dayNum
+                }
+              ),
+              day.hours > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-black text-[11px]", children: [
+                day.hours.toFixed(1),
+                " h"
+              ] })
+            ] })
           },
           dIdx
         )),

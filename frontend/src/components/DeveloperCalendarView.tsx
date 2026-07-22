@@ -259,16 +259,6 @@ export const DeveloperCalendarView: React.FC<DeveloperCalendarViewProps> = ({
                           </span>
                         )}
                       </div>
-
-                      {day.notes.length > 0 && (
-                        <div className="space-y-1 overflow-hidden max-h-12">
-                          {day.notes.map((note, nIdx) => (
-                            <p key={nIdx} className="text-[10px] text-gray-500 font-medium truncate" title={note}>
-                              {note}
-                            </p>
-                          ))}
-                        </div>
-                      )}
                     </td>
                   ))}
 
