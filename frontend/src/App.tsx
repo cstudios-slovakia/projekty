@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LogOut, Settings as SettingsIcon, Euro, Briefcase, Users, Loader2, Calendar as CalendarIcon, Code, UserCheck, ListTodo, LayoutDashboard } from 'lucide-react';
+import { LogOut, Settings as SettingsIcon, Euro, Briefcase, Users, Loader2, Calendar as CalendarIcon, Code, UserCheck, ListTodo, LayoutDashboard, KeyRound, Clock } from 'lucide-react';
 import { ProjectsTable } from './components/ProjectsTable';
 import { DashboardKPIs } from './components/DashboardKPIs';
 import { ExpensesView } from './components/ExpensesView';
@@ -15,8 +15,8 @@ import { ExecutiveDashboardView } from './components/ExecutiveDashboardView';
 import { ClientsView } from './components/ClientsView';
 import { TasksView } from './components/TasksView';
 import { Chatbot } from './components/Chatbot';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
-import { Clock } from 'lucide-react';
 
 interface LayoutProps {
   systemTitle: string;
@@ -29,6 +29,7 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
   const { t } = useTranslation();
   const location = useLocation();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -173,7 +174,22 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
             </div>
           </div>
 
-          <div className="hidden md:block text-sm font-black text-gray-300 uppercase tracking-[0.2em] whitespace-nowrap">{systemTitle}</div>
+          <div className="flex items-center gap-3">
+            {user && (
+              <button
+                onClick={() => setIsChangePasswordOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-gray-50 border border-gray-200 text-gray-700 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-800 transition-all cursor-pointer group shadow-2xs"
+                title={t('change_password.title') || 'Change Password'}
+              >
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[var(--color-primary)] to-amber-500 text-white text-[10px] font-black flex items-center justify-center uppercase shadow-2xs">
+                  {user.username ? user.username.substring(0, 2) : 'US'}
+                </div>
+                <span className="text-xs font-bold capitalize">{user.username}</span>
+                <KeyRound size={14} className="text-gray-400 group-hover:text-amber-600 transition-colors ml-0.5" />
+              </button>
+            )}
+            <div className="hidden md:block text-xs font-black text-gray-300 uppercase tracking-[0.2em] whitespace-nowrap">{systemTitle}</div>
+          </div>
         </header>
 
         {/* Dynamic Content */}
@@ -204,6 +220,7 @@ function Layout({ systemTitle, version, user, hasOpenAiKey }: LayoutProps) {
         </main>
       </div>
       {hasOpenAiKey && <Chatbot isOpen={isChatOpen} setIsOpen={setIsChatOpen} />}
+      <ChangePasswordModal isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
     </div>
   );
 }

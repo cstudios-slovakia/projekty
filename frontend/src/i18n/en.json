@@ -54,6 +54,18 @@
     "archived": "Archived",
     "order_view": "Order View"
   },
+  "change_password": {
+    "title": "Change Personal Password",
+    "subtitle": "Update your account security password",
+    "current_pwd": "Current Password",
+    "new_pwd": "New Password",
+    "confirm_pwd": "Confirm New Password",
+    "save_button": "Update Password",
+    "err_current_req": "Please enter your current password.",
+    "err_length": "New password must be at least 4 characters.",
+    "err_mismatch": "New passwords do not match.",
+    "success": "Password changed successfully!"
+  },
   "login": {
     "title": "Sign in to your account",
     "username": "Username",

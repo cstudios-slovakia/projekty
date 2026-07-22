@@ -54,6 +54,18 @@
     "archived": "Archivované",
     "order_view": "Zobrazenie poradia"
   },
+  "change_password": {
+    "title": "Zmena osobného hesla",
+    "subtitle": "Aktualizujte si svoje prihlasovacie heslo",
+    "current_pwd": "Súčasné heslo",
+    "new_pwd": "Nové heslo",
+    "confirm_pwd": "Potvrdiť nové heslo",
+    "save_button": "Aktualizovať heslo",
+    "err_current_req": "Zadajte svoje súčasné heslo.",
+    "err_length": "Nové heslo musí mať aspoň 4 znaky.",
+    "err_mismatch": "Nové heslá sa nezhodujú.",
+    "success": "Heslo bolo úspešne zmenené!"
+  },
   "login": {
     "title": "Prihláste sa do svojho účtu",
     "username": "Užívateľské meno",

@@ -43100,6 +43100,18 @@ const nav$2 = {
   archived: "Archived",
   order_view: "Order View"
 };
+const change_password$1 = {
+  title: "Change Personal Password",
+  subtitle: "Update your account security password",
+  current_pwd: "Current Password",
+  new_pwd: "New Password",
+  confirm_pwd: "Confirm New Password",
+  save_button: "Update Password",
+  err_current_req: "Please enter your current password.",
+  err_length: "New password must be at least 4 characters.",
+  err_mismatch: "New passwords do not match.",
+  success: "Password changed successfully!"
+};
 const login$2 = {
   title: "Sign in to your account",
   username: "Username",
@@ -43417,6 +43429,7 @@ const clickup$1 = {
 const enTranslations = {
   common: common$2,
   nav: nav$2,
+  change_password: change_password$1,
   login: login$2,
   dashboard: dashboard$2,
   leads: leads$2,
@@ -43482,6 +43495,18 @@ const nav$1 = {
   tasks: "Úlohy",
   archived: "Archivované",
   order_view: "Zobrazenie poradia"
+};
+const change_password = {
+  title: "Zmena osobného hesla",
+  subtitle: "Aktualizujte si svoje prihlasovacie heslo",
+  current_pwd: "Súčasné heslo",
+  new_pwd: "Nové heslo",
+  confirm_pwd: "Potvrdiť nové heslo",
+  save_button: "Aktualizovať heslo",
+  err_current_req: "Zadajte svoje súčasné heslo.",
+  err_length: "Nové heslo musí mať aspoň 4 znaky.",
+  err_mismatch: "Nové heslá sa nezhodujú.",
+  success: "Heslo bolo úspešne zmenené!"
 };
 const login$1 = {
   title: "Prihláste sa do svojho účtu",
@@ -43800,6 +43825,7 @@ const clickup = {
 const skTranslations = {
   common: common$1,
   nav: nav$1,
+  change_password,
   login: login$1,
   dashboard: dashboard$1,
   leads: leads$1,
@@ -131768,10 +131794,167 @@ const Chatbot = ({ isOpen, setIsOpen }) => {
     ] })
   ] });
 };
+const ChangePasswordModal = ({ isOpen, onClose }) => {
+  const { t: t2 } = useTranslation();
+  const [currentPassword, setCurrentPassword] = reactExports.useState("");
+  const [newPassword, setNewPassword] = reactExports.useState("");
+  const [confirmPassword, setConfirmPassword] = reactExports.useState("");
+  const [loading, setLoading] = reactExports.useState(false);
+  const [error2, setError] = reactExports.useState(null);
+  const [successMsg, setSuccessMsg] = reactExports.useState(null);
+  if (!isOpen)
+    return null;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMsg(null);
+    if (!currentPassword) {
+      setError(t2("change_password.err_current_req") || "Please enter your current password.");
+      return;
+    }
+    if (!newPassword || newPassword.length < 4) {
+      setError(t2("change_password.err_length") || "New password must be at least 4 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError(t2("change_password.err_mismatch") || "New passwords do not match.");
+      return;
+    }
+    const token2 = localStorage.getItem("token");
+    if (!token2) {
+      setError("Session expired. Please log in again.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/change_password.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+          token: token2
+        })
+      });
+      const data2 = await res.json();
+      if (data2.status === "success") {
+        setSuccessMsg(t2("change_password.success") || "Password changed successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setTimeout(() => {
+          onClose();
+          setSuccessMsg(null);
+        }, 1500);
+      } else {
+        setError(data2.message || "Failed to update password.");
+      }
+    } catch (err) {
+      setError("Connection error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-xs animate-in fade-in duration-200", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full overflow-hidden p-6 space-y-6 relative", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2.5 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200", children: /* @__PURE__ */ jsxRuntimeExports.jsx(KeyRound, { size: 22 }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-black text-gray-900 text-lg leading-snug", children: t2("change_password.title") || "Change Personal Password" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500 font-medium", children: t2("change_password.subtitle") || "Update your account security password" })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          onClick: onClose,
+          className: "p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all",
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 20 })
+        }
+      )
+    ] }),
+    error2 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-3 text-rose-700 text-xs font-bold", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { size: 18, className: "flex-shrink-0" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: error2 })
+    ] }),
+    successMsg && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-emerald-700 text-xs font-bold", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: 18, className: "flex-shrink-0" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: successMsg })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSubmit, className: "space-y-4", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-xs font-bold text-gray-700 mb-1.5", children: t2("change_password.current_pwd") || "Current Password" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "password",
+            className: "w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all",
+            value: currentPassword,
+            onChange: (e) => setCurrentPassword(e.target.value),
+            placeholder: "••••••••",
+            required: true
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-xs font-bold text-gray-700 mb-1.5", children: t2("change_password.new_pwd") || "New Password" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "password",
+            className: "w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all",
+            value: newPassword,
+            onChange: (e) => setNewPassword(e.target.value),
+            placeholder: "••••••••",
+            required: true
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-xs font-bold text-gray-700 mb-1.5", children: t2("change_password.confirm_pwd") || "Confirm New Password" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "password",
+            className: "w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all",
+            value: confirmPassword,
+            onChange: (e) => setConfirmPassword(e.target.value),
+            placeholder: "••••••••",
+            required: true
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "pt-2 flex items-center justify-end gap-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onClose,
+            className: "px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all",
+            children: t2("common.cancel") || "Cancel"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            type: "submit",
+            disabled: loading,
+            className: "px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:opacity-95 text-white text-xs font-black shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2 disabled:opacity-50",
+            children: [
+              loading && /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { size: 16, className: "animate-spin" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: t2("change_password.save_button") || "Update Password" })
+            ]
+          }
+        )
+      ] })
+    ] })
+  ] }) });
+};
 function Layout({ systemTitle, version: version2, user, hasOpenAiKey }) {
   const { t: t2 } = useTranslation();
   const location2 = useLocation();
   const [isChatOpen, setIsChatOpen] = reactExports.useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = reactExports.useState(false);
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.href = "/";
@@ -131875,7 +132058,22 @@ function Layout({ systemTitle, version: version2, user, hasOpenAiKey }) {
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hidden md:block text-sm font-black text-gray-300 uppercase tracking-[0.2em] whitespace-nowrap", children: systemTitle })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
+          user && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              onClick: () => setIsChangePasswordOpen(true),
+              className: "flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-gray-50 border border-gray-200 text-gray-700 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-800 transition-all cursor-pointer group shadow-2xs",
+              title: t2("change_password.title") || "Change Password",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-6 h-6 rounded-full bg-gradient-to-tr from-[var(--color-primary)] to-amber-500 text-white text-[10px] font-black flex items-center justify-center uppercase shadow-2xs", children: user.username ? user.username.substring(0, 2) : "US" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-bold capitalize", children: user.username }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(KeyRound, { size: 14, className: "text-gray-400 group-hover:text-amber-600 transition-colors ml-0.5" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "hidden md:block text-xs font-black text-gray-300 uppercase tracking-[0.2em] whitespace-nowrap", children: systemTitle })
+        ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "flex-1 overflow-y-auto p-8", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "max-w-[1600px] mx-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
         canViewSystem ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
@@ -131913,7 +132111,8 @@ function Layout({ systemTitle, version: version2, user, hasOpenAiKey }) {
         /* @__PURE__ */ jsxRuntimeExports.jsx(Route$1, { path: "*", element: /* @__PURE__ */ jsxRuntimeExports.jsx(TimeLogsView, {}) })
       ] }) }) })
     ] }),
-    hasOpenAiKey && /* @__PURE__ */ jsxRuntimeExports.jsx(Chatbot, { isOpen: isChatOpen, setIsOpen: setIsChatOpen })
+    hasOpenAiKey && /* @__PURE__ */ jsxRuntimeExports.jsx(Chatbot, { isOpen: isChatOpen, setIsOpen: setIsChatOpen }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ChangePasswordModal, { isOpen: isChangePasswordOpen, onClose: () => setIsChangePasswordOpen(false) })
   ] });
 }
 function AppContent({ systemSettings, version: version2, token: token2, loginForm, setLoginForm, handleLogin, error: error2 }) {
