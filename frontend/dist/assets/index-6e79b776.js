@@ -115109,6 +115109,29 @@ const Settings = () => {
                     ]
                   }
                 ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "password",
+                    placeholder: "Reset Password",
+                    className: "bg-white border rounded-lg px-3 py-1.5 text-xs border-gray-200 text-gray-700 w-[130px]",
+                    onKeyDown: (e) => {
+                      if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                        handleUpdateUser(u2.id, "password", e.currentTarget.value.trim());
+                        alert(`Password updated for user ${u2.username}`);
+                        e.currentTarget.value = "";
+                      }
+                    },
+                    onBlur: (e) => {
+                      if (e.target.value.trim()) {
+                        handleUpdateUser(u2.id, "password", e.target.value.trim());
+                        alert(`Password updated for user ${u2.username}`);
+                        e.target.value = "";
+                      }
+                    },
+                    title: "Type new password and press Enter or blur to save"
+                  }
+                ),
                 (u2.role === "employee" || u2.role === "manager" || u2.role === "admin") && /* @__PURE__ */ jsxRuntimeExports.jsxs(
                   "select",
                   {

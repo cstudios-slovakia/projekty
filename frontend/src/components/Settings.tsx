@@ -798,6 +798,26 @@ export const Settings: React.FC = () => {
                           <option value="employee">Employee Role</option>
                           <option value="viewer">Viewer Role</option>
                         </select>
+                        <input
+                          type="password"
+                          placeholder="Reset Password"
+                          className="bg-white border rounded-lg px-3 py-1.5 text-xs border-gray-200 text-gray-700 w-[130px]"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                              handleUpdateUser(u.id, 'password', e.currentTarget.value.trim());
+                              alert(`Password updated for user ${u.username}`);
+                              e.currentTarget.value = '';
+                            }
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value.trim()) {
+                              handleUpdateUser(u.id, 'password', e.target.value.trim());
+                              alert(`Password updated for user ${u.username}`);
+                              e.target.value = '';
+                            }
+                          }}
+                          title="Type new password and press Enter or blur to save"
+                        />
                         {(u.role === 'employee' || u.role === 'manager' || u.role === 'admin') && (
                           <select
                             className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 max-w-[180px] md:max-w-none"

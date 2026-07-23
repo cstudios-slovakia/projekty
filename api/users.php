@@ -81,6 +81,10 @@ try {
             $fields[] = "member_id = ?";
             $values[] = $input['member_id'] === '' ? null : $input['member_id'];
         }
+        if (!empty($input['password'])) {
+            $fields[] = "password_hash = ?";
+            $values[] = password_hash($input['password'], PASSWORD_DEFAULT);
+        }
 
         if (!empty($fields)) {
             $values[] = $userId;
